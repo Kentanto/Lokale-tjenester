@@ -1,6 +1,7 @@
 <?php 
+    echo "Finn Hustle";
+    
 ?>
-echo "Finn Hustle";
 <!DOCTYPE html>
 <html lang="en">
 <head>
