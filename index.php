@@ -3,6 +3,21 @@
 session_start();
 
 $posts = [];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 $db_ok = false;
 // Try to connect to DB and fetch posts — fail quietly to avoid 500s.
 $dbHost = 'localhost'; $dbUser = 'pyx'; $dbPass = 'admin'; $dbName = 'DB';
