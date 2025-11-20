@@ -16,6 +16,7 @@ if (extension_loaded('mysqli')){
       while($r = $res->fetch_assoc()) $posts[] = $r;
       $res->free();
     }
+    
     $conn->close();
   } else {
     error_log('DB not available for front page: ' . ($conn ? $conn->connect_error : 'no mysqli connection'));
