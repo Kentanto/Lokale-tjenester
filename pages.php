@@ -20,25 +20,55 @@ function render_header($title) {
     <title><?php echo htmlspecialchars($title); ?> - Finn Hustle</title>
 </head>
 <body>
-<nav>
-    <div class="logo">
-        <a href="index.php">
-            <img src="assets\Lokale_Tjenester.jpg" alt="">
-        </a>
-    </div>
+    <nav>
+        <div class="logo">
+            <a href="index.php">
+                <img src="assets/Lokale_Tjenester.jpg" alt="">
+            </a>
+        
+        </div>
+        <div class="nav-center">
+            <a >Trygg hjelp med lokale hender</a>
+        </div>
+        <!-- Top nav links removed per request -->
 
-    <div class="nav-center">
-        <a >Trygg hjelp med lokale hender</a>
-    </div>
+        <div class="user-profile">
+            <button class="user-btn">
+                <div class="user-avatar"><?php echo substr($user_name, 0, 1); ?></div>
+                <span><?php echo $is_logged_in ? $user_name : 'Menu'; ?></span>
+                <span>▼</span>
+            </button>
 
-    <div class="user-profile">
-        <button class="user-btn">
-            <div class="user-avatar"><?php echo substr($user_name, 0, 1); ?></div>
-            <span><?php echo $is_logged_in ? htmlspecialchars($user_name) : 'Menu'; ?></span>
-            <span>▼</span>
-        </button>
-    </div>
-</nav>
+            <div class="dropdown-menu" id="dropdownMenu">
+            <!-- Inline login/signup forms like the backup -->
+                <?php if ($is_logged_in): ?>
+                    <a href="pages.php?page=profile">Profile</a>
+                    <a href="pages.php?page=settings">Settings</a>
+                    <a href="pages.php?page=dashboard">Dashboard</a>
+                    <div class="dropdown-divider"></div>
+                    <button id="logoutBtn">Logout</button>
+                <?php else: ?>
+                    <form id="loginForm" class="auth-form">
+                        <div class="form-message" aria-live="polite"></div>
+                        <input type="text" name="username" placeholder="Username or email" required>
+                        <input type="password" name="password" placeholder="Password" required>
+                        <button type="submit">Login</button>
+                    </form>
+                    <div class="dropdown-divider"></div>
+                    <form id="signupForm" class="auth-form">
+                        <div class="form-message" aria-live="polite"></div>
+                        <input type="text" name="username" placeholder="Username" required>
+                        <input type="email" name="email" placeholder="Email" required>
+                        <input type="password" name="password" placeholder="Password" required>
+                        <button type="submit">Sign Up</button>
+                    </form>
+                    <div class="dropdown-divider"></div>
+                    <a href="pages.php?page=about">About Us</a>
+                <?php endif; ?>
+                <!-- End inline forms -->
+            </div>
+        </div>
+    </nav>
 
 <div class="page-wrapper">
     <main class="page-main">
@@ -93,7 +123,7 @@ switch ($page) {
             <ul class="page-list">
                 <li><strong>Trusted Providers:</strong> Every provider is reviewed and rated by real users.</li>
                 <li><strong>Easy Booking:</strong> Book, manage, and review services from one simple dashboard.</li>
-                <li><strong>Secure Payments:</strong> Safe, transparent payment handling and dispute support.</li>
+                <li><strong>Great Help</strong> Standard help services from us or your local town/city people</li>
             </ul>
             <p class="cta">
                 <a class="btn btn-primary" href="pages.php?page=services">Explore Services</a>
@@ -184,6 +214,7 @@ switch ($page) {
 
                 <h3 style="margin-top:18px;">Edit Settings</h3>
                 <form id="settingsForm" class="settings-form">
+                    <input type="hidden" name="action" value="update_settings">
                     <div class="form-message" aria-live="polite"></div>
                     <div class="form-group">
                         <label for="profile-username">Username</label>
@@ -194,6 +225,19 @@ switch ($page) {
                         <label for="profile-email">Email</label>
                         <input id="profile-email" name="email" type="email" value="<?php echo htmlspecialchars($user_email ?? ''); ?>" required>
                         <div class="field-error" data-for="profile-email"></div>
+                    </div>
+                    <div class="form-group">
+                        <?php $curSess = intval($user_session_duration ?? 604800); ?>
+                        <label for="profile-session">Session length</label>
+                        <select id="profile-session" name="session_duration">
+                            <option value="14400" <?php echo $curSess===14400 ? 'selected' : ''; ?>>4 hours</option>
+                            <option value="86400" <?php echo $curSess===86400 ? 'selected' : ''; ?>>1 day</option>
+                            <option value="259200" <?php echo $curSess===259200 ? 'selected' : ''; ?>>3 days</option>
+                            <option value="604800" <?php echo $curSess===604800 ? 'selected' : ''; ?>>7 days</option>
+                            <option value="2592000" <?php echo $curSess===2592000 ? 'selected' : ''; ?>>30 days</option>
+                            <option value="5184000" <?php echo $curSess===5184000 ? 'selected' : ''; ?>>60 days</option>
+                        </select>
+                        <div class="small-muted">Choose how long your login stays active on this device.</div>
                     </div>
                     <button class="btn btn-primary" type="submit">Save Settings</button>
                 </form>
@@ -247,9 +291,23 @@ switch ($page) {
             <div class="settings-section">
                 <h2>Account Settings</h2>
                 <form class="settings-form" method="post" action="#">
+                    <input type="hidden" name="action" value="update_settings">
                     <div class="form-group">
                         <label for="display-name">Display name</label>
-                        <input id="display-name" type="text" value="<?php echo htmlspecialchars($user_name); ?>">
+                        <input id="display-name" name="username" type="text" value="<?php echo htmlspecialchars($user_name); ?>">
+                    </div>
+                    <div class="form-group">
+                        <?php $curSess = intval($user_session_duration ?? 604800); ?>
+                        <label for="site-session">Session length</label>
+                        <select id="site-session" name="session_duration">
+                            <option value="14400" <?php echo $curSess===14400 ? 'selected' : ''; ?>>4 hours</option>
+                            <option value="86400" <?php echo $curSess===86400 ? 'selected' : ''; ?>>1 day</option>
+                            <option value="259200" <?php echo $curSess===259200 ? 'selected' : ''; ?>>3 days</option>
+                            <option value="604800" <?php echo $curSess===604800 ? 'selected' : ''; ?>>7 days</option>
+                            <option value="2592000" <?php echo $curSess===2592000 ? 'selected' : ''; ?>>30 days</option>
+                            <option value="5184000" <?php echo $curSess===5184000 ? 'selected' : ''; ?>>60 days</option>
+                        </select>
+                        <div class="small-muted">How long to remain logged in on this device.</div>
                     </div>
                     <div class="form-group">
                         <label>

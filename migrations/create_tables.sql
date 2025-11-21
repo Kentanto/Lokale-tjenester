@@ -38,3 +38,8 @@ CREATE TABLE IF NOT EXISTS `contacts` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
+COMMIT; 
+
+SHOW COLUMNS FROM users LIKE 'session_duration';
+
+COMMIT; 
