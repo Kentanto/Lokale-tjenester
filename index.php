@@ -71,8 +71,6 @@
                 </div>
                 <h2>Create Job</h2>
                 <p>Post a new job quickly to reach local providers — set details, budget and availability.</p>
-                <h2>Create Job</h2>
-                <p>Post a new job quickly to reach local providers — set details, budget and availability.</p>
                 <div class="column-buttons">
                     <button class="btn btn-primary">Post a Job</button>
                     <button class="btn btn-secondary">How It Works</button>
@@ -87,11 +85,7 @@
                 </div>
                 <h2>Find Job</h2>
                 <p>Browse available jobs nearby or search by category to find the right match for your skills.</p>
-                <h2>Find Job</h2>
-                <p>Browse available jobs nearby or search by category to find the right match for your skills.</p>
                 <div class="column-buttons">
-                    <button class="btn btn-primary">Search Jobs</button>
-                    <button class="btn btn-secondary">Browse Services</button>
                     <button class="btn btn-primary">Search Jobs</button>
                     <button class="btn btn-secondary">Browse Services</button>
                 </div>
