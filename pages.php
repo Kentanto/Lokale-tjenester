@@ -20,25 +20,55 @@ function render_header($title) {
     <title><?php echo htmlspecialchars($title); ?> - Finn Hustle</title>
 </head>
 <body>
-<nav>
-    <div class="logo">
-        <a href="index.php">
-            <img src="assets\Lokale_Tjenester.jpg" alt="">
-        </a>
-    </div>
+    <nav>
+        <div class="logo">
+            <a href="index.php">
+                <img src="assets/Lokale_Tjenester.jpg" alt="">
+            </a>
+        
+        </div>
+        <div class="nav-center">
+            <a >Trygg hjelp med lokale hender</a>
+        </div>
+        <!-- Top nav links removed per request -->
 
-    <div class="nav-center">
-        <a >Trygg hjelp med lokale hender</a>
-    </div>
+        <div class="user-profile">
+            <button class="user-btn">
+                <div class="user-avatar"><?php echo substr($user_name, 0, 1); ?></div>
+                <span><?php echo $is_logged_in ? $user_name : 'Menu'; ?></span>
+                <span>▼</span>
+            </button>
 
-    <div class="user-profile">
-        <button class="user-btn">
-            <div class="user-avatar"><?php echo substr($user_name, 0, 1); ?></div>
-            <span><?php echo $is_logged_in ? htmlspecialchars($user_name) : 'Menu'; ?></span>
-            <span>▼</span>
-        </button>
-    </div>
-</nav>
+            <div class="dropdown-menu" id="dropdownMenu">
+            <!-- Inline login/signup forms like the backup -->
+                <?php if ($is_logged_in): ?>
+                    <a href="pages.php?page=profile">Profile</a>
+                    <a href="pages.php?page=settings">Settings</a>
+                    <a href="pages.php?page=dashboard">Dashboard</a>
+                    <div class="dropdown-divider"></div>
+                    <button id="logoutBtn">Logout</button>
+                <?php else: ?>
+                    <form id="loginForm" class="auth-form">
+                        <div class="form-message" aria-live="polite"></div>
+                        <input type="text" name="username" placeholder="Username or email" required>
+                        <input type="password" name="password" placeholder="Password" required>
+                        <button type="submit">Login</button>
+                    </form>
+                    <div class="dropdown-divider"></div>
+                    <form id="signupForm" class="auth-form">
+                        <div class="form-message" aria-live="polite"></div>
+                        <input type="text" name="username" placeholder="Username" required>
+                        <input type="email" name="email" placeholder="Email" required>
+                        <input type="password" name="password" placeholder="Password" required>
+                        <button type="submit">Sign Up</button>
+                    </form>
+                    <div class="dropdown-divider"></div>
+                    <a href="pages.php?page=about">About Us</a>
+                <?php endif; ?>
+                <!-- End inline forms -->
+            </div>
+        </div>
+    </nav>
 
 <div class="page-wrapper">
     <main class="page-main">
