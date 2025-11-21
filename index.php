@@ -69,11 +69,11 @@
                 <div class="column-image">
                     <img src="https://via.placeholder.com/250x250?text=Feature+1" alt="Feature 1">
                 </div>
-                <h2>Feature One</h2>
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Hic, aliquid quaerat deserunt repudiandae voluptatibus ipsa!</p>
+                <h2>Create Job</h2>
+                <p>Post a new job quickly to reach local providers — set details, budget and availability.</p>
                 <div class="column-buttons">
-                    <button class="btn btn-primary">Explore</button>
-                    <button class="btn btn-secondary">Learn More</button>
+                    <button class="btn btn-primary">Post a Job</button>
+                    <button class="btn btn-secondary">How It Works</button>
                 </div>
             </div>
         </div>
@@ -83,11 +83,11 @@
                 <div class="column-image">
                     <img src="https://via.placeholder.com/250x250?text=Feature+2" alt="Feature 2">
                 </div>
-                <h2>Feature Two</h2>
-                <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Tempore dolorum magnam quisquam debitis? Similique, libero.</p>
+                <h2>Find Job</h2>
+                <p>Browse available jobs nearby or search by category to find the right match for your skills.</p>
                 <div class="column-buttons">
-                    <button class="btn btn-primary">Get Started</button>
-                    <button class="btn btn-secondary">See Demo</button>
+                    <button class="btn btn-primary">Search Jobs</button>
+                    <button class="btn btn-secondary">Browse Services</button>
                 </div>
             </div>
         </div>
