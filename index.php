@@ -70,8 +70,7 @@
                 <h2>Create Job</h2>
                 <p>Post a new job quickly to reach local providers — set details, budget and availability.</p>
                 <div class="column-buttons">
-                    <button class="btn btn-primary">Post a Job</button>
-                    <button class="btn btn-secondary">How It Works</button>
+                    <a href="pages.php?page=create_job" class="btn btn-primary">Post a Job</a>
                 </div>
             </div>
         </div>
@@ -84,8 +83,7 @@
                 <h2>Find Job</h2>
                 <p>Browse available jobs nearby or search by category to find the right match for your skills.</p>
                 <div class="column-buttons">
-                    <button class="btn btn-primary">Search Jobs</button>
-                    <button class="btn btn-secondary">Browse Services</button>
+                    <a href="pages.php?page=jobs" class="btn btn-primary">Search Jobs</a>
                 </div>
             </div>
         </div>
