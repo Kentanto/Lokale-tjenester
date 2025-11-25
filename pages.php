@@ -95,7 +95,7 @@ function render_footer() {
             <div class="footer-right">
                 <span>&copy; <?php echo date('Y'); ?> Finn Hustle</span>
                 <span class="footer-sep">|</span>
-                <a href="LICENSE" class="license-link">Basic Fair Use (US)</a>
+                <a href="LICENSE" class="license-link">Basic Fair Use (NOR)</a>
             </div>
         </div>
     </footer>
@@ -115,11 +115,11 @@ switch ($page) {
         ?>
         <section class="lead">
             <p>Welcome to <strong>Finn Hustle</strong> — your local hub for finding trusted services nearby. We connect
-            homeowners and small businesses with vetted local professionals to get things done quickly and reliably.</p>
+            homeowners and small businesses with local professionals to get things done quickly and reliably!</p>
         </section>
 
         <section class="features">
-            <h2>Why choose us</h2>
+            <h2>Why choose us?</h2>
             <ul class="page-list">
                 <li><strong>Trusted Providers:</strong> Every provider is reviewed and rated by real users.</li>
                 <li><strong>Easy Booking:</strong> Book, manage, and review services from one simple dashboard.</li>
@@ -167,7 +167,7 @@ switch ($page) {
         render_header('Contact');
         ?>
         <section class="contact-section">
-            <p>If you have a question or need help finding a provider, send us a message and we'll respond within 1 business day.</p>
+            <p>If you have a question or need help finding a provider, send us a message and we'll respond as soon as possible.</p>
 
             <form id="contactForm" class="contact-form" method="POST" action="#">
                 <div class="form-group">
@@ -188,7 +188,7 @@ switch ($page) {
 
             <div class="contact-details">
                 <h3>Other ways to reach us</h3>
-                <p>Email: <a href="mailto:support@finnhustle.example">support@finnhustle.example</a></p>
+                <p>Email: <a href="mailto:support@finnhustle.example">example@lokaletjenester.no</a></p>
                 <p>Hours: Mon–Fri, 09:00–17:00</p>
             </div>
         </section>
