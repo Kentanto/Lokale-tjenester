@@ -64,8 +64,6 @@ function render_header($title) {
                         <input type="password" name="password" placeholder="Password" required>
                         <button type="submit">Sign Up</button>
                     </form>
-                    <div class="dropdown-divider"></div>
-                    <a href="pages.php?page=about">About Us</a>
                 <?php endif; ?>
                 <!-- End inline forms -->
             </div>
