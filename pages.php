@@ -3,7 +3,7 @@ require_once 'display.php';
 
 // Simple pages router: pages.php?page=about|services|contact|profile|settings|dashboard|login|signup
 $page = isset($_GET['page']) ? $_GET['page'] : 'about';
-$allowed = ['about','services','contact','profile','settings','dashboard','login','signup'];
+$allowed = ['about','services','contact','profile','settings','dashboard','login','signup','create_job','jobs'];
 if (!in_array($page, $allowed)) {
     $page = 'about';
 }
@@ -158,6 +158,68 @@ switch ($page) {
                 </div>
             </div>
             <p class="note">Don't see what you need? <a href="pages.php?page=contact">Contact us</a> and we'll help.</p>
+        </section>
+        <?php
+        render_footer();
+        break;
+
+    case 'create_job':
+        render_header('Create Job');
+        ?>
+        <section class="lead">
+            <p>Create a job listing to reach local providers. Fill in the details below.</p>
+        </section>
+
+        <section class="contact-section">
+            <form id="createPostForm" class="contact-form" method="post" action="#">
+                <div class="form-message" aria-live="polite"></div>
+                <div class="form-group">
+                    <label for="job-title">Title</label>
+                    <input id="job-title" name="title" type="text" required>
+                </div>
+                <div class="form-group">
+                    <label for="job-desc">Descriptions</label>
+                    <textarea id="job-desc" name="description" rows="6" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="job-category">Category</label>
+                    <input id="job-category" name="category" type="text" placeholder="e.g. Plumbing, Gardening">
+                </div>
+                <div class="form-group">
+                    <label for="job-budget">Budget (numeric)</label>
+                    <input id="job-budget" name="budget" type="number" min="0" step="1">
+                </div>
+                <div class="form-group">
+                    <label for="job-location">Location</label>
+                    <input id="job-location" name="location" type="text" placeholder="City or postcode">
+                </div>
+                <button class="btn btn-primary" type="submit">Create Job</button>
+            </form>
+        </section>
+        <?php
+        render_footer();
+        break;
+
+    case 'jobs':
+        render_header('Find Jobs');
+        ?>
+        <section class="lead">
+            <p>Browse available jobs nearby. Use the search and filters to narrow results.</p>
+        </section>
+
+        <section class="contact-section">
+            <form id="jobsSearchForm" class="auth-form" method="post" action="#">
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                    <input name="q" id="search-q" type="search" placeholder="Search title or description" style="flex:1;min-width:200px">
+                    <input name="category" id="search-category" type="text" placeholder="Category">
+                    <input name="location" id="search-location" type="text" placeholder="Location">
+                    <input name="min_budget" id="search-min" type="number" placeholder="Min budget" style="width:110px">
+                    <input name="max_budget" id="search-max" type="number" placeholder="Max budget" style="width:110px">
+                    <button id="jobsSearchBtn" class="btn btn-primary" type="submit">Search</button>
+                </div>
+            </form>
+
+            <div id="jobsList" style="margin-top:18px"></div>
         </section>
         <?php
         render_footer();

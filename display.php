@@ -1,4 +1,7 @@
 <?php
+// Temporary debug log to help diagnose 500 errors when browser shows no response.
+// The webserver must be able to write files in this directory for these logs to appear.
+@file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - display.php loaded\n", FILE_APPEND);
 // Maximum supported session lifetime (seconds) - 60 days
 define('FH_MAX_SESSION', 60 * 24 * 3600); // 5184000
 // Default per-user session (seconds) - 7 days
@@ -6,13 +9,67 @@ define('FH_DEFAULT_SESSION', 7 * 24 * 3600); // 604800
 
 // Configure session GC and cookie parameters to accommodate long sessions.
 ini_set('session.gc_maxlifetime', FH_MAX_SESSION);
-session_set_cookie_params([
-    'lifetime' => FH_MAX_SESSION,
-    'path' => '/',
-    'httponly' => true,
-    'samesite' => 'Lax'
-]);
+
+// Helper: detect if the current request is secure (HTTPS) — robust across servers/proxies
+function request_is_secure(){
+    if(!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') return true;
+    if(!empty($_SERVER['REQUEST_SCHEME']) && $_SERVER['REQUEST_SCHEME'] === 'https') return true;
+    if(!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https') return true;
+    return false;
+}
+
+// session_set_cookie_params() accepts an options array since PHP 7.3. For older PHP versions
+// pass the classic signature (lifetime, path, domain, secure, httponly).
+if(defined('PHP_VERSION_ID') && PHP_VERSION_ID >= 70300){
+    session_set_cookie_params([
+        'lifetime' => FH_MAX_SESSION,
+        'path' => '/',
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+} else {
+    $isSecure = request_is_secure();
+    session_set_cookie_params(FH_MAX_SESSION, '/', '', $isSecure, true);
+}
+
 session_start();
+
+// Centralized session cookie setter to avoid inconsistencies and to include SameSite when supported.
+function set_session_cookie_with_lifetime($lifetime){
+    $name = session_name();
+    $value = session_id();
+    $expire = time() + intval($lifetime);
+    $isSecure = request_is_secure();
+    // Use options array when available (PHP 7.3+)
+    if(defined('PHP_VERSION_ID') && PHP_VERSION_ID >= 70300){
+        setcookie($name, $value, [
+            'expires' => $expire,
+            'path' => '/',
+            'secure' => $isSecure,
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]);
+    } else {
+        // Older PHP: fall back to classic signature (cannot set SameSite reliably)
+        setcookie($name, $value, $expire, '/', '', $isSecure, true);
+    }
+}
+
+function clear_session_cookie(){
+    $name = session_name();
+    $isSecure = request_is_secure();
+    if(defined('PHP_VERSION_ID') && PHP_VERSION_ID >= 70300){
+        setcookie($name, '', [
+            'expires' => time() - 3600,
+            'path' => '/',
+            'secure' => $isSecure,
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]);
+    } else {
+        setcookie($name, '', time() - 3600, '/', '', $isSecure, true);
+    }
+}
 
 // Defaults exposed to pages that `require_once 'display.php'.
 $is_logged_in = false;
@@ -48,6 +105,7 @@ function safe_prepare($conn, $sql){
 if(isset($_GET['action']) && $_GET['action'] === 'logout'){
     session_unset();
     session_destroy();
+    clear_session_cookie();
     // If requested via XHR, return JSON; otherwise redirect back to home.
     if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'){
         header('Content-Type: application/json');
@@ -60,8 +118,15 @@ if(isset($_GET['action']) && $_GET['action'] === 'logout'){
 
 // AJAX POST handlers for login/signup (mirrors the backup behavior)
 if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
+    // Log the incoming POST request for debugging (temporary)
+    $post_log = date('c') . " - POST start: action=" . ($_POST['action'] ?? '(none)') . " method=" . ($_SERVER['REQUEST_METHOD'] ?? '') . " remote=" . ($_SERVER['REMOTE_ADDR'] ?? '') . "\n";
+    @file_put_contents(__DIR__ . '/debug_display_exec.log', $post_log, FILE_APPEND);
+
     $action = $_POST['action'];
     header('Content-Type: application/json');
+    // Also log POST keys and cookies briefly
+    @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - POST keys: " . implode(',', array_keys($_POST)) . "\n", FILE_APPEND);
+    @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - COOKIES: " . json_encode(array_keys($_COOKIE)) . "\n", FILE_APPEND);
 
     if($action === 'signup'){
         $username = trim($_POST['username'] ?? '');
@@ -94,11 +159,36 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
             session_regenerate_id(true);
             $_SESSION['user_id'] = $new_id;
             $_SESSION['expires_at'] = time() + $default_dur;
-            // update client cookie expiry
-            setcookie(session_name(), session_id(), time() + $default_dur, '/', '', isset($_SERVER['HTTPS']), true);
+            // update client cookie expiry (centralized helper)
+            set_session_cookie_with_lifetime($default_dur);
             echo json_encode(['status'=>'success','message'=>'Signup successful']);
             exit;
         } else { echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
+    }
+
+    if($action === 'debug'){
+        // Return diagnostics for debugging (temporary)
+        $db_ok = false;
+        $db_err = null;
+        if($conn){
+            if($conn->connect_error){ $db_err = $conn->connect_error; }
+            else $db_ok = true;
+        } else {
+            $db_err = 'No $conn';
+        }
+        $info = [
+            'php_version' => PHP_VERSION,
+            'php_sapi' => PHP_SAPI,
+            'is_secure' => request_is_secure(),
+            'session_name' => session_name(),
+            'session_id' => session_id(),
+            'cookies' => $_COOKIE,
+            'session' => $_SESSION,
+            'db_connected' => $db_ok,
+            'db_error' => $db_err
+        ];
+        echo json_encode(['status'=>'success','debug'=>$info]);
+        exit;
     }
 
     if($action === 'login'){
@@ -117,7 +207,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
                 $_SESSION['user_id'] = $id;
                 $dur = intval($session_duration) ?: FH_DEFAULT_SESSION;
                 $_SESSION['expires_at'] = time() + $dur;
-                setcookie(session_name(), session_id(), time() + $dur, '/', '', isset($_SERVER['HTTPS']), true);
+                set_session_cookie_with_lifetime($dur);
                 echo json_encode(['status'=>'success','message'=>'Login successful']);
                 exit;
             } else {
@@ -126,10 +216,70 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
         } else { echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
     }
 
+    if($action === 'create_post'){
+        // create a job/post
+        $title = trim($_POST['title'] ?? '');
+        $desc = trim($_POST['description'] ?? '');
+        $category = trim($_POST['category'] ?? '');
+        $budget = intval($_POST['budget'] ?? 0);
+        $location = trim($_POST['location'] ?? '');
+
+        if(!$title || !$desc){ echo json_encode(['status'=>'error','message'=>'Title and description required']); exit; }
+
+        $stmt = safe_prepare($conn, "INSERT INTO posts (title, description, category, budget, location, user_id, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())");
+        if($stmt){
+            $uid = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : null;
+            $stmt->bind_param('sssisi', $title, $desc, $category, $budget, $location, $uid);
+            if(!$stmt->execute()){ echo json_encode(['status'=>'error','message'=>'Failed to create job']); exit; }
+            echo json_encode(['status'=>'success','message'=>'Job created']); exit;
+        } else {
+            echo json_encode(['status'=>'error','message'=>'Database error creating job']); exit;
+        }
+    }
+
+    if($action === 'list_jobs'){
+        // list jobs with optional filters
+        $q = trim($_POST['q'] ?? '');
+        $category = trim($_POST['category'] ?? '');
+        $location = trim($_POST['location'] ?? '');
+        $min = isset($_POST['min_budget']) ? intval($_POST['min_budget']) : null;
+        $max = isset($_POST['max_budget']) ? intval($_POST['max_budget']) : null;
+        $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 50;
+
+        $sql = "SELECT p.id, p.title, p.description, p.category, p.budget, p.location, p.created_at, COALESCE(u.username,'Guest') AS username FROM posts p LEFT JOIN users u ON p.user_id = u.id";
+        $where = [];
+        $types = '';
+        $params = [];
+
+        if($q !== ''){ $where[] = "(p.title LIKE ? OR p.description LIKE ? )"; $params[] = "%$q%"; $params[] = "%$q%"; $types .= 'ss'; }
+        if($category !== ''){ $where[] = "p.category = ?"; $params[] = $category; $types .= 's'; }
+        if($location !== ''){ $where[] = "p.location = ?"; $params[] = $location; $types .= 's'; }
+        if($min !== null){ $where[] = "p.budget >= ?"; $params[] = $min; $types .= 'i'; }
+        if($max !== null){ $where[] = "p.budget <= ?"; $params[] = $max; $types .= 'i'; }
+
+        if(count($where)) $sql .= ' WHERE ' . implode(' AND ', $where);
+        $sql .= ' ORDER BY p.created_at DESC LIMIT ' . intval($limit);
+
+        $stmt = safe_prepare($conn, $sql);
+        if(!$stmt){ echo json_encode(['status'=>'error','message'=>'DB error preparing list']); exit; }
+        if($types !== ''){
+            // bind dynamically
+            $bindNames = [];
+            $bindNames[] = $types;
+            foreach($params as $i => $v) $bindNames[] = &$params[$i];
+            call_user_func_array([$stmt, 'bind_param'], $bindNames);
+        }
+        $stmt->execute();
+        $res = $stmt->get_result();
+        $rows = [];
+        while($r = $res->fetch_assoc()) $rows[] = $r;
+        echo json_encode(['status'=>'success','jobs'=>$rows]); exit;
+    }
+
     if($action === 'logout'){
         session_unset();
         session_destroy();
-        setcookie(session_name(), '', time() - 3600, '/', '', isset($_SERVER['HTTPS']), true);
+        clear_session_cookie();
         echo json_encode(['status'=>'success','message'=>'Logged out']);
         exit;
     }
@@ -210,7 +360,7 @@ if(isset($_SESSION['user_id']) && $conn){
             // If an older session lacks expires_at, set it now as a one-time max lifetime
             if(empty($_SESSION['expires_at'])){
                 $_SESSION['expires_at'] = $now + $user_session_duration;
-                setcookie(session_name(), session_id(), time() + $user_session_duration, '/', '', isset($_SERVER['HTTPS']), true);
+                set_session_cookie_with_lifetime($user_session_duration);
             }
             // NOTE: we intentionally do NOT update $_SESSION['expires_at'] on subsequent requests.
         }

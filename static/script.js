@@ -132,8 +132,65 @@ document.addEventListener('DOMContentLoaded',function(){
         let data = await parseJsonResponse(res);
         showFormMessage(form, data.message, data.status);
         disableForm(form, false);
-        if(data.status==='success') location.reload();
+        if(data.status==='success'){
+            // redirect to job listings after successful creation
+            showConfirmation('Job created','Your job was posted.', 'pages.php?page=jobs', 900);
+        }
     });
+
+    // Jobs listing + search
+    function renderJobs(jobs, container){
+        if(!container) return;
+        if(!jobs || jobs.length === 0){ container.innerHTML = '<div class="note">No jobs found.</div>'; return; }
+        let out = '';
+        jobs.forEach(j=>{
+            out += `<article class="service-card" style="margin-bottom:12px">
+                <h3>${escapeHtml(j.title)}</h3>
+                <p>${escapeHtml(j.description)}</p>
+                <p style="color:#666;font-size:13px">${escapeHtml(j.username)} — ${escapeHtml(j.location||'')}</p>
+                <p style="font-weight:600;margin-top:6px">Budget: ${j.budget ? (parseInt(j.budget) + ' NOK') : 'Negotiable'}</p>
+                <div style="font-size:12px;color:#888;margin-top:6px">Posted: ${escapeHtml(j.created_at)}</div>
+            </article>`;
+        });
+        container.innerHTML = out;
+    }
+
+    function escapeHtml(s){ if(!s && s!==0) return ''; return String(s).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];}); }
+
+    async function loadJobs(filters={}){
+        const container = document.getElementById('jobsList');
+        if(!container) return;
+        const fd = new FormData();
+        fd.append('action','list_jobs');
+        if(filters.q) fd.append('q', filters.q);
+        if(filters.category) fd.append('category', filters.category);
+        if(filters.location) fd.append('location', filters.location);
+        if(filters.min_budget) fd.append('min_budget', filters.min_budget);
+        if(filters.max_budget) fd.append('max_budget', filters.max_budget);
+        let res;
+        try{ res = await fetch('display.php',{method:'POST', body: fd, credentials:'same-origin'}); }
+        catch(err){ container.innerHTML = '<div class="note">Network error</div>'; return; }
+        let data = await parseJsonResponse(res);
+        if(data.status === 'success') renderJobs(data.jobs, container);
+        else container.innerHTML = `<div class="note">${escapeHtml(data.message || 'Error')}</div>`;
+    }
+
+    // wire jobs search form
+    document.getElementById('jobsSearchForm')?.addEventListener('submit', async function(e){
+        e.preventDefault();
+        const f = e.target;
+        const filters = {
+            q: f.querySelector('[name="q"]')?.value || '',
+            category: f.querySelector('[name="category"]')?.value || '',
+            location: f.querySelector('[name="location"]')?.value || '',
+            min_budget: f.querySelector('[name="min_budget"]')?.value || '',
+            max_budget: f.querySelector('[name="max_budget"]')?.value || ''
+        };
+        loadJobs(filters);
+    });
+
+    // auto-load jobs on page load when jobsList exists
+    if(document.getElementById('jobsList')) loadJobs();
 
     // Page (full-page) signup form
     document.getElementById("signupPageForm")?.addEventListener("submit",async e=>{
