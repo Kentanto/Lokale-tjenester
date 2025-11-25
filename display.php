@@ -3,6 +3,10 @@
 // The webserver must be able to write files in this directory for these logs to appear.
 @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - display.php loaded\n", FILE_APPEND);
 // Maximum supported session lifetime (seconds) - 60 days
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 define('FH_MAX_SESSION', 60 * 24 * 3600); // 5184000
 // Default per-user session (seconds) - 7 days
 define('FH_DEFAULT_SESSION', 7 * 24 * 3600); // 604800
@@ -197,7 +201,8 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
         // read session_duration so we can apply it on successful login
         $stmt = safe_prepare($conn, "SELECT id, password_hash, COALESCE(session_duration, ?) AS session_duration FROM users WHERE username=? OR email=? LIMIT 1");
         if($stmt){
-            $stmt->bind_param('iss', FH_DEFAULT_SESSION, $identifier, $identifier);
+            $defaultSession = FH_DEFAULT_SESSION;
+            $stmt->bind_param('iss', $defaultSession, $identifier, $identifier);
             $stmt->execute();
             $stmt->store_result();
             $stmt->bind_result($id, $hash, $session_duration);
@@ -270,9 +275,36 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
             call_user_func_array([$stmt, 'bind_param'], $bindNames);
         }
         $stmt->execute();
-        $res = $stmt->get_result();
         $rows = [];
-        while($r = $res->fetch_assoc()) $rows[] = $r;
+        // Prefer get_result() when available (requires mysqlnd). Fall back to bind_result() otherwise.
+        if(method_exists($stmt, 'get_result')){
+            $res = $stmt->get_result();
+            while($r = $res->fetch_assoc()) $rows[] = $r;
+        } else {
+            // Fallback: fetch results via metadata + bind_result
+            $stmt->store_result();
+            $meta = $stmt->result_metadata();
+            if($meta){
+                $fields = [];
+                while($f = $meta->fetch_field()) $fields[] = $f->name;
+                $meta->free();
+
+                $bindVars = [];
+                $row = [];
+                foreach($fields as $fld){
+                    $row[$fld] = null;
+                    $bindVars[] = & $row[$fld];
+                }
+                if(count($bindVars)){
+                    call_user_func_array([$stmt, 'bind_result'], $bindVars);
+                    while($stmt->fetch()){
+                        $out = [];
+                        foreach($row as $k => $v) $out[$k] = $v;
+                        $rows[] = $out;
+                    }
+                }
+            }
+        }
         echo json_encode(['status'=>'success','jobs'=>$rows]); exit;
     }
 
@@ -339,7 +371,8 @@ if(isset($_SESSION['user_id']) && $conn){
     $stmt = safe_prepare($conn, "SELECT username, email, created_at, COALESCE(session_duration, ?) AS session_duration FROM users WHERE id = ? LIMIT 1");
     if($stmt){
         $default = FH_DEFAULT_SESSION;
-        $stmt->bind_param('ii', $default, $_SESSION['user_id']);
+        $sessUid = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : 0;
+        $stmt->bind_param('ii', $default, $sessUid);
         $stmt->execute();
         $stmt->bind_result($username, $email, $created_at, $session_duration);
         $stmt->fetch();

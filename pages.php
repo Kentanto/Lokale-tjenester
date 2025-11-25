@@ -10,6 +10,8 @@ if (!in_array($page, $allowed)) {
 
 // Helper to render header
 function render_header($title) {
+    // make session/user vars available inside this function
+    global $user_name, $is_logged_in;
     ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -34,8 +36,8 @@ function render_header($title) {
 
         <div class="user-profile">
             <button class="user-btn">
-                <div class="user-avatar"><?php echo substr($user_name, 0, 1); ?></div>
-                <span><?php echo $is_logged_in ? $user_name : 'Menu'; ?></span>
+                <div class="user-avatar"><?php echo substr((string)$user_name, 0, 1); ?></div>
+                <span><?php echo $is_logged_in ? htmlspecialchars($user_name) : 'Menu'; ?></span>
                 <span>▼</span>
             </button>
 
