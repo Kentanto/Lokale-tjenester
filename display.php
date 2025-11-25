@@ -97,12 +97,18 @@ if ($conn && $conn->connect_error) {
 }
 
 function safe_prepare($conn, $sql){
-    $stmt = @$conn->prepare($sql);
-    if(!$stmt){
-        error_log('display.php: prepare failed: ' . $conn->error . ' -- SQL: ' . $sql);
+    try {
+        // suppress warnings but allow exceptions to be caught
+        $stmt = $conn->prepare($sql);
+        if(!$stmt){
+            error_log('display.php: prepare failed: ' . $conn->error . ' -- SQL: ' . $sql);
+            return null;
+        }
+        return $stmt;
+    } catch (mysqli_sql_exception $ex) {
+        error_log('display.php: prepare exception: ' . $ex->getMessage() . ' -- SQL: ' . $sql);
         return null;
     }
-    return $stmt;
 }
 
 // Logout via GET (link uses display.php?action=logout)
