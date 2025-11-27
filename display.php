@@ -90,11 +90,11 @@ $DB_USER = 'pyx';
 $DB_PASS = 'admin';
 
 // Try to connect; fail quietly but log errors.
-// connect (fail quietly)
-// $conn = @new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME); #get this back later
-//if ($conn && $conn->connect_error) {
-//    error_log('display.php: DB connect error: ' . $conn->connect_error);
-// }
+//connect (fail quietly)
+ $conn = @new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME); #get this back later
+if ($conn && $conn->connect_error) {
+    error_log('display.php: DB connect error: ' . $conn->connect_error);
+ }
 
 function safe_prepare($conn, $sql){
     try {
