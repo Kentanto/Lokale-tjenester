@@ -20,7 +20,7 @@ fix up temp items and such
 
 make finding and creating jobs actually work
 
-remove session lenght from settings, it doesnt need to be changeable or visible
+remove session length from settings, it doesnt need to be changeable or visible
 
 change password should be more sophisticated and only available througha forgot password option and mailing verification.
 meaning, no willy nilly password change
