@@ -358,6 +358,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 600;
+            text-decoration: none;
         }
 
         .btn-primary {
