@@ -1,0 +1,12 @@
+-En egen feed med oversikt over jobber det trengs flere til
+    her kan vi lage en enkel 'feed', men ingen algorytme for å se hvilke jobber passer deg best.
+
+-Biografi til profil, skrive evt ting man kan/ting man ikke kan
+    bio til profil klarer vi fint
+ 
+-Poengsystem
+    ratings får vi til; har allerede lagdt inn mesteparten
+
+-Dugnadsfunksjon/logge inn som en gruppe/idrettslag 
+    vi skal se videre på det, men tror vi kan gjøre dette via et "admin må accepte gruppa" type system.
+
