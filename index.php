@@ -65,7 +65,7 @@
         <div class="column">
             <div class="column-content">
                 <div class="column-image">
-                    <img src="https://via.placeholder.com/250x250?text=Feature+1" alt="Feature 1">
+                    <img src="https://media.istockphoto.com/id/1199554243/photo/engineer-men-making-handshake-in-construction-site-employee-or-worker-shake-hands-to-employer.jpg?s=612x612&w=0&k=20&c=kU_76i5whSa-3aPuMDdcAJsmRwtq3sF0Z7SLXVdosuc=" alt="Feature 1">
                 </div>
                 <h2>Create Job</h2>
                 <p>Post a new job quickly to reach local providers — set details, budget and availability.</p>
@@ -78,7 +78,7 @@
         <div class="column">
             <div class="column-content">
                 <div class="column-image">
-                    <img src="https://via.placeholder.com/250x250?text=Feature+2" alt="Feature 2">
+                    <img src="https://media-cldnry.s-nbcnews.com/image/upload/t_fit-1500w,f_auto,q_auto:best/rockcms/2022-01/shoveling-snow-kb-main-220107-b13b2a.jpg" alt="Feature 2">
                 </div>
                 <h2>Find Job</h2>
                 <p>Browse available jobs nearby or search by category to find the right match for your skills.</p>
