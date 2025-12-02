@@ -44,6 +44,9 @@ function render_header($title) {
             <div class="dropdown-menu" id="dropdownMenu">
             <!-- Inline login/signup forms like the backup -->
                 <?php if ($is_logged_in): ?>
+                    <?php if (!empty($is_admin)): ?>
+                        <a href="admin.php">Admin Panel</a>
+                    <?php endif; ?>
                     <a href="pages.php?page=profile">Profile</a>
                     <a href="pages.php?page=settings">Settings</a>
                     <a href="pages.php?page=dashboard">Dashboard</a>
