@@ -127,7 +127,9 @@ if(isset($_GET['action']) && $_GET['action'] === 'logout'){
 }
 
 // AJAX POST handlers for login/signup (mirrors the backup behavior)
-if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
+// Only handle AJAX-style POST actions when this file is the requested endpoint
+// (i.e. avoid intercepting POSTs intended for pages that `require_once 'display.php'`).
+if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
     // Log the incoming POST request for debugging (temporary)
     $post_log = date('c') . " - POST start: action=" . ($_POST['action'] ?? '(none)') . " method=" . ($_SERVER['REQUEST_METHOD'] ?? '') . " remote=" . ($_SERVER['REMOTE_ADDR'] ?? '') . "\n";
     @file_put_contents(__DIR__ . '/debug_display_exec.log', $post_log, FILE_APPEND);

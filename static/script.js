@@ -141,7 +141,17 @@ document.addEventListener('DOMContentLoaded',function(){
     // Jobs listing + search
     function renderJobs(jobs, container){
         if(!container) return;
-        if(!jobs || jobs.length === 0){ container.innerHTML = '<div class="note">No jobs found.</div>'; return; }
+        if(!jobs || jobs.length === 0){
+            container.innerHTML = `
+                <div class="empty-state">
+                    <h3>No jobs found</h3>
+                    <p>Try widening your search or create a new job to attract local providers.</p>
+                    <div style="margin-top:12px;">
+                        <a href="pages.php?page=create_job" class="btn btn-primary">Post a Job</a>
+                    </div>
+                </div>`;
+            return;
+        }
         let out = '';
         jobs.forEach(j=>{
             out += `<article class="service-card" style="margin-bottom:12px">
@@ -187,6 +197,14 @@ document.addEventListener('DOMContentLoaded',function(){
             max_budget: f.querySelector('[name="max_budget"]')?.value || ''
         };
         loadJobs(filters);
+    });
+
+    // Reset filters button: clear inputs and reload jobs
+    document.getElementById('jobsResetBtn')?.addEventListener('click', function(e){
+        const form = document.getElementById('jobsSearchForm');
+        if(!form) return;
+        [...form.querySelectorAll('input')].forEach(i=>{ if(i.type !== 'hidden') i.value = ''; });
+        loadJobs();
     });
 
     // auto-load jobs on page load when jobsList exists

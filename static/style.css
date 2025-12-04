@@ -344,6 +344,22 @@
             color: var(--muted);
             font-size: 14px;
         }
+
+        /* Empty state card used when a list has no items */
+        .empty-state {
+            background: linear-gradient(180deg, #ffffff 0%, #fbfffb 100%);
+            border: 1px dashed rgba(43,52,61,0.06);
+            padding: 22px;
+            border-radius: 10px;
+            text-align: center;
+            color: var(--muted);
+        }
+        .empty-state h3 {
+            margin: 0 0 8px 0;
+            color: var(--jet);
+            font-size: 18px;
+        }
+        .empty-state p { margin: 0; }
         .column-image {
             display: flex;
             align-items: center;

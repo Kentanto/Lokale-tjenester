@@ -173,31 +173,61 @@ switch ($page) {
             <p>Create a job listing to reach local providers. Fill in the details below.</p>
         </section>
 
-        <section class="contact-section">
-            <form id="createPostForm" class="contact-form" method="post" action="#">
-                <div class="form-message" aria-live="polite"></div>
-                <div class="form-group">
-                    <label for="job-title">Title</label>
-                    <input id="job-title" name="title" type="text" required>
+        <section class="services-grid">
+            <div class="grid" style="grid-template-columns: 1fr 340px; gap:18px; align-items:start;">
+                <div>
+                    <form id="createPostForm" class="contact-form" method="post" action="#">
+                        <input type="hidden" name="action" value="create_post">
+                        <div class="form-message" aria-live="polite"></div>
+                        <div class="form-group">
+                            <label for="job-title">Title</label>
+                            <input id="job-title" name="title" type="text" required placeholder="Fix my leaking tap">
+                        </div>
+                        <div class="form-group">
+                            <label for="job-desc">Description</label>
+                            <textarea id="job-desc" name="description" rows="6" required placeholder="Describe the work, any access details, and preferred schedule."></textarea>
+                        </div>
+                        <div class="form-group" style="display:flex;gap:12px;flex-wrap:wrap">
+                            <div style="flex:1;min-width:180px">
+                                <label for="job-category">Category</label>
+                                <input id="job-category" name="category" type="text" placeholder="e.g. Plumbing">
+                            </div>
+                            <div style="width:140px">
+                                <label for="job-budget">Budget</label>
+                                <input id="job-budget" name="budget" type="number" min="0" step="1" placeholder="NOK">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="job-location">Location</label>
+                            <input id="job-location" name="location" type="text" placeholder="City or postcode">
+                        </div>
+                        <button class="btn btn-primary" type="submit">Create Job</button>
+                    </form>
                 </div>
-                <div class="form-group">
-                    <label for="job-desc">Descriptions</label>
-                    <textarea id="job-desc" name="description" rows="6" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="job-category">Category</label>
-                    <input id="job-category" name="category" type="text" placeholder="e.g. Plumbing, Gardening">
-                </div>
-                <div class="form-group">
-                    <label for="job-budget">Budget (numeric)</label>
-                    <input id="job-budget" name="budget" type="number" min="0" step="1">
-                </div>
-                <div class="form-group">
-                    <label for="job-location">Location</label>
-                    <input id="job-location" name="location" type="text" placeholder="City or postcode">
-                </div>
-                <button class="btn btn-primary" type="submit">Create Job</button>
-            </form>
+
+                <aside class="service-card" style="position:relative">
+                    <div style="margin-bottom:12px">
+                        <div class="column-image" style="width:100%;height:160px;">
+                            <img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=800&q=60" alt="Job help">
+                        </div>
+                    </div>
+                    <h3 style="margin-top:8px">Tips for good job posts</h3>
+                    <ul class="page-list">
+                        <li>Give a clear title and concise description.</li>
+                        <li>Include a realistic budget or mark as negotiable.</li>
+                        <li>Mention access, parking, or required tools.</li>
+                    </ul>
+                    <div style="margin-top:12px">
+                        <h4 style="margin:6px 0">Sample budgets</h4>
+                        <div class="small-muted">Quick reference for common tasks</div>
+                        <ul style="margin-top:8px">
+                            <li>Small repair: 200–500 NOK</li>
+                            <li>Half-day job: 800–1500 NOK</li>
+                            <li>Full-day job: 1500+ NOK</li>
+                        </ul>
+                    </div>
+                </aside>
+            </div>
         </section>
         <?php
         render_footer();
@@ -209,20 +239,46 @@ switch ($page) {
         <section class="lead">
             <p>Browse available jobs nearby. Use the search and filters to narrow results.</p>
         </section>
+        <section class="services-grid">
+            <div class="grid" style="grid-template-columns: 320px 1fr; gap:18px; align-items:start;">
+                <aside class="service-card">
+                    <h3>Search & Filters</h3>
+                    <form id="jobsSearchForm" class="auth-form" method="post" action="#">
+                        <input type="hidden" name="action" value="list_jobs">
+                        <div class="form-group">
+                            <label for="search-q">Keyword</label>
+                            <input name="q" id="search-q" type="search" placeholder="Search title or description">
+                        </div>
+                        <div class="form-group">
+                            <label for="search-category">Category</label>
+                            <input name="category" id="search-category" type="text" placeholder="e.g. Cleaning">
+                        </div>
+                        <div class="form-group">
+                            <label for="search-location">Location</label>
+                            <input name="location" id="search-location" type="text" placeholder="City or postcode">
+                        </div>
+                        <div style="display:flex;gap:8px">
+                            <div style="flex:1">
+                                <label for="search-min">Min</label>
+                                <input name="min_budget" id="search-min" type="number" placeholder="Min">
+                            </div>
+                            <div style="flex:1">
+                                <label for="search-max">Max</label>
+                                <input name="max_budget" id="search-max" type="number" placeholder="Max">
+                            </div>
+                        </div>
+                        <div style="margin-top:12px;display:flex;gap:8px">
+                            <button id="jobsSearchBtn" class="btn btn-primary" type="submit">Search</button>
+                            <button id="jobsResetBtn" type="button" class="btn btn-secondary">Reset</button>
+                        </div>
+                    </form>
+                    <div style="margin-top:14px" class="small-muted">Tip: leave filters empty to show latest jobs.</div>
+                </aside>
 
-        <section class="contact-section">
-            <form id="jobsSearchForm" class="auth-form" method="post" action="#">
-                <div style="display:flex;gap:8px;flex-wrap:wrap">
-                    <input name="q" id="search-q" type="search" placeholder="Search title or description" style="flex:1;min-width:200px">
-                    <input name="category" id="search-category" type="text" placeholder="Category">
-                    <input name="location" id="search-location" type="text" placeholder="Location">
-                    <input name="min_budget" id="search-min" type="number" placeholder="Min budget" style="width:110px">
-                    <input name="max_budget" id="search-max" type="number" placeholder="Max budget" style="width:110px">
-                    <button id="jobsSearchBtn" class="btn btn-primary" type="submit">Search</button>
+                <div>
+                    <div id="jobsList"></div>
                 </div>
-            </form>
-
-            <div id="jobsList" style="margin-top:18px"></div>
+            </div>
         </section>
         <?php
         render_footer();
