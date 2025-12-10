@@ -1,6 +1,48 @@
 <?php
 require_once 'display.php';
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+require 'vendor/autoload.php';
+
+function send_verification_email($user_email, $user_id) {
+    global $db; // PDO connection
+
+    $token = bin2hex(random_bytes(16));
+
+    // Insert or update token
+    $stmt = $db->prepare("DELETE FROM email_tokens WHERE user_id=?");
+    $stmt->execute([$user_id]);
+
+    $stmt = $db->prepare("INSERT INTO email_tokens (user_id, token) VALUES (?, ?)");
+    $stmt->execute([$user_id, $token]);
+
+    // Send email
+    $mail = new PHPMailer(true);
+    try {
+        $mail->isSMTP();
+        $mail->Host       = 'smtp.example.com';
+        $mail->SMTPAuth   = true;
+        $mail->Username   = 'your_smtp_user';
+        $mail->Password   = 'your_smtp_pass';
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = 587;
+
+        $mail->setFrom('no-reply@finnhustle.com', 'Finn Hustle');
+        $mail->addAddress($user_email);
+        $mail->isHTML(true);
+        $mail->Subject = 'Verify Your Email';
+        $link = "https://yoursite.com/pages.php?page=verify&token=$token";
+        $mail->Body    = "<p>Click below to verify your email:</p><p><a href='$link'>$link</a></p>";
+
+        $mail->send();
+        return true;
+    } catch (Exception $e) {
+        return false;
+    }
+}
+
 // Simple pages router: pages.php?page=about|services|contact|profile|settings|dashboard|login|signup
 $page = isset($_GET['page']) ? $_GET['page'] : 'about';
 $allowed = ['about','services','contact','profile','settings','dashboard','login','signup','create_job','jobs'];
@@ -315,7 +357,42 @@ switch ($page) {
         </section>
         <?php
         render_footer();
+        
         break;
+    case 'verify':
+        render_header('Verify Email');
+        $token = $_GET['token'] ?? '';
+        
+        if ($token) {
+            $stmt = $db->prepare("SELECT user_id FROM email_tokens WHERE token=? LIMIT 1");
+            $stmt->execute([$token]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($row) {
+                // Mark verified
+                $db->prepare("UPDATE users SET verified=1 WHERE id=?")->execute([$row['user_id']]);
+                $db->prepare("DELETE FROM email_tokens WHERE user_id=?")->execute([$row['user_id']]);
+                echo "<p>Email verified successfully! You now have full access.</p>";
+            } else {
+                echo "<p>Invalid or expired verification link.</p>";
+            }
+        } else {
+            echo "<p>No token provided.</p>";
+        }
+        render_footer();
+        break;
+        
+    case 'resend_verification':
+    if ($is_logged_in && isset($user_id, $user_email)) {
+        if (send_verification_email($user_email, $user_id)) {
+            echo json_encode(['success'=>true,'message'=>'Verification email resent!']);
+        } else {
+            echo json_encode(['success'=>false,'message'=>'Failed to send verification email.']);
+        }
+    } else {
+        echo json_encode(['success'=>false,'message'=>'You must be logged in.']);
+    }
+    exit;
 
     case 'profile':
         render_header('Profile');
@@ -509,6 +586,23 @@ switch ($page) {
 
     case 'signup':
         render_header('Sign Up');
+        if ($action === 'signup') {
+            $username = $_POST['username'];
+            $email    = $_POST['email'];
+            $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+
+            $stmt = $db->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
+            $stmt->execute([$username, $email, $password]);
+            $user_id = $db->lastInsertId();
+
+            if (send_verification_email($email, $user_id)) {
+                echo json_encode(['success'=>true,'message'=>'Signup successful! Check your email to verify.']);
+            } else {
+                echo json_encode(['success'=>false,'message'=>'Signup successful but failed to send email.']);
+            }
+            exit;
+}
+
         ?>
         <div class="auth-section">
             <p>Create an account to start booking services and managing your listings.</p>
