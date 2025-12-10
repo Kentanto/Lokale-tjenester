@@ -31,12 +31,27 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
     if($action === 'toggle_admin'){
         $target = intval($_POST['user_id'] ?? 0);
         if($target > 0){
-            // Prevent removing admin from last admin? (simple check omitted): allow
-            $stmt = safe_prepare($conn, "UPDATE users SET is_admin = NOT COALESCE(is_admin,0) WHERE id = ?");
-            if($stmt){
-                $stmt->bind_param('i', $target);
-                if($stmt->execute()) $notice = 'Toggled admin status.'; else $notice = 'Failed to update admin status.';
-            } else { $notice = 'Database error.'; }
+            // Protect specific accounts from being demoted (server-side enforcement)
+            $safe = safe_prepare($conn, "SELECT username, COALESCE(is_admin,0) AS is_admin FROM users WHERE id = ? LIMIT 1");
+            if($safe){
+                $safe->bind_param('i', $target);
+                $safe->execute();
+                $safe->bind_result($tusername, $t_is_admin);
+                $safe->fetch();
+                $safe->close();
+
+                if(isset($tusername) && $tusername === 'adminpyx'){
+                    $notice = 'This account is protected and cannot be modified.';
+                } else {
+                    $stmt = safe_prepare($conn, "UPDATE users SET is_admin = NOT COALESCE(is_admin,0) WHERE id = ?");
+                    if($stmt){
+                        $stmt->bind_param('i', $target);
+                        if($stmt->execute()) $notice = 'Toggled admin status.'; else $notice = 'Failed to update admin status.';
+                    } else { $notice = 'Database error.'; }
+                }
+            } else {
+                $notice = 'Database error.';
+            }
         }
     }
     if($action === 'change_password'){
@@ -58,10 +73,23 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
             if($target === intval($_SESSION['user_id'])){
                 $notice = 'You cannot delete your own account from the admin panel.';
             } else {
-                $stmt = safe_prepare($conn, "DELETE FROM users WHERE id = ?");
-                if($stmt){
-                    $stmt->bind_param('i', $target);
-                    if($stmt->execute()) $notice = 'User deleted.'; else $notice = 'Failed to delete user.';
+                // Prevent deleting protected user(s)
+                $safe = safe_prepare($conn, "SELECT username FROM users WHERE id = ? LIMIT 1");
+                if($safe){
+                    $safe->bind_param('i', $target);
+                    $safe->execute();
+                    $safe->bind_result($tusername);
+                    $safe->fetch();
+                    $safe->close();
+                    if(isset($tusername) && $tusername === 'adminpyx'){
+                        $notice = 'This account is protected and cannot be deleted.';
+                    } else {
+                        $stmt = safe_prepare($conn, "DELETE FROM users WHERE id = ?");
+                        if($stmt){
+                            $stmt->bind_param('i', $target);
+                            if($stmt->execute()) $notice = 'User deleted.'; else $notice = 'Failed to delete user.';
+                        } else { $notice = 'Database error.'; }
+                    }
                 } else { $notice = 'Database error.'; }
             }
         }
@@ -118,10 +146,15 @@ if($stmt){
                         <p>Email: <?php echo htmlspecialchars($u['email']); ?></p>
                         <p>Created: <?php echo htmlspecialchars($u['created_at']); ?></p>
                         <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+                            <?php $is_protected = ($u['username'] === 'adminpyx'); ?>
                             <form method="post" style="display:inline">
                                 <input type="hidden" name="user_id" value="<?php echo intval($u['id']); ?>">
                                 <input type="hidden" name="action" value="toggle_admin">
-                                <button class="btn btn-secondary" type="submit"><?php echo empty($u['is_admin']) ? 'Make Admin' : 'Revoke Admin'; ?></button>
+                                <?php if($is_protected): ?>
+                                    <button class="btn btn-secondary" type="button" disabled style="opacity:.7">Protected</button>
+                                <?php else: ?>
+                                    <button class="btn btn-secondary" type="submit"><?php echo empty($u['is_admin']) ? 'Make Admin' : 'Revoke Admin'; ?></button>
+                                <?php endif; ?>
                             </form>
 
                             <form method="post" style="display:inline">
@@ -131,11 +164,15 @@ if($stmt){
                                 <button class="btn btn-primary" type="submit">Change Password</button>
                             </form>
 
-                            <form method="post" style="display:inline" onsubmit="return confirm('Delete user <?php echo htmlspecialchars(addslashes($u['username'])); ?>? This cannot be undone.');">
-                                <input type="hidden" name="user_id" value="<?php echo intval($u['id']); ?>">
-                                <input type="hidden" name="action" value="delete_user">
-                                <button class="btn" style="background:#ef4444;color:#fff;border-radius:8px;padding:8px 12px;border:none" type="submit">Delete</button>
-                            </form>
+                            <?php if($is_protected): ?>
+                                <button class="btn" type="button" style="background:#999;color:#fff;border-radius:8px;padding:8px 12px;border:none" disabled>Protected</button>
+                            <?php else: ?>
+                                <form method="post" style="display:inline" onsubmit="return confirm('Delete user <?php echo htmlspecialchars(addslashes($u['username'])); ?>? This cannot be undone.');">
+                                    <input type="hidden" name="user_id" value="<?php echo intval($u['id']); ?>">
+                                    <input type="hidden" name="action" value="delete_user">
+                                    <button class="btn" style="background:#ef4444;color:#fff;border-radius:8px;padding:8px 12px;border:none" type="submit">Delete</button>
+                                </form>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <?php endforeach; ?>
