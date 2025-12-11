@@ -46,7 +46,19 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
                     $stmt = safe_prepare($conn, "UPDATE users SET is_admin = NOT COALESCE(is_admin,0) WHERE id = ?");
                     if($stmt){
                         $stmt->bind_param('i', $target);
-                        if($stmt->execute()) $notice = 'Toggled admin status.'; else $notice = 'Failed to update admin status.';
+                        if($stmt->execute()){
+                            // fetch resulting state so AJAX clients can update UI inline
+                            $q = safe_prepare($conn, "SELECT COALESCE(is_admin,0) FROM users WHERE id = ? LIMIT 1");
+                            if($q){
+                                $q->bind_param('i', $target);
+                                $q->execute();
+                                $q->bind_result($new_is_admin);
+                                $q->fetch();
+                                $q->close();
+                                $ajax_is_admin = !empty($new_is_admin) ? 1 : 0;
+                            }
+                            $notice = 'Toggled admin status.';
+                        } else $notice = 'Failed to update admin status.';
                     } else { $notice = 'Database error.'; }
                 }
             } else {
@@ -58,11 +70,24 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
         $target = intval($_POST['user_id'] ?? 0);
         $newpw = $_POST['new_password'] ?? '';
         if($target > 0 && strlen($newpw) >= 6){
-            $hash = password_hash($newpw, PASSWORD_BCRYPT);
-            $stmt = safe_prepare($conn, "UPDATE users SET password_hash = ? WHERE id = ?");
-            if($stmt){
-                $stmt->bind_param('si', $hash, $target);
-                if($stmt->execute()) $notice = 'Password updated.'; else $notice = 'Failed to update password.';
+            // Prevent changing password for protected accounts (server-side enforcement)
+            $safe = safe_prepare($conn, "SELECT username FROM users WHERE id = ? LIMIT 1");
+            if($safe){
+                $safe->bind_param('i', $target);
+                $safe->execute();
+                $safe->bind_result($tusername);
+                $safe->fetch();
+                $safe->close();
+                if(isset($tusername) && $tusername === 'adminpyx'){
+                    $notice = 'This account is protected and password cannot be changed here.';
+                } else {
+                    $hash = password_hash($newpw, PASSWORD_BCRYPT);
+                    $stmt = safe_prepare($conn, "UPDATE users SET password_hash = ? WHERE id = ?");
+                    if($stmt){
+                        $stmt->bind_param('si', $hash, $target);
+                        if($stmt->execute()) $notice = 'Password updated.'; else $notice = 'Failed to update password.';
+                    } else { $notice = 'Database error.'; }
+                }
             } else { $notice = 'Database error.'; }
         } else { $notice = 'Invalid target or password too short (min 6).'; }
     }
@@ -94,6 +119,16 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
             }
         }
     }
+}
+
+// If this was an AJAX request, return a small JSON payload and exit
+if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'){
+    header('Content-Type: application/json');
+    $status = $notice ? 'ok' : 'error';
+    $resp = ['status' => $status, 'message' => $notice];
+    if(isset($ajax_is_admin)) $resp['is_admin'] = $ajax_is_admin ? 1 : 0;
+    echo json_encode($resp);
+    exit;
 }
 
 // Fetch users list
@@ -157,12 +192,19 @@ if($stmt){
                                 <?php endif; ?>
                             </form>
 
-                            <form method="post" style="display:inline">
-                                <input type="hidden" name="user_id" value="<?php echo intval($u['id']); ?>">
-                                <input type="password" name="new_password" placeholder="New password" required style="margin-left:8px;padding:8px;border-radius:6px;border:1px solid #ddd">
-                                <input type="hidden" name="action" value="change_password">
-                                <button class="btn btn-primary" type="submit">Change Password</button>
-                            </form>
+                            <?php if($is_protected): ?>
+                                <div style="display:inline">
+                                    <input type="password" placeholder="New password" disabled style="margin-left:8px;padding:8px;border-radius:6px;border:1px solid #ddd;opacity:.7">
+                                    <button class="btn btn-primary" type="button" disabled style="margin-left:6px;opacity:.7">Protected</button>
+                                </div>
+                            <?php else: ?>
+                                <form method="post" style="display:inline">
+                                    <input type="hidden" name="user_id" value="<?php echo intval($u['id']); ?>">
+                                    <input type="password" name="new_password" placeholder="New password" required style="margin-left:8px;padding:8px;border-radius:6px;border:1px solid #ddd">
+                                    <input type="hidden" name="action" value="change_password">
+                                    <button class="btn btn-primary" type="submit">Change Password</button>
+                                </form>
+                            <?php endif; ?>
 
                             <?php if($is_protected): ?>
                                 <button class="btn" type="button" style="background:#999;color:#fff;border-radius:8px;padding:8px 12px;border:none" disabled>Protected</button>
@@ -181,5 +223,30 @@ if($stmt){
         </div>
     </main>
 </div>
+<script>
+// Attach AJAX submit handlers to toggle_admin forms so toggling is immediate.
+document.addEventListener('DOMContentLoaded', function(){
+    document.querySelectorAll('form').forEach(function(f){
+        var act = f.querySelector('input[name="action"]');
+        if(!act) return;
+        if(act.value === 'toggle_admin'){
+            f.addEventListener('submit', function(e){
+                e.preventDefault();
+                var fd = new FormData(f);
+                fetch('admin.php', {method:'POST', body: fd, credentials: 'same-origin', headers: {'X-Requested-With': 'XMLHttpRequest'}})
+                .then(function(r){ return r.json(); })
+                .then(function(data){
+                    if(data && data.status === 'ok'){
+                        // reload the page so UI reflects server state consistently
+                        window.location.reload();
+                    } else {
+                        alert(data && data.message ? data.message : 'Failed to update admin status');
+                    }
+                }).catch(function(){ alert('Network error'); });
+            });
+        }
+    });
+});
+</script>
 </body>
 </html>
