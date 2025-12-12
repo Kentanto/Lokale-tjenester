@@ -1,9 +1,38 @@
+// Load dark mode immediately on page load (before DOM renders)
+(function(){
+    if(localStorage.getItem('darkMode') === 'true'){
+        document.documentElement.classList.add('dark-mode');
+    }
+})();
+
 function toggleDropdown(){
     const dropdownMenu=document.getElementById('dropdownMenu');
     if(dropdownMenu) dropdownMenu.classList.toggle('active');
 }
 
 document.addEventListener('DOMContentLoaded',function(){
+    // Dark mode toggle
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    if(darkModeToggle){
+        // Load dark mode preference from localStorage
+        const isDarkMode = localStorage.getItem('darkMode') === 'true';
+        if(isDarkMode){
+            document.body.classList.add('dark-mode');
+            darkModeToggle.checked = true;
+        }
+        
+        // Toggle dark mode on checkbox change
+        darkModeToggle.addEventListener('change',function(){
+            if(this.checked){
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('darkMode', 'true');
+            } else {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('darkMode', 'false');
+            }
+        });
+    }
+    
     const userBtn=document.querySelector('.user-btn');
     if(userBtn){
         userBtn.addEventListener('click',function(e){

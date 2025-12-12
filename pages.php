@@ -51,7 +51,8 @@ if (!in_array($page, $allowed)) {
 }
 
 // Helper to render header
-function render_header($title) {
+// $pageClass: optional additional class for the header (e.g. 'settings')
+function render_header($title, $pageClass = '') {
     // make session/user vars available inside this function
     global $user_name, $is_logged_in;
     ?>
@@ -68,7 +69,7 @@ function render_header($title) {
 
 <div class="page-wrapper">
     <main class="page-main">
-        <div class="page-header">
+        <div class="page-header<?php if ($pageClass) echo ' '.htmlspecialchars($pageClass); ?>">
             <h1><?php echo htmlspecialchars($title); ?></h1>
         </div>
         <div class="page-content">
@@ -421,7 +422,7 @@ switch ($page) {
         break;
 
     case 'settings':
-        render_header('Settings');
+        render_header('Settings','settings');
         if ($is_logged_in) {
             ?>
             <div class="settings-section">
@@ -437,6 +438,17 @@ switch ($page) {
                         <input type="checkbox" checked> Receive email notifications
                     </label>
                 </form>
+            </div>
+
+            <div class="settings-section">
+                <h2>Theme</h2>
+                <div class="theme-toggle-box">
+                    <label for="darkModeToggle" class="theme-label">Dark Mode</label>
+                    <label class="switch">
+                        <input type="checkbox" id="darkModeToggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
             </div>
 
             <div class="settings-section">
