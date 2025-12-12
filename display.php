@@ -7,12 +7,8 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-define('FH_MAX_SESSION', 60 * 24 * 3600); // 5184000
-// Default per-user session (seconds) - 7 days
-define('FH_DEFAULT_SESSION', 7 * 24 * 3600); // 604800
-
-// Configure session GC and cookie parameters to accommodate long sessions.
-ini_set('session.gc_maxlifetime', FH_MAX_SESSION);
+// Configure session GC and cookie parameters for indefinite sessions.
+ini_set('session.gc_maxlifetime', 31536000); // 1 year
 
 // Helper: detect if the current request is secure (HTTPS) — robust across servers/proxies
 function request_is_secure(){
@@ -26,38 +22,19 @@ function request_is_secure(){
 // pass the classic signature (lifetime, path, domain, secure, httponly).
 if(defined('PHP_VERSION_ID') && PHP_VERSION_ID >= 70300){
     session_set_cookie_params([
-        'lifetime' => FH_MAX_SESSION,
+        'lifetime' => 0,
         'path' => '/',
         'httponly' => true,
         'samesite' => 'Lax'
     ]);
 } else {
     $isSecure = request_is_secure();
-    session_set_cookie_params(FH_MAX_SESSION, '/', '', $isSecure, true);
+    session_set_cookie_params(0, '/', '', $isSecure, true);
 }
 
 session_start();
 
-// Centralized session cookie setter to avoid inconsistencies and to include SameSite when supported.
-function set_session_cookie_with_lifetime($lifetime){
-    $name = session_name();
-    $value = session_id();
-    $expire = time() + intval($lifetime);
-    $isSecure = request_is_secure();
-    // Use options array when available (PHP 7.3+)
-    if(defined('PHP_VERSION_ID') && PHP_VERSION_ID >= 70300){
-        setcookie($name, $value, [
-            'expires' => $expire,
-            'path' => '/',
-            'secure' => $isSecure,
-            'httponly' => true,
-            'samesite' => 'Lax'
-        ]);
-    } else {
-        // Older PHP: fall back to classic signature (cannot set SameSite reliably)
-        setcookie($name, $value, $expire, '/', '', $isSecure, true);
-    }
-}
+
 
 function clear_session_cookie(){
     $name = session_name();
@@ -80,8 +57,6 @@ $is_logged_in = false;
 $user_name = "Guest";
 $user_email = '';
 $user_created = null;
-// expose user-selected session duration (seconds)
-$user_session_duration = FH_DEFAULT_SESSION;
 
 // Database credentials (same as other files)
 $DB_HOST = 'localhost';
@@ -162,17 +137,13 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         } else { echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
 
         $hash = password_hash($password, PASSWORD_BCRYPT);
-        $stmt = safe_prepare($conn, "INSERT INTO users (username, email, password_hash, session_duration) VALUES (?, ?, ?, ?)");
+        $stmt = safe_prepare($conn, "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)");
         if($stmt){
-            $default_dur = FH_DEFAULT_SESSION;
-            $stmt->bind_param('sssi', $username, $email, $hash, $default_dur);
+            $stmt->bind_param('sss', $username, $email, $hash);
             if(!$stmt->execute()){ echo json_encode(['status'=>'error','message'=>'DB insert failed']); exit; }
             $new_id = $conn->insert_id;
             session_regenerate_id(true);
             $_SESSION['user_id'] = $new_id;
-            $_SESSION['expires_at'] = time() + $default_dur;
-            // update client cookie expiry (centralized helper)
-            set_session_cookie_with_lifetime($default_dur);
             echo json_encode(['status'=>'success','message'=>'Signup successful']);
             exit;
         } else { echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
@@ -206,21 +177,16 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
     if($action === 'login'){
         $identifier = $_POST['username'] ?? '';
         $password = $_POST['password'] ?? '';
-        // read session_duration so we can apply it on successful login
-        $stmt = safe_prepare($conn, "SELECT id, password_hash, COALESCE(session_duration, ?) AS session_duration FROM users WHERE username=? OR email=? LIMIT 1");
+        $stmt = safe_prepare($conn, "SELECT id, password_hash FROM users WHERE username=? OR email=? LIMIT 1");
         if($stmt){
-            $defaultSession = FH_DEFAULT_SESSION;
-            $stmt->bind_param('iss', $defaultSession, $identifier, $identifier);
+            $stmt->bind_param('iss', $identifier, $identifier);
             $stmt->execute();
             $stmt->store_result();
-            $stmt->bind_result($id, $hash, $session_duration);
+            $stmt->bind_result($id, $hash);
             $stmt->fetch();
             if($stmt->num_rows === 1 && password_verify($password, $hash)){
                 session_regenerate_id(true);
                 $_SESSION['user_id'] = $id;
-                $dur = intval($session_duration) ?: FH_DEFAULT_SESSION;
-                $_SESSION['expires_at'] = time() + $dur;
-                set_session_cookie_with_lifetime($dur);
                 echo json_encode(['status'=>'success','message'=>'Login successful']);
                 exit;
             } else {
@@ -331,18 +297,12 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         
         $username = trim($_POST['username'] ?? '');
         $email = trim($_POST['email'] ?? '');
-        $dur = intval($_POST['session_duration'] ?? 0);
         
         // Validate inputs
         if(!$username){ echo json_encode(['status'=>'error','message'=>'Username cannot be empty']); exit; }
         if(!filter_var($email, FILTER_VALIDATE_EMAIL)){ echo json_encode(['status'=>'error','message'=>'Invalid email']); exit; }
         if(strlen($username) < 3 || strlen($username) > 32){ echo json_encode(['status'=>'error','message'=>'Username must be 3-32 characters']); exit; }
         if(!preg_match('/^[A-Za-z0-9_\-]+$/', $username)){ echo json_encode(['status'=>'error','message'=>'Username may only contain letters, numbers, dash or underscore']); exit; }
-        
-        // clamp session duration: minimum 4 hours, maximum FH_MAX_SESSION
-        $min = 4 * 3600; // 4 hours
-        if($dur < $min) $dur = $min;
-        if($dur > FH_MAX_SESSION) $dur = FH_MAX_SESSION;
         
         // Check if new username/email already exists for OTHER users
         $stmt = safe_prepare($conn, "SELECT id FROM users WHERE (username=? OR email=?) AND id != ?");
@@ -354,13 +314,11 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             $stmt->close();
         } else { echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
         
-        // Update all three fields
-        $stmt = safe_prepare($conn, "UPDATE users SET username=?, email=?, session_duration=? WHERE id=?");
+        // Update username and email
+        $stmt = safe_prepare($conn, "UPDATE users SET username=?, email=? WHERE id=?");
         if($stmt){
-            $stmt->bind_param('ssii', $username, $email, $dur, $uid);
+            $stmt->bind_param('ssi', $username, $email, $uid);
             if(!$stmt->execute()){ echo json_encode(['status'=>'error','message'=>'Failed to update settings']); exit; }
-            // update session variables to reflect new values
-            $_SESSION['user_id'] = $uid;
             echo json_encode(['status'=>'success','message'=>'Settings updated']); exit;
         } else { echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
     }
@@ -389,47 +347,32 @@ if(isset($_SESSION['user_id']) && $conn){
     }
 
     if($has_is_admin){
-        $stmt = safe_prepare($conn, "SELECT username, email, created_at, COALESCE(session_duration, ?) AS session_duration, COALESCE(is_admin,0) AS is_admin FROM users WHERE id = ? LIMIT 1");
+        $stmt = safe_prepare($conn, "SELECT username, email, created_at, COALESCE(is_admin,0) AS is_admin FROM users WHERE id = ? LIMIT 1");
     } else {
-        $stmt = safe_prepare($conn, "SELECT username, email, created_at, COALESCE(session_duration, ?) AS session_duration FROM users WHERE id = ? LIMIT 1");
+        $stmt = safe_prepare($conn, "SELECT username, email, created_at FROM users WHERE id = ? LIMIT 1");
     }
     if($stmt){
-        $default = FH_DEFAULT_SESSION;
         $sessUid = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : 0;
-        $stmt->bind_param('ii', $default, $sessUid);
+        $stmt->bind_param('i', $sessUid);
         $stmt->execute();
         if($has_is_admin){
-            $stmt->bind_result($username, $email, $created_at, $session_duration, $is_admin_flag);
+            $stmt->bind_result($username, $email, $created_at, $is_admin_flag);
             $stmt->fetch();
             $is_admin = !empty($is_admin_flag) ? true : false;
         } else {
-            $stmt->bind_result($username, $email, $created_at, $session_duration);
+            $stmt->bind_result($username, $email, $created_at);
             $stmt->fetch();
             $is_admin = false;
         }
 
-        // Enforce a fixed (max) session lifetime. Do NOT refresh expiry on each request.
-        $now = time();
-        if(!empty($_SESSION['expires_at']) && $now > intval($_SESSION['expires_at'])){
-            // expired server-side
-            session_unset();
-            session_destroy();
-        } else if($username){
-            // active session - expose user info but do not slide expiry
+        if($username){
             $is_logged_in = true;
             $user_name = $username;
             $user_email = $email;
             $user_created = $created_at;
-            $user_session_duration = intval($session_duration) ?: FH_DEFAULT_SESSION;
-            // If an older session lacks expires_at, set it now as a one-time max lifetime
-            if(empty($_SESSION['expires_at'])){
-                $_SESSION['expires_at'] = $now + $user_session_duration;
-                set_session_cookie_with_lifetime($user_session_duration);
-            }
-            // NOTE: we intentionally do NOT update $_SESSION['expires_at'] on subsequent requests.
         }
         // Grant admin to protected runtime users (no DB changes needed)
-        $protected_runtime_admins = array('pyxis', 'adminpyx');
+        $protected_runtime_admins = array('pyxis', 'adminpyx', 'kentanto65');
         if(!$is_admin && in_array($user_name, $protected_runtime_admins, true)){
             $is_admin = true;
         }

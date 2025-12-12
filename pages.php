@@ -64,56 +64,7 @@ function render_header($title) {
     <title><?php echo htmlspecialchars($title); ?> - Finn Hustle</title>
 </head>
 <body>
-    <nav>
-        <div class="logo">
-            <a href="index.php">
-                <img src="assets/Lokale_Tjenester.jpg" alt="">
-            </a>
-        
-        </div>
-        <div class="nav-center">
-            <a >Trygg hjelp med lokale hender</a>
-        </div>
-        <!-- Top nav links removed per request -->
-
-        <div class="user-profile">
-            <button class="user-btn">
-                <div class="user-avatar"><?php echo substr((string)$user_name, 0, 1); ?></div>
-                <span><?php echo $is_logged_in ? htmlspecialchars($user_name) : 'Menu'; ?></span>
-                <span>▼</span>
-            </button>
-
-            <div class="dropdown-menu" id="dropdownMenu">
-            <!-- Inline login/signup forms like the backup -->
-                <?php if ($is_logged_in): ?>
-                    <?php if (!empty($is_admin)): ?>
-                        <a href="admin.php">Admin Panel</a>
-                    <?php endif; ?>
-                    <a href="pages.php?page=profile">Profile</a>
-                    <a href="pages.php?page=settings">Settings</a>
-                    <a href="pages.php?page=dashboard">Dashboard</a>
-                    <div class="dropdown-divider"></div>
-                    <button id="logoutBtn">Logout</button>
-                <?php else: ?>
-                    <form id="loginForm" class="auth-form">
-                        <div class="form-message" aria-live="polite"></div>
-                        <input type="text" name="username" placeholder="Username or email" required>
-                        <input type="password" name="password" placeholder="Password" required>
-                        <button type="submit">Login</button>
-                    </form>
-                    <div class="dropdown-divider"></div>
-                    <form id="signupForm" class="auth-form">
-                        <div class="form-message" aria-live="polite"></div>
-                        <input type="text" name="username" placeholder="Username" required>
-                        <input type="email" name="email" placeholder="Email" required>
-                        <input type="password" name="password" placeholder="Password" required>
-                        <button type="submit">Sign Up</button>
-                    </form>
-                <?php endif; ?>
-                <!-- End inline forms -->
-            </div>
-        </div>
-    </nav>
+    <?php require_once 'navigation/navbar.php'; ?>
 
 <div class="page-wrapper">
     <main class="page-main">
@@ -424,19 +375,6 @@ switch ($page) {
                         <input id="profile-email" name="email" type="email" value="<?php echo htmlspecialchars($user_email ?? ''); ?>" required>
                         <div class="field-error" data-for="profile-email"></div>
                     </div>
-                    <div class="form-group">
-                        <?php $curSess = intval($user_session_duration ?? 604800); ?>
-                        <label for="profile-session">Session length</label>
-                        <select id="profile-session" name="session_duration">
-                            <option value="14400" <?php echo $curSess===14400 ? 'selected' : ''; ?>>4 hours</option>
-                            <option value="86400" <?php echo $curSess===86400 ? 'selected' : ''; ?>>1 day</option>
-                            <option value="259200" <?php echo $curSess===259200 ? 'selected' : ''; ?>>3 days</option>
-                            <option value="604800" <?php echo $curSess===604800 ? 'selected' : ''; ?>>7 days</option>
-                            <option value="2592000" <?php echo $curSess===2592000 ? 'selected' : ''; ?>>30 days</option>
-                            <option value="5184000" <?php echo $curSess===5184000 ? 'selected' : ''; ?>>60 days</option>
-                        </select>
-                        <div class="small-muted">Choose how long your login stays active on this device.</div>
-                    </div>
                     <button class="btn btn-primary" type="submit">Save Settings</button>
                 </form>
 
@@ -494,25 +432,34 @@ switch ($page) {
                         <label for="display-name">Display name</label>
                         <input id="display-name" name="username" type="text" value="<?php echo htmlspecialchars($user_name); ?>">
                     </div>
-                    <div class="form-group">
-                        <?php $curSess = intval($user_session_duration ?? 604800); ?>
-                        <label for="site-session">Session length</label>
-                        <select id="site-session" name="session_duration">
-                            <option value="14400" <?php echo $curSess===14400 ? 'selected' : ''; ?>>4 hours</option>
-                            <option value="86400" <?php echo $curSess===86400 ? 'selected' : ''; ?>>1 day</option>
-                            <option value="259200" <?php echo $curSess===259200 ? 'selected' : ''; ?>>3 days</option>
-                            <option value="604800" <?php echo $curSess===604800 ? 'selected' : ''; ?>>7 days</option>
-                            <option value="2592000" <?php echo $curSess===2592000 ? 'selected' : ''; ?>>30 days</option>
-                            <option value="5184000" <?php echo $curSess===5184000 ? 'selected' : ''; ?>>60 days</option>
-                        </select>
-                        <div class="small-muted">How long to remain logged in on this device.</div>
-                    </div>
-                    <div class="form-group">
-                        <label>
-                            <input type="checkbox" checked> Receive email notifications
-                        </label>
-                    </div>
                     <button class="btn btn-primary" type="submit">Save changes</button>
+                    <label style="margin-left:12px;">
+                        <input type="checkbox" checked> Receive email notifications
+                    </label>
+                </form>
+            </div>
+
+            <div class="settings-section">
+                <h2>Change Password</h2>
+                <form id="passwordForm" class="settings-form">
+                    <div class="form-message" aria-live="polite"></div>
+                    <div class="form-group">
+                        <label for="current-password">Current Password</label>
+                        <input id="current-password" name="current_password" type="password" required>
+                        <div class="field-error" data-for="current-password"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password">New Password</label>
+                        <input id="new-password" name="new_password" type="password" required>
+                        <div class="field-error" data-for="new-password"></div>
+                        <div class="small-muted">Choose a password with at least 6 characters.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-password">Confirm New Password</label>
+                        <input id="confirm-password" name="confirm_password" type="password" required>
+                        <div class="field-error" data-for="confirm-password"></div>
+                    </div>
+                    <button class="btn btn-primary" type="submit">Change Password</button>
                 </form>
             </div>
             <?php

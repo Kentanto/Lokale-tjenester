@@ -177,13 +177,7 @@ if($q !== ''){
 <title>Admin Panel — Finn Hustle</title>
 </head>
 <body>
-<nav>
-    <div class="logo"><a href="index.php"><img src="assets/Lokale_Tjenester.jpg" alt=""></a></div>
-    <div class="nav-center"><a>Admin Panel</a></div>
-    <div class="user-profile">
-        <button class="user-btn"><div class="user-avatar"><?php echo htmlspecialchars(substr($user_name,0,1)); ?></div><span><?php echo htmlspecialchars($user_name); ?></span><span>▼</span></button>
-    </div>
-</nav>
+    <?php require_once 'navigation/navbar.php'; ?>
 <div class="page-wrapper">
     <main class="page-main">
         <div class="page-header"><h1>Admin Panel</h1></div>
@@ -266,5 +260,7 @@ document.addEventListener('DOMContentLoaded', function(){
     });
 });
 </script>
+
+    <script src="static/script.js"></script>
 </body>
 </html>
