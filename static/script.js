@@ -116,7 +116,8 @@ document.addEventListener('DOMContentLoaded',function(){
         showFormMessage(form, data.message, data.status);
         disableForm(form, false);
         if(data.status==='success'){
-            showConfirmation('Login successful','You are now logged in.', 'pages.php?page=profile', 1400);
+            // On login success, silently reload the current page (no popup)
+            location.reload();
         }
     });
 
@@ -241,7 +242,8 @@ document.addEventListener('DOMContentLoaded',function(){
         showFormMessage(form, data.message, data.status);
         disableForm(form, false);
         if(data.status==='success'){
-            showConfirmation('Login successful','You are now logged in.', 'pages.php?page=profile', 1200);
+            // On login success, silently reload the current page (no popup)
+            location.reload();
         }
     });
 

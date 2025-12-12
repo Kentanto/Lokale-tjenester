@@ -131,19 +131,39 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_SERVER['HTTP_X_REQUESTED_WI
     exit;
 }
 
-// Fetch users list
+// Fetch users list (allow simple search via GET 'q' param: username OR email)
+$q = trim($_GET['q'] ?? '');
 $users = [];
-$stmt = safe_prepare($conn, "SELECT id, username, email, created_at, COALESCE(is_admin,0) AS is_admin FROM users ORDER BY id DESC LIMIT 200");
-if($stmt){
-    $stmt->execute();
-    if(method_exists($stmt, 'get_result')){
-        $res = $stmt->get_result();
-        while($r = $res->fetch_assoc()) $users[] = $r;
-    } else {
-        $stmt->store_result();
-        $stmt->bind_result($id,$username,$email,$created_at,$is_admin_val);
-        while($stmt->fetch()){
-            $users[] = ['id'=>$id,'username'=>$username,'email'=>$email,'created_at'=>$created_at,'is_admin'=>$is_admin_val];
+if($q !== ''){
+    $like = '%' . $q . '%';
+    $stmt = safe_prepare($conn, "SELECT id, username, email, created_at, COALESCE(is_admin,0) AS is_admin FROM users WHERE username LIKE ? OR email LIKE ? ORDER BY COALESCE(is_admin,0) DESC, id DESC LIMIT 200");
+    if($stmt){
+        $stmt->bind_param('ss', $like, $like);
+        $stmt->execute();
+        if(method_exists($stmt, 'get_result')){
+            $res = $stmt->get_result();
+            while($r = $res->fetch_assoc()) $users[] = $r;
+        } else {
+            $stmt->store_result();
+            $stmt->bind_result($id,$username,$email,$created_at,$is_admin_val);
+            while($stmt->fetch()){
+                $users[] = ['id'=>$id,'username'=>$username,'email'=>$email,'created_at'=>$created_at,'is_admin'=>$is_admin_val];
+            }
+        }
+    }
+} else {
+    $stmt = safe_prepare($conn, "SELECT id, username, email, created_at, COALESCE(is_admin,0) AS is_admin FROM users ORDER BY COALESCE(is_admin,0) DESC, id DESC LIMIT 200");
+    if($stmt){
+        $stmt->execute();
+        if(method_exists($stmt, 'get_result')){
+            $res = $stmt->get_result();
+            while($r = $res->fetch_assoc()) $users[] = $r;
+        } else {
+            $stmt->store_result();
+            $stmt->bind_result($id,$username,$email,$created_at,$is_admin_val);
+            while($stmt->fetch()){
+                $users[] = ['id'=>$id,'username'=>$username,'email'=>$email,'created_at'=>$created_at,'is_admin'=>$is_admin_val];
+            }
         }
     }
 }
@@ -169,51 +189,49 @@ if($stmt){
         <div class="page-header"><h1>Admin Panel</h1></div>
         <div class="page-content">
             <?php if($notice): ?><p class="note"><?php echo htmlspecialchars($notice); ?></p><?php endif; ?>
-            <section class="lead">
+
+            <form method="get" action="admin.php" style="margin:12px 0;display:flex;gap:8px;align-items:center">
+                <input type="search" name="q" placeholder="Search username or email" value="<?php echo htmlspecialchars($_GET['q'] ?? ''); ?>" style="padding:8px;border-radius:6px;border:1px solid #ddd;flex:1">
+                <button class="btn btn-secondary" type="submit">Search</button>
+                <?php if(!empty($_GET['q'])): ?>
+                    <a class="btn" href="admin.php" style="background:#eee;border-radius:6px;padding:8px 12px;text-decoration:none;color:#333">Clear</a>
+                <?php endif; ?>
+            </form>
+            <section class="lead centered">
                 <p>Manage users: appoint admins, change passwords and delete accounts. Actions are immediate.</p>
             </section>
 
             <section class="services-grid">
                 <div class="grid">
                     <?php foreach($users as $u): ?>
-                    <div class="service-card">
+                    <?php $is_protected = ($u['username'] === 'adminpyx'); ?>
+                    <div class="service-card<?php echo $is_protected ? ' protected-card' : ''; ?>">
                         <h3><?php echo htmlspecialchars($u['username']); ?> <?php if(!empty($u['is_admin'])): ?> <small style="color:var(--green);font-weight:700">(admin)</small><?php endif; ?></h3>
                         <p>Email: <?php echo htmlspecialchars($u['email']); ?></p>
                         <p>Created: <?php echo htmlspecialchars($u['created_at']); ?></p>
                         <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-                            <?php $is_protected = ($u['username'] === 'adminpyx'); ?>
                             <form method="post" style="display:inline">
                                 <input type="hidden" name="user_id" value="<?php echo intval($u['id']); ?>">
                                 <input type="hidden" name="action" value="toggle_admin">
-                                <?php if($is_protected): ?>
-                                    <button class="btn btn-secondary" type="button" disabled style="opacity:.7">Protected</button>
-                                <?php else: ?>
-                                    <button class="btn btn-secondary" type="submit"><?php echo empty($u['is_admin']) ? 'Make Admin' : 'Revoke Admin'; ?></button>
-                                <?php endif; ?>
+                                <button class="btn btn-secondary" type="submit" <?php echo $is_protected ? 'disabled' : ''; ?>><?php echo empty($u['is_admin']) ? 'Make Admin' : 'Revoke Admin'; ?></button>
                             </form>
 
-                            <?php if($is_protected): ?>
-                                <div style="display:inline">
-                                    <input type="password" placeholder="New password" disabled style="margin-left:8px;padding:8px;border-radius:6px;border:1px solid #ddd;opacity:.7">
-                                    <button class="btn btn-primary" type="button" disabled style="margin-left:6px;opacity:.7">Protected</button>
-                                </div>
-                            <?php else: ?>
-                                <form method="post" style="display:inline">
-                                    <input type="hidden" name="user_id" value="<?php echo intval($u['id']); ?>">
-                                    <input type="password" name="new_password" placeholder="New password" required style="margin-left:8px;padding:8px;border-radius:6px;border:1px solid #ddd">
-                                    <input type="hidden" name="action" value="change_password">
-                                    <button class="btn btn-primary" type="submit">Change Password</button>
-                                </form>
-                            <?php endif; ?>
+                            <form method="post" style="display:inline">
+                                <input type="hidden" name="user_id" value="<?php echo intval($u['id']); ?>">
+                                <input type="password" name="new_password" placeholder="New password" required style="padding:8px;border-radius:6px;border:1px solid #ddd" <?php echo $is_protected ? 'disabled' : ''; ?>>
+                                <input type="hidden" name="action" value="change_password">
+                                <button class="btn btn-primary" type="submit" <?php echo $is_protected ? 'disabled' : ''; ?>>Change Password</button>
+                            </form>
 
+                            <form method="post" style="display:inline" onsubmit="return confirm('Delete user <?php echo htmlspecialchars(addslashes($u['username'])); ?>? This cannot be undone.');">
+                                <input type="hidden" name="user_id" value="<?php echo intval($u['id']); ?>">
+                                <input type="hidden" name="action" value="delete_user">
+                                <button class="btn" style="background:#ef4444;color:#fff;border-radius:8px;padding:8px 12px;border:none" type="submit" <?php echo $is_protected ? 'disabled' : ''; ?>>Delete</button>
+                            </form>
                             <?php if($is_protected): ?>
-                                <button class="btn" type="button" style="background:#999;color:#fff;border-radius:8px;padding:8px 12px;border:none" disabled>Protected</button>
-                            <?php else: ?>
-                                <form method="post" style="display:inline" onsubmit="return confirm('Delete user <?php echo htmlspecialchars(addslashes($u['username'])); ?>? This cannot be undone.');">
-                                    <input type="hidden" name="user_id" value="<?php echo intval($u['id']); ?>">
-                                    <input type="hidden" name="action" value="delete_user">
-                                    <button class="btn" style="background:#ef4444;color:#fff;border-radius:8px;padding:8px 12px;border:none" type="submit">Delete</button>
-                                </form>
+                                <div class="card-overlay" role="img" aria-label="System account" title="System account">
+                                    <span class="overlay-label">System account</span>
+                                </div>
                             <?php endif; ?>
                         </div>
                     </div>

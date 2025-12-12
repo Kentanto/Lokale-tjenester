@@ -299,6 +299,22 @@
             color: var(--jet);
         }
 
+        /* Centered variant used on admin panel for single-line lead text */
+        .lead.centered {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 88px; /* smaller vertical size */
+        }
+
+        .lead.centered p {
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin: 0;
+        }
+
         .features {
             display: block;
             gap: 18px;
@@ -331,6 +347,32 @@
             box-shadow: 0 6px 18px rgba(11,22,33,0.04);
             border: 1px solid var(--off-white);
             text-align: left;
+        }
+
+        /* Protected account overlay: visually covers the whole card to indicate it's non-interactive */
+        .service-card.protected-card { position: relative; }
+        .service-card.protected-card .card-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(220,220,220,0.86);
+            z-index: 20;
+            border-radius: 10px;
+            display: block;
+        }
+
+        /* Overlay label (visible center badge and tooltip) */
+        .service-card.protected-card .card-overlay .overlay-label {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(40,40,40,0.85);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            pointer-events: none; /* keep overlay non-interactive */
         }
 
         .service-card h3 {
