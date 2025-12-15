@@ -1,51 +1,19 @@
 <?php
 require_once 'display.php';
+$user_id = $_SESSION['user_id'] ?? null;
 
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
 
-require 'vendor/autoload.php';
+//Temp error code stack below
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+//Temp error code stack above
 
-function send_verification_email($user_email, $user_id) {
-    global $db; // PDO connection
-
-    $token = bin2hex(random_bytes(16));
-
-    // Insert or update token
-    $stmt = $db->prepare("DELETE FROM email_tokens WHERE user_id=?");
-    $stmt->execute([$user_id]);
-
-    $stmt = $db->prepare("INSERT INTO email_tokens (user_id, token) VALUES (?, ?)");
-    $stmt->execute([$user_id, $token]);
-
-    // Send email
-    $mail = new PHPMailer(true);
-    try {
-        $mail->isSMTP();
-        $mail->Host       = 'smtp.example.com';
-        $mail->SMTPAuth   = true;
-        $mail->Username   = 'your_smtp_user';
-        $mail->Password   = 'your_smtp_pass';
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port       = 587;
-
-        $mail->setFrom('no-reply@finnhustle.com', 'Finn Hustle');
-        $mail->addAddress($user_email);
-        $mail->isHTML(true);
-        $mail->Subject = 'Verify Your Email';
-        $link = "https://yoursite.com/pages.php?page=verify&token=$token";
-        $mail->Body    = "<p>Click below to verify your email:</p><p><a href='$link'>$link</a></p>";
-
-        $mail->send();
-        return true;
-    } catch (Exception $e) {
-        return false;
-    }
-}
 
 // Simple pages router: pages.php?page=about|services|contact|profile|settings|dashboard|login|signup
 $page = isset($_GET['page']) ? $_GET['page'] : 'about';
-$allowed = ['about','services','contact','profile','settings','dashboard','login','signup','create_job','jobs'];
+$allowed = ['about','services','contact','profile','settings','dashboard','login','signup','create_job','jobs', 'verify','resend_verification'];
+$action = $_POST['action'] ?? $_GET['action'] ?? null;
 if (!in_array($page, $allowed)) {
     $page = 'about';
 }
@@ -311,19 +279,34 @@ switch ($page) {
         render_footer();
         
         break;
+
+
     case 'verify':
         render_header('Verify Email');
-        $token = $_GET['token'] ?? '';
-        
-        if ($token) {
-            $stmt = $db->prepare("SELECT user_id FROM email_tokens WHERE token=? LIMIT 1");
-            $stmt->execute([$token]);
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if ($row) {
-                // Mark verified
-                $db->prepare("UPDATE users SET verified=1 WHERE id=?")->execute([$row['user_id']]);
-                $db->prepare("DELETE FROM email_tokens WHERE user_id=?")->execute([$row['user_id']]);
+        $token = $_GET['token'] ?? '';
+
+        if ($token) {
+            $stmt = $conn->prepare(
+                "SELECT user_id FROM email_tokens WHERE token = ? LIMIT 1"
+            );
+            $stmt->bind_param('s', $token);
+            $stmt->execute();
+            $stmt->bind_result($uid);
+            $stmt->fetch();
+            $stmt->close();
+
+            if ($uid) {
+                $stmt = $conn->prepare("UPDATE users SET verified = 1 WHERE id = ?");
+                $stmt->bind_param('i', $uid);
+                $stmt->execute();
+                $stmt->close();
+
+                $stmt = $conn->prepare("DELETE FROM email_tokens WHERE user_id = ?");
+                $stmt->bind_param('i', $uid);
+                $stmt->execute();
+                $stmt->close();
+
                 echo "<p>Email verified successfully! You now have full access.</p>";
             } else {
                 echo "<p>Invalid or expired verification link.</p>";
@@ -331,20 +314,23 @@ switch ($page) {
         } else {
             echo "<p>No token provided.</p>";
         }
+
         render_footer();
         break;
-        
+
+    $user_email = $email;
     case 'resend_verification':
-    if ($is_logged_in && isset($user_id, $user_email)) {
-        if (send_verification_email($user_email, $user_id)) {
-            echo json_encode(['success'=>true,'message'=>'Verification email resent!']);
+        if ($is_logged_in && !empty($user_id) && !empty($user_email)) {
+            if (send_verification_email($conn, $user_email, $user_id)) {
+                echo json_encode(['success'=>true,'message'=>'Verification email resent!']);
+            } else {
+                echo json_encode(['success'=>false,'message'=>'Failed to send verification email.']);
+            }
         } else {
-            echo json_encode(['success'=>false,'message'=>'Failed to send verification email.']);
+            echo json_encode(['success'=>false,'message'=>'You must be logged in.']);
         }
-    } else {
-        echo json_encode(['success'=>false,'message'=>'You must be logged in.']);
-    }
-    exit;
+        exit;
+
 
     case 'profile':
         render_header('Profile');
@@ -550,11 +536,14 @@ switch ($page) {
             $email    = $_POST['email'];
             $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
 
-            $stmt = $db->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
-            $stmt->execute([$username, $email, $password]);
-            $user_id = $db->lastInsertId();
+            $stmt = $conn->prepare("INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)");
+            $stmt->bind_param('sss', $username, $email, $password);
+            $stmt->execute();
+            $user_id = $conn->insert_id;
 
-            if (send_verification_email($email, $user_id)) {
+
+            if (send_verification_email($conn, $user_email, $user_id)
+) {
                 echo json_encode(['success'=>true,'message'=>'Signup successful! Check your email to verify.']);
             } else {
                 echo json_encode(['success'=>false,'message'=>'Signup successful but failed to send email.']);
