@@ -158,7 +158,8 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
     $post_log = date('c') . " - POST start: action=" . ($_POST['action'] ?? '(none)') . " method=" . ($_SERVER['REQUEST_METHOD'] ?? '') . " remote=" . ($_SERVER['REMOTE_ADDR'] ?? '') . "\n";
     @file_put_contents(__DIR__ . '/debug_display_exec.log', $post_log, FILE_APPEND);
 
-    $action = $_POST['action'];
+    $action = trim(strtolower($_POST['action'] ?? ''));
+
     header('Content-Type: application/json');
     // Also log POST keys and cookies briefly
     @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - POST keys: " . implode(',', array_keys($_POST)) . "\n", FILE_APPEND);
@@ -166,8 +167,15 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
 
     if($action === 'signup'){
         $username = trim($_POST['username'] ?? '');
+        $user_email = trim($_POST['email'] ?? '');
         $email = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
+        if(send_verification_email($conn, $user_email, $new_id)){
+            echo json_encode(['status'=>'success','message'=>'Signup successful! Verification email sent.']);
+        } else {
+            echo json_encode(['status'=>'success','message'=>'Signup successful but failed to send verification email.']);
+        }
+        exit;
 
         if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
             echo json_encode(['status'=>'error','message'=>'Invalid email']); exit;
@@ -210,16 +218,14 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
     if ($action === 'resend_verification') {
         $user_email = $GLOBALS['user_email'] ?? null;
         if (!empty($_SESSION['user_id']) && $user_email) {
-            if(send_verification_email($conn, $user_email, $_SESSION['user_id'])){
-                echo json_encode(['success'=>true,'message'=>'Verification email resent!']);
-            } else {
-                echo json_encode(['success'=>false,'message'=>'Failed to send verification email.']);
-            }
+            send_verification_email($conn, $user_email, $_SESSION['user_id']);
+            echo json_encode(['success'=>true,'message'=>'Verification email resent!']);
         } else {
             echo json_encode(['success'=>false,'message'=>'Not logged in or email unknown']);
         }
         exit;
     }
+    
     if($action === 'debug'){
         // Return diagnostics for debugging (temporary)
         $db_ok = false;
