@@ -113,6 +113,56 @@ if(isset($_GET['action']) && $_GET['action'] === 'logout'){
     exit;
 }
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\SMTP;
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+function send_verification_email(mysqli $conn, string $email, int $user_id): bool {
+    $token = bin2hex(random_bytes(32));
+
+    // Remove old tokens
+    $stmt = $conn->prepare("DELETE FROM email_tokens WHERE user_id=?");
+    $stmt->bind_param('i', $user_id);
+    $stmt->execute();
+    $stmt->close();
+
+    // Insert new token
+    $stmt = $conn->prepare(
+        "INSERT INTO email_tokens (user_id, token, created_at) VALUES (?, ?, NOW())"
+    );
+    $stmt->bind_param('is', $user_id, $token);
+    $stmt->execute();
+    $stmt->close();
+
+    $verifyLink = "https://yourdomain.com/pages.php?page=verify&token=" . urlencode($token);
+
+    $mail = new PHPMailer(true);
+    try {
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';
+        $mail->SMTPAuth = true;
+        $mail->Username = 'your_smtp_user';
+        $mail->Password = 'your_smtp_pass';
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = 587;
+
+        $mail->setFrom('no-reply@yourdomain.com', 'Finn Hustle');
+        $mail->addAddress($email);
+        $mail->isHTML(true);
+        $mail->Subject = 'Verify your email';
+        $mail->Body = "<p><a href='$verifyLink'>Verify Email</a></p>";
+
+        return $mail->send();
+    } catch (Exception $e) {
+        error_log($mail->ErrorInfo);
+        return false;
+    }
+}
+
+
+
 // AJAX POST handlers for login/signup (mirrors the backup behavior)
 // Only handle AJAX-style POST actions when this file is the requested endpoint
 // (i.e. avoid intercepting POSTs intended for pages that `require_once 'display.php'`).
@@ -121,7 +171,8 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
     $post_log = date('c') . " - POST start: action=" . ($_POST['action'] ?? '(none)') . " method=" . ($_SERVER['REQUEST_METHOD'] ?? '') . " remote=" . ($_SERVER['REMOTE_ADDR'] ?? '') . "\n";
     @file_put_contents(__DIR__ . '/debug_display_exec.log', $post_log, FILE_APPEND);
 
-    $action = $_POST['action'];
+    $action = trim(strtolower($_POST['action'] ?? ''));
+
     header('Content-Type: application/json');
     // Also log POST keys and cookies briefly
     @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - POST keys: " . implode(',', array_keys($_POST)) . "\n", FILE_APPEND);
@@ -129,8 +180,15 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
 
     if($action === 'signup'){
         $username = trim($_POST['username'] ?? '');
+        $user_email = trim($_POST['email'] ?? '');
         $email = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
+        if(send_verification_email($conn, $user_email, $new_id)){
+            echo json_encode(['status'=>'success','message'=>'Signup successful! Verification email sent.']);
+        } else {
+            echo json_encode(['status'=>'success','message'=>'Signup successful but failed to send verification email.']);
+        }
+        exit;
 
         if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
             echo json_encode(['status'=>'error','message'=>'Invalid email']); exit;
@@ -156,11 +214,31 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             $new_id = $conn->insert_id;
             session_regenerate_id(true);
             $_SESSION['user_id'] = $new_id;
-            echo json_encode(['status'=>'success','message'=>'Signup successful']);
+
+            // FIX: set $user_email for email sending
+            $user_email = $email;
+
+            // Send verification email
+            if(send_verification_email($conn, $user_email, $new_id)){
+                echo json_encode(['status'=>'success','message'=>'Signup successful! Verification email sent.']);
+            } else {
+                echo json_encode(['status'=>'success','message'=>'Signup successful but failed to send verification email.']);
+            }
             exit;
         } else { echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
     }
 
+    if ($action === 'resend_verification') {
+        $user_email = $GLOBALS['user_email'] ?? null;
+        if (!empty($_SESSION['user_id']) && $user_email) {
+            send_verification_email($conn, $user_email, $_SESSION['user_id']);
+            echo json_encode(['success'=>true,'message'=>'Verification email resent!']);
+        } else {
+            echo json_encode(['success'=>false,'message'=>'Not logged in or email unknown']);
+        }
+        exit;
+    }
+    
     if($action === 'debug'){
         // Return diagnostics for debugging (temporary)
         $db_ok = false;
@@ -191,7 +269,7 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         $password = $_POST['password'] ?? '';
         $stmt = safe_prepare($conn, "SELECT id, password_hash FROM users WHERE username=? OR email=? LIMIT 1");
         if($stmt){
-            $stmt->bind_param('iss', $identifier, $identifier);
+            $stmt->bind_param('ss', $identifier, $identifier);
             $stmt->execute();
             $stmt->store_result();
             $stmt->bind_result($id, $hash);
