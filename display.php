@@ -98,6 +98,39 @@ function safe_prepare($conn, $sql){
     }
 }
 
+// Create remember_tokens table if it doesn't exist
+$conn->query("CREATE TABLE IF NOT EXISTS remember_tokens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    token VARCHAR(64) NOT NULL UNIQUE,
+    expires_at DATETIME NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    KEY (token),
+    KEY (expires_at)
+)");
+
+// Check if user has a valid remember token in cookie
+if(!$is_logged_in && isset($_COOKIE['remember_token'])){
+    $token = $_COOKIE['remember_token'];
+    $stmt = safe_prepare($conn, "SELECT user_id, username, email FROM users u JOIN remember_tokens rt ON u.id = rt.user_id WHERE rt.token = ? AND rt.expires_at > NOW() LIMIT 1");
+    if($stmt){
+        $stmt->bind_param('s', $token);
+        $stmt->execute();
+        $stmt->bind_result($uid, $uname, $uemail);
+        if($stmt->fetch()){
+            // Token is valid, log user in
+            $is_logged_in = true;
+            $user_name = $uname;
+            $user_email = $uemail;
+            $_SESSION['user_id'] = $uid;
+            $_SESSION['user_name'] = $uname;
+            $_SESSION['user_email'] = $uemail;
+        }
+        $stmt->close();
+    }
+}
+
 // Logout via GET (link uses display.php?action=logout)
 if(isset($_GET['action']) && $_GET['action'] === 'logout'){
     session_unset();
@@ -231,21 +264,39 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
     if($action === 'login'){
         $username = trim($_POST['username'] ?? '');
         $password = $_POST['password'] ?? '';
+        $remember = !empty($_POST['remember_me']);
         
         if(empty($username) || empty($password)){
             echo json_encode(['status'=>'error','message'=>'Username and password are required']); exit;
         }
         
-        $stmt = safe_prepare($conn, "SELECT id, username, password_hash FROM users WHERE username=? OR email=?");
+        $stmt = safe_prepare($conn, "SELECT id, username, email, password_hash FROM users WHERE username=? OR email=?");
         if($stmt){
             $stmt->bind_param('ss', $username, $username);
             $stmt->execute();
-            $stmt->bind_result($user_id, $user_name, $password_hash);
+            $stmt->bind_result($user_id, $user_name, $user_email, $password_hash);
             if($stmt->fetch()){
                 if(password_verify($password, $password_hash)){
                     session_regenerate_id(true);
                     $_SESSION['user_id'] = $user_id;
                     $_SESSION['user_name'] = $user_name;
+                    $_SESSION['user_email'] = $user_email;
+                    
+                    // If "remember me" is checked, create a token
+                    if($remember){
+                        $token = bin2hex(random_bytes(32));
+                        $expires = date('Y-m-d H:i:s', time() + (30 * 24 * 60 * 60)); // 30 days
+                        $stmt2 = safe_prepare($conn, "INSERT INTO remember_tokens (user_id, token, expires_at) VALUES (?, ?, ?)");
+                        if($stmt2){
+                            $stmt2->bind_param('iss', $user_id, $token, $expires);
+                            if($stmt2->execute()){
+                                // Set cookie for 30 days
+                                setcookie('remember_token', $token, time() + (30 * 24 * 60 * 60), '/', '', false, true);
+                            }
+                            $stmt2->close();
+                        }
+                    }
+                    
                     echo json_encode(['status'=>'success','message'=>'Logged in successfully']);
                 } else {
                     echo json_encode(['status'=>'error','message'=>'Invalid username or password']);
@@ -255,7 +306,7 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             }
             $stmt->close();
         } else {
-            echo json_encode(['status'=>'error','message'=>'Database error']);
+            echo json_encode(['status'=>'error','message'=>'Database error']); exit;
         }
         exit;
     }

@@ -521,6 +521,10 @@ switch ($page) {
                     <label for="password">Password</label>
                     <input id="password" name="password" type="password" required>
                 </div>
+                <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+                    <input id="remember_me" name="remember_me" type="checkbox" value="1">
+                    <label for="remember_me" style="margin: 0;">Remember me for 30 days</label>
+                </div>
                 <button class="btn btn-primary" type="submit">Log In</button>
             </form>
             <p class="auth-link">Don't have an account? <a href="pages.php?page=signup">Sign up</a></p>
