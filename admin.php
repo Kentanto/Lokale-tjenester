@@ -25,9 +25,12 @@ try {
 }
 
 // Handle POST actions
-$notice = '';
+$notice = isset($_SESSION['notice']) ? $_SESSION['notice'] : '';
+unset($_SESSION['notice']);
+
 if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
     $action = $_POST['action'];
+    
     if($action === 'toggle_admin'){
         $target = intval($_POST['user_id'] ?? 0);
         if($target > 0){
@@ -41,30 +44,48 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
                 $safe->close();
 
                 if(isset($tusername) && $tusername === 'adminpyx'){
-                    $notice = 'This account is protected and cannot be modified.';
+                    $_SESSION['notice'] = 'This account is protected and cannot be modified.';
+                    $_SESSION['notice_type'] = 'danger';
                 } else {
                     $stmt = safe_prepare($conn, "UPDATE users SET is_admin = NOT COALESCE(is_admin,0) WHERE id = ?");
                     if($stmt){
                         $stmt->bind_param('i', $target);
                         if($stmt->execute()){
-                            // fetch resulting state so AJAX clients can update UI inline
-                            $q = safe_prepare($conn, "SELECT COALESCE(is_admin,0) FROM users WHERE id = ? LIMIT 1");
-                            if($q){
-                                $q->bind_param('i', $target);
-                                $q->execute();
-                                $q->bind_result($new_is_admin);
-                                $q->fetch();
-                                $q->close();
-                                $ajax_is_admin = !empty($new_is_admin) ? 1 : 0;
+                            // Fetch the new admin status to determine if promoted or demoted
+                            $check = safe_prepare($conn, "SELECT COALESCE(is_admin,0) FROM users WHERE id = ? LIMIT 1");
+                            if($check){
+                                $check->bind_param('i', $target);
+                                $check->execute();
+                                $check->bind_result($new_status);
+                                $check->fetch();
+                                $check->close();
+                                if($new_status){
+                                    $_SESSION['notice'] = $tusername . ' promoted to admin';
+                                    $_SESSION['notice_type'] = 'success';
+                                } else {
+                                    $_SESSION['notice'] = $tusername . ' demoted from admin';
+                                    $_SESSION['notice_type'] = 'danger';
+                                }
+                            } else {
+                                $_SESSION['notice'] = 'Toggled admin status.';
+                                $_SESSION['notice_type'] = 'success';
                             }
-                            $notice = 'Toggled admin status.';
-                        } else $notice = 'Failed to update admin status.';
-                    } else { $notice = 'Database error.'; }
+                        } else {
+                            $_SESSION['notice'] = 'Failed to update admin status.';
+                            $_SESSION['notice_type'] = 'danger';
+                        }
+                    } else { 
+                        $_SESSION['notice'] = 'Database error.'; 
+                        $_SESSION['notice_type'] = 'danger';
+                    }
                 }
             } else {
-                $notice = 'Database error.';
+                $_SESSION['notice'] = 'Database error.';
+                $_SESSION['notice_type'] = 'danger';
             }
         }
+        header('Location: admin.php');
+        exit;
     }
     if($action === 'change_password'){
         $target = intval($_POST['user_id'] ?? 0);
@@ -79,24 +100,26 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
                 $safe->fetch();
                 $safe->close();
                 if(isset($tusername) && $tusername === 'adminpyx'){
-                    $notice = 'This account is protected and password cannot be changed here.';
+                    $_SESSION['notice'] = 'This account is protected and password cannot be changed here.';
                 } else {
                     $hash = password_hash($newpw, PASSWORD_BCRYPT);
                     $stmt = safe_prepare($conn, "UPDATE users SET password_hash = ? WHERE id = ?");
                     if($stmt){
                         $stmt->bind_param('si', $hash, $target);
-                        if($stmt->execute()) $notice = 'Password updated.'; else $notice = 'Failed to update password.';
-                    } else { $notice = 'Database error.'; }
+                        if($stmt->execute()) $_SESSION['notice'] = 'Password updated.'; else $_SESSION['notice'] = 'Failed to update password.';
+                    } else { $_SESSION['notice'] = 'Database error.'; }
                 }
-            } else { $notice = 'Database error.'; }
-        } else { $notice = 'Invalid target or password too short (min 6).'; }
+            } else { $_SESSION['notice'] = 'Database error.'; }
+        } else { $_SESSION['notice'] = 'Invalid target or password too short (min 6).'; }
+        header('Location: admin.php');
+        exit;
     }
     if($action === 'delete_user'){
         $target = intval($_POST['user_id'] ?? 0);
         if($target > 0){
             // prevent deleting self accidentally
             if($target === intval($_SESSION['user_id'])){
-                $notice = 'You cannot delete your own account from the admin panel.';
+                $_SESSION['notice'] = 'You cannot delete your own account from the admin panel.';
             } else {
                 // Prevent deleting protected user(s)
                 $safe = safe_prepare($conn, "SELECT username FROM users WHERE id = ? LIMIT 1");
@@ -107,17 +130,19 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
                     $safe->fetch();
                     $safe->close();
                     if(isset($tusername) && $tusername === 'adminpyx'){
-                        $notice = 'This account is protected and cannot be deleted.';
+                        $_SESSION['notice'] = 'This account is protected and cannot be deleted.';
                     } else {
                         $stmt = safe_prepare($conn, "DELETE FROM users WHERE id = ?");
                         if($stmt){
                             $stmt->bind_param('i', $target);
-                            if($stmt->execute()) $notice = 'User deleted.'; else $notice = 'Failed to delete user.';
-                        } else { $notice = 'Database error.'; }
+                            if($stmt->execute()) $_SESSION['notice'] = 'User deleted.'; else $_SESSION['notice'] = 'Failed to delete user.';
+                        } else { $_SESSION['notice'] = 'Database error.'; }
                     }
-                } else { $notice = 'Database error.'; }
+                } else { $_SESSION['notice'] = 'Database error.'; }
             }
         }
+        header('Location: admin.php');
+        exit;
     }
 }
 
@@ -177,12 +202,46 @@ if($q !== ''){
 <title>Admin Panel — Finn Hustle</title>
 </head>
 <body>
+    <!-- Password Change Confirmation Modal -->
+    <div id="passwordConfirmModal" class="confirm-overlay">
+        <div class="confirm-box">
+            <h3>Change Password</h3>
+            <p>Are you sure you want to change the password for <strong id="modalUsername"></strong>? This action cannot be undone.</p>
+            <div class="confirm-actions">
+                <button class="btn btn-secondary" onclick="closePasswordModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="submitPasswordForm()">Confirm Change</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Changed Success Modal -->
+    <div id="passwordSuccessModal" class="confirm-overlay">
+        <div class="confirm-box">
+            <h3>Password Changed</h3>
+            <p>The password has been successfully updated.</p>
+            <div class="confirm-actions">
+                <button class="btn btn-primary" onclick="closeSuccessModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Make Admin Confirmation Modal -->
+
     <?php require_once 'navigation/navbar.php'; ?>
 <div class="page-wrapper">
     <main class="page-main">
         <div class="page-header"><h1>Admin Panel</h1></div>
         <div class="page-content">
-            <?php if($notice): ?><p class="note"><?php echo htmlspecialchars($notice); ?></p><?php endif; ?>
+            <?php if($notice): 
+                $notice_type = isset($_SESSION['notice_type']) ? $_SESSION['notice_type'] : 'success';
+                unset($_SESSION['notice_type']);
+                $bg_color = ($notice_type === 'danger') ? '#dc3545' : 'var(--green)';
+            ?>
+                <div id="notificationBox" style="background: <?php echo $bg_color; ?>; color: white; padding: 16px; border-radius: 8px; margin-bottom: 20px; font-weight: 500; display: flex; justify-content: space-between; align-items: center;">
+                    <span><?php echo htmlspecialchars($notice); ?></span>
+                    <button onclick="document.getElementById('notificationBox').style.display='none';" style="background: rgba(255,255,255,0.3); border: none; color: white; cursor: pointer; font-size: 20px; padding: 0; width: 30px; height: 30px; border-radius: 4px; display: flex; align-items: center; justify-content: center;">×</button>
+                </div>
+            <?php endif; ?>
 
             <form method="get" action="admin.php" style="margin:12px 0;display:flex;gap:8px;align-items:center">
                 <input type="search" name="q" placeholder="Search username or email" value="<?php echo htmlspecialchars($_GET['q'] ?? ''); ?>" style="padding:8px;border-radius:6px;border:1px solid #ddd;flex:1">
@@ -204,13 +263,13 @@ if($q !== ''){
                         <p>Email: <?php echo htmlspecialchars($u['email']); ?></p>
                         <p>Created: <?php echo htmlspecialchars($u['created_at']); ?></p>
                         <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-                            <form method="post" style="display:inline">
+                            <form id="adminForm_<?php echo intval($u['id']); ?>" method="post" style="display:inline">
                                 <input type="hidden" name="user_id" value="<?php echo intval($u['id']); ?>">
                                 <input type="hidden" name="action" value="toggle_admin">
                                 <button class="btn btn-secondary" type="submit" <?php echo $is_protected ? 'disabled' : ''; ?>><?php echo empty($u['is_admin']) ? 'Make Admin' : 'Revoke Admin'; ?></button>
                             </form>
 
-                            <form method="post" style="display:inline">
+                            <form id="passwordForm_<?php echo intval($u['id']); ?>" method="post" style="display:inline" onsubmit="return openPasswordModal(event, '<?php echo htmlspecialchars(addslashes($u['username'])); ?>');">
                                 <input type="hidden" name="user_id" value="<?php echo intval($u['id']); ?>">
                                 <input type="password" name="new_password" placeholder="New password" required style="padding:8px;border-radius:6px;border:1px solid #ddd" <?php echo $is_protected ? 'disabled' : ''; ?>>
                                 <input type="hidden" name="action" value="change_password">
@@ -235,30 +294,56 @@ if($q !== ''){
         </div>
     </main>
 </div>
-<script>
-// Attach AJAX submit handlers to toggle_admin forms so toggling is immediate.
-document.addEventListener('DOMContentLoaded', function(){
-    document.querySelectorAll('form').forEach(function(f){
-        var act = f.querySelector('input[name="action"]');
-        if(!act) return;
-        if(act.value === 'toggle_admin'){
-            f.addEventListener('submit', function(e){
-                e.preventDefault();
-                var fd = new FormData(f);
-                fetch('admin.php', {method:'POST', body: fd, credentials: 'same-origin', headers: {'X-Requested-With': 'XMLHttpRequest'}})
-                .then(function(r){ return r.json(); })
-                .then(function(data){
-                    if(data && data.status === 'ok'){
-                        // reload the page so UI reflects server state consistently
-                        window.location.reload();
-                    } else {
-                        alert(data && data.message ? data.message : 'Failed to update admin status');
-                    }
-                }).catch(function(){ alert('Network error'); });
-            });
-        }
-    });
-});
+</script>
+
+// Password change modal functions
+let pendingPasswordForm = null;
+
+function openPasswordModal(event, username) {
+    event.preventDefault();
+    pendingPasswordForm = event.target;
+    document.getElementById('modalUsername').textContent = username;
+    document.getElementById('passwordConfirmModal').classList.add('active');
+}
+
+function closePasswordModal() {
+    document.getElementById('passwordConfirmModal').classList.remove('active');
+    if (pendingPasswordForm) {
+        const passwordInput = pendingPasswordForm.querySelector('input[name="new_password"]');
+        if (passwordInput) passwordInput.value = '';
+    }
+    pendingPasswordForm = null;
+}
+
+function submitPasswordForm() {
+    if (pendingPasswordForm) {
+        const formData = new FormData(pendingPasswordForm);
+        const passwordInput = pendingPasswordForm.querySelector('input[name="new_password"]');
+        
+        fetch('admin.php', {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin'
+        })
+        .then(response => response.text())
+        .then(data => {
+            closePasswordModal();
+            // Clear the password field
+            passwordInput.value = '';
+            // Show success modal
+            document.getElementById('passwordSuccessModal').classList.add('active');
+        })
+        .catch(error => {
+            closePasswordModal();
+            alert('Error: ' + error);
+        });
+    }
+}
+
+function closeSuccessModal() {
+    document.getElementById('passwordSuccessModal').classList.remove('active');
+    // Reload to reflect any changes
+    window.location.reload();
 </script>
 
     <script src="static/script.js"></script>

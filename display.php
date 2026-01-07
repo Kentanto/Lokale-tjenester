@@ -3,9 +3,21 @@
 // The webserver must be able to write files in this directory for these logs to appear.
 @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - display.php loaded\n", FILE_APPEND);
 // Maximum supported session lifetime (seconds) - 60 days
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
+// For AJAX/API requests, suppress error output to avoid breaking JSON responses
+$is_ajax_request = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest';
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/php_errors.log');
 error_reporting(E_ALL);
+
+// Set custom error handler to log errors
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    @file_put_contents(__DIR__ . '/php_errors.log', 
+        date('c') . " [$errno] $errstr in $errfile:$errline\n", 
+        FILE_APPEND);
+    return false;
+});
 
 // Configure session GC and cookie parameters for indefinite sessions.
 ini_set('session.gc_maxlifetime', 31536000); // 1 year
