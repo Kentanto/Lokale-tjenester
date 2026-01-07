@@ -228,6 +228,38 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         } else { echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
     }
 
+    if($action === 'login'){
+        $username = trim($_POST['username'] ?? '');
+        $password = $_POST['password'] ?? '';
+        
+        if(empty($username) || empty($password)){
+            echo json_encode(['status'=>'error','message'=>'Username and password are required']); exit;
+        }
+        
+        $stmt = safe_prepare($conn, "SELECT id, username, password_hash FROM users WHERE username=? OR email=?");
+        if($stmt){
+            $stmt->bind_param('ss', $username, $username);
+            $stmt->execute();
+            $stmt->bind_result($user_id, $user_name, $password_hash);
+            if($stmt->fetch()){
+                if(password_verify($password, $password_hash)){
+                    session_regenerate_id(true);
+                    $_SESSION['user_id'] = $user_id;
+                    $_SESSION['user_name'] = $user_name;
+                    echo json_encode(['status'=>'success','message'=>'Logged in successfully']);
+                } else {
+                    echo json_encode(['status'=>'error','message'=>'Invalid username or password']);
+                }
+            } else {
+                echo json_encode(['status'=>'error','message'=>'Invalid username or password']);
+            }
+            $stmt->close();
+        } else {
+            echo json_encode(['status'=>'error','message'=>'Database error']);
+        }
+        exit;
+    }
+
     if ($action === 'resend_verification') {
         $user_email = $GLOBALS['user_email'] ?? null;
         if (!empty($_SESSION['user_id']) && $user_email) {

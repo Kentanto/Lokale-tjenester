@@ -510,7 +510,7 @@ switch ($page) {
         ?>
         <div class="auth-section">
             <p>Log in to your Finn Hustle account to manage bookings, providers, and profile settings.</p>
-            <form id="loginPageForm" method="post" class="auth-form">
+            <form id="loginPageForm" class="auth-form">
                 <input type="hidden" name="action" value="login">
                 <div class="form-message" aria-live="polite"></div>
                 <div class="form-group">
@@ -525,6 +525,31 @@ switch ($page) {
             </form>
             <p class="auth-link">Don't have an account? <a href="pages.php?page=signup">Sign up</a></p>
         </div>
+        <script>
+        document.getElementById('loginPageForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const msgDiv = this.querySelector('.form-message');
+            
+            fetch('display.php', {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+            })
+            .then(r => r.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    msgDiv.innerHTML = '<p style="color: green;">Login successful! Redirecting...</p>';
+                    setTimeout(() => window.location.href = 'pages.php?page=dashboard', 1000);
+                } else {
+                    msgDiv.innerHTML = '<p style="color: red;">' + (data.message || 'Login failed') + '</p>';
+                }
+            })
+            .catch(err => {
+                msgDiv.innerHTML = '<p style="color: red;">Error: ' + err.message + '</p>';
+            });
+        });
+        </script>
         <?php
         render_footer();
         break;
