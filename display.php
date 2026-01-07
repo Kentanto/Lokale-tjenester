@@ -103,6 +103,7 @@ if(isset($_GET['action']) && $_GET['action'] === 'logout'){
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\SMTP;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
@@ -128,7 +129,7 @@ function send_verification_email(mysqli $conn, string $email, int $user_id): boo
     $mail = new PHPMailer(true);
     try {
         $mail->isSMTP();
-        $mail->Host = 'smtp.example.com';
+        $mail->Host = 'smtp.gmail.com';
         $mail->SMTPAuth = true;
         $mail->Username = 'your_smtp_user';
         $mail->Password = 'your_smtp_pass';
