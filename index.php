@@ -58,7 +58,7 @@
     <div class="coming-soon-container">
         <div class="coming-soon-content">
             <div class="coming-soon-logo">
-                <img src="assets/Lokale_Tjenester.png" alt="Lokale Tjenester Logo">
+                <img src="assets/Lokale_Tjenester_only_logo.png" alt="Lokale Tjenester Logo">
             </div>
             
             <h1>Nettsted Kommer Snart</h1>
