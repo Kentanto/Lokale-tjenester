@@ -4,9 +4,9 @@
 // Usage (browser): visit http://your-server/scripts/run_migrations.php (only for local dev)
 
 $host = 'localhost';
-$user = 'pyx';
-$pass = 'admin';
-$db   = 'DB';
+$user = 'lokale-tjenester';
+$pass = 'pwlt01!';
+$db   = 'lokale-tjenester';
 
 $migrationsDir = __DIR__ . '/../migrations';
 if(!is_dir($migrationsDir)){

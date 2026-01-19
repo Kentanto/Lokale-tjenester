@@ -9,9 +9,9 @@ echo "<pre>";
 
 // Database credentials from display.php
 $DB_HOST = 'localhost';
-$DB_NAME = 'DB';
-$DB_USER = 'pyx';
-$DB_PASS = 'admin';
+$DB_NAME = 'lokale-tjenester';
+$DB_USER = 'lokale-tjenester';
+$DB_PASS = 'pwlt01!';
 
 echo "Testing connection with:\n";
 echo "  Host: $DB_HOST\n";

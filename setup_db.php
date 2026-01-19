@@ -9,9 +9,9 @@
 
 // Database credentials
 $DB_HOST = 'localhost';
-$DB_NAME = 'DB';
-$DB_USER = 'pyx';
-$DB_PASS = 'admin';
+$DB_NAME = 'lokale-tjenester';
+$DB_USER = 'lokale-tjenester';
+$DB_PASS = 'pwlt01!';
 
 // Connect to MySQL
 $conn = @new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME);

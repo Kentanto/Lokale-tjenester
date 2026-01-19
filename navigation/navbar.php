@@ -5,7 +5,7 @@
 <nav>
     <div class="logo">
         <a href="index2.php">
-            <img src="assets/Lokale_Tjenester.jpg" alt="">
+            <img src="assets/Lokale_Tjenester.png" alt="Lokale Tjenester">
         </a>
     </div>
     <div class="nav-center"><a>Trygg hjelp med lokale hender</a></div>

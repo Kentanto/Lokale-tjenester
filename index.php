@@ -14,7 +14,7 @@
     <nav>
         <div class="logo">
             <a href="#">
-                <img src="assets/Lokale_Tjenester.jpg" alt="Lokale Tjenester">
+                <img src="assets/Lokale_Tjenester.png" alt="Lokale Tjenester">
             </a>
         </div>
         <div class="nav-center"><a>Trygg hjelp med lokale hender</a></div>
@@ -58,7 +58,7 @@
     <div class="coming-soon-container">
         <div class="coming-soon-content">
             <div class="coming-soon-logo">
-                <img src="assets/Lokale_Tjenester.jpg" alt="Lokale Tjenester Logo">
+                <img src="assets/Lokale_Tjenester.png" alt="Lokale Tjenester Logo">
             </div>
             
             <h1>Nettsted Kommer Snart</h1>

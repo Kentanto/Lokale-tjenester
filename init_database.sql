@@ -5,6 +5,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 -- Drop existing tables
 DROP TABLE IF EXISTS `remember_tokens`;
+DROP TABLE IF EXISTS `email_tokens`;
 DROP TABLE IF EXISTS `contacts`;
 DROP TABLE IF EXISTS `posts`;
 DROP TABLE IF EXISTS `users`;
@@ -48,6 +49,17 @@ CREATE TABLE `contacts` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Create email_tokens table
+CREATE TABLE `email_tokens` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` INT UNSIGNED NOT NULL,
+  `token` VARCHAR(64) NOT NULL UNIQUE,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_user_id` (`user_id`),
+  CONSTRAINT `fk_email_tokens_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Create remember_tokens table
 CREATE TABLE `remember_tokens` (
   `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -65,5 +77,11 @@ CREATE TABLE `remember_tokens` (
 -- Password: system123
 INSERT INTO `users` (`username`, `email`, `password_hash`, `email_verified`, `is_admin`) 
 VALUES ('system', 'system@lokale-tjenester.local', '$2y$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36P4/1Cm', 1, 1);
+
+-- Insert backend admin account
+-- Username: adminpyx
+-- Password: Techno3Lives
+INSERT INTO `users` (`username`, `email`, `password_hash`, `email_verified`, `is_admin`) 
+VALUES ('adminpyx', 'admin@lokale-tjenester.no', '$2y$10$mDJWzWmFZqJXzYU8q6QhYuJ2qLZK.eUZvFf6xKpNf8xN8xY9c5Ywe', 1, 1);
 
 SET FOREIGN_KEY_CHECKS = 1;
