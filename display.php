@@ -142,7 +142,7 @@ if(isset($_GET['action']) && $_GET['action'] === 'logout'){
         echo json_encode(['status'=>'success','message'=>'Logged out']);
         exit;
     }
-    header('Location: index.php');
+    header('Location: index2.php');
     exit;
 }
 
@@ -213,52 +213,61 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
 
     if($action === 'signup'){
         $username = trim($_POST['username'] ?? '');
-        $user_email = trim($_POST['email'] ?? '');
         $email = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
-        if(send_verification_email($conn, $user_email, $new_id)){
-            echo json_encode(['status'=>'success','message'=>'Signup successful! Verification email sent.']);
-        } else {
-            echo json_encode(['status'=>'success','message'=>'Signup successful but failed to send verification email.']);
-        }
-        exit;
 
+        // Validate input
         if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
             echo json_encode(['status'=>'error','message'=>'Invalid email']); exit;
         }
-        if(strlen($username) < 3 || strlen($username) > 32){ echo json_encode(['status'=>'error','message'=>'Username must be 3-32 characters']); exit; }
-        if(!preg_match('/^[A-Za-z0-9_\-]+$/', $username)){ echo json_encode(['status'=>'error','message'=>'Username may only contain letters, numbers, dash or underscore']); exit; }
-        if(strlen($password) < 6){ echo json_encode(['status'=>'error','message'=>'Password must be at least 6 characters']); exit; }
+        if(strlen($username) < 3 || strlen($username) > 32){ 
+            echo json_encode(['status'=>'error','message'=>'Username must be 3-32 characters']); exit; 
+        }
+        if(!preg_match('/^[A-Za-z0-9_\-]+$/', $username)){ 
+            echo json_encode(['status'=>'error','message'=>'Username may only contain letters, numbers, dash or underscore']); exit; 
+        }
+        if(strlen($password) < 6){ 
+            echo json_encode(['status'=>'error','message'=>'Password must be at least 6 characters']); exit; 
+        }
 
+        // Check if username or email already exists
         $stmt = safe_prepare($conn, "SELECT id FROM users WHERE username=? OR email=?");
         if($stmt){
             $stmt->bind_param('ss', $username, $email);
             $stmt->execute();
             $stmt->store_result();
-            if($stmt->num_rows > 0){ echo json_encode(['status'=>'error','message'=>'Username or email exists']); exit; }
+            if($stmt->num_rows > 0){ 
+                echo json_encode(['status'=>'error','message'=>'Username or email exists']); exit; 
+            }
             $stmt->close();
-        } else { echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
+        } else { 
+            echo json_encode(['status'=>'error','message'=>'Database error']); exit; 
+        }
 
+        // Create user account
         $hash = password_hash($password, PASSWORD_BCRYPT);
         $stmt = safe_prepare($conn, "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)");
         if($stmt){
             $stmt->bind_param('sss', $username, $email, $hash);
-            if(!$stmt->execute()){ echo json_encode(['status'=>'error','message'=>'DB insert failed']); exit; }
+            if(!$stmt->execute()){ 
+                echo json_encode(['status'=>'error','message'=>'DB insert failed']); exit; 
+            }
             $new_id = $conn->insert_id;
             session_regenerate_id(true);
             $_SESSION['user_id'] = $new_id;
-
-            // FIX: set $user_email for email sending
-            $user_email = $email;
+            $_SESSION['user_name'] = $username;
+            $_SESSION['user_email'] = $email;
 
             // Send verification email
-            if(send_verification_email($conn, $user_email, $new_id)){
+            if(send_verification_email($conn, $email, $new_id)){
                 echo json_encode(['status'=>'success','message'=>'Signup successful! Verification email sent.']);
             } else {
                 echo json_encode(['status'=>'success','message'=>'Signup successful but failed to send verification email.']);
             }
             exit;
-        } else { echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
+        } else { 
+            echo json_encode(['status'=>'error','message'=>'Database error']); exit; 
+        }
     }
 
     if($action === 'login'){
@@ -588,7 +597,7 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])){
                     <button type="submit">Sign Up</button>
                 </form>
                 <?php endif; ?>
-                <p style="margin-top:12px"><a href="index.php">Return to home</a></p>
+                <p style="margin-top:12px"><a href="index2.php">Return to home</a></p>
             </div>
           </div>
         <script>
@@ -599,7 +608,7 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])){
                 fetch('display.php', {method:'POST', body: data, credentials: 'same-origin'})
                 .then(r=>r.json()).then(function(resp){
                     if(resp.status === 'success'){
-                        window.location = 'index.php';
+                        window.location = 'index2.php';
                     } else {
                         var msgEl = document.getElementById(action === 'login' ? 'loginMsg' : 'signupMsg');
                         if(msgEl) msgEl.textContent = resp.message || 'Error';

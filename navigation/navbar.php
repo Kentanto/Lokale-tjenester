@@ -4,7 +4,7 @@
 ?>
 <nav>
     <div class="logo">
-        <a href="index.php">
+        <a href="index2.php">
             <img src="assets/Lokale_Tjenester.jpg" alt="">
         </a>
     </div>
@@ -39,7 +39,7 @@
                     <input type="text" name="username" placeholder="Username" required>
                     <input type="email" name="email" placeholder="Email" required>
                     <input type="password" name="password" placeholder="Password" required>
-                    <button type="submit">Sign Up</button>
+                    <button type="submit" aria-disabled="true" disabled>Sign Up (Disabled)</button>
                 </form>
             <?php endif; ?>
         </div>
