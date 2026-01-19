@@ -72,9 +72,9 @@ $user_created = null;
 
 // Database credentials (same as other files)
 $DB_HOST = 'localhost';
-$DB_NAME = 'DB';
-$DB_USER = 'pyx';
-$DB_PASS = 'admin';
+$DB_NAME = 'lokale-tjenester';
+$DB_USER = 'lokale-tjenester';
+$DB_PASS = 'pwlt01!';
 
 // Try to connect; fail quietly but log errors.
 //connect (fail quietly)
@@ -97,6 +97,17 @@ function safe_prepare($conn, $sql){
         return null;
     }
 }
+
+// Create email_tokens table if it doesn't exist
+$conn->query("CREATE TABLE IF NOT EXISTS email_tokens (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    token VARCHAR(64) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    KEY (user_id),
+    KEY (token)
+)");
 
 // Create remember_tokens table if it doesn't exist
 $conn->query("CREATE TABLE IF NOT EXISTS remember_tokens (
