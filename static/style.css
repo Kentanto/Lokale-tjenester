@@ -543,7 +543,7 @@
 .site-footer {
     /* Blend the footer with the page background but give it an upward shadow
        so it reads as a separate surface. */
-    background: var(--off-white);
+    background: #ffffff;
     border-top: none;
     padding: 12px 20px;
     position: fixed;
@@ -552,7 +552,7 @@
     bottom: 0;
     width: 100%;
     z-index: 1200;
-    box-shadow: 0 -8px 20px rgba(11,22,33,0.06); /* shadow above footer */
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
 }
 .site-footer .footer-inner {
     max-width: 1100px;
@@ -1431,11 +1431,14 @@ input:focus + .slider {
 
 .coming-soon-logo {
     margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .coming-soon-logo img {
-    height: 60px;
-    width: auto;
+    height: 100px !important;
+    width: auto !important;
     object-fit: contain;
 }
 
