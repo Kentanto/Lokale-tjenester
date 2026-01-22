@@ -30,7 +30,7 @@ function render_header($title, $pageClass = '') {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <link rel="stylesheet" href="static/style.css">
-    <title><?php echo htmlspecialchars($title); ?> - Finn Hustle</title>
+    <title><?php echo htmlspecialchars($title); ?> - Lokale Tjenester</title>
 </head>
 <body>
     <?php require_once 'navigation/navbar.php'; ?>
@@ -58,7 +58,7 @@ function render_footer() {
                 <a href="pages.php?page=contact">Contact</a>
             </div>
             <div class="footer-right">
-                <span>&copy; <?php echo date('Y'); ?> Finn Hustle</span>
+                <span>&copy; <?php echo date('Y'); ?> Lokale Tjenester</span>
                 <span class="footer-sep">|</span>
                 <a href="LICENSE" class="license-link">Basic Fair Use (NOR)</a>
             </div>
@@ -79,7 +79,7 @@ switch ($page) {
         render_header('About');
         ?>
         <section class="lead">
-            <p>Welcome to <strong>Finn Hustle</strong> — your local hub for finding trusted services nearby. We connect
+            <p>Welcome to <strong>Lokale Tjenester</strong> — your local hub for finding trusted services nearby. We connect
             homeowners and small businesses with local professionals to get things done quickly and reliably!</p>
         </section>
 
@@ -509,7 +509,7 @@ switch ($page) {
         render_header('Login');
         ?>
         <div class="auth-section">
-            <p>Log in to your Finn Hustle account to manage bookings, providers, and profile settings.</p>
+            <p>Log in to your Lokale Tjenester account to manage bookings, providers, and profile settings.</p>
             <form id="loginPageForm" class="auth-form">
                 <input type="hidden" name="action" value="login">
                 <div class="form-message" aria-live="polite"></div>

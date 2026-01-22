@@ -274,7 +274,7 @@ if($q !== ''){
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="stylesheet" href="static/style.css">
-<title>Admin Panel — Finn Hustle</title>
+<title>Admin Panel — Lokale Tjenester</title>
 </head>
 <body>
     <!-- Edit User Modal -->

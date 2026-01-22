@@ -186,19 +186,23 @@ function send_verification_email(mysqli $conn, string $email, int $user_id): boo
     $stmt->execute();
     $stmt->close();
 
-    $verifyLink = "https://yourdomain.com/pages.php?page=verify&token=" . urlencode($token);
+    $verifyLink = "https://" . getenv('DOMAIN') . "/pages.php?page=verify&token=" . urlencode($token);
 
     $mail = new PHPMailer(true);
     try {
+        $mail->isSendmail();
+        // SMTP settings commented out - use sendmail for local delivery
+        /*
         $mail->isSMTP();
-        $mail->Host = 'smtp.gmail.com';
+        $mail->Host = getenv('SMTP_HOST');
         $mail->SMTPAuth = true;
-        $mail->Username = 'your_smtp_user';
-        $mail->Password = 'your_smtp_pass';
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port = 587;
+        $mail->Username = getenv('SMTP_USERNAME');
+        $mail->Password = getenv('SMTP_PASSWORD');
+        $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
+        $mail->Port = (int)getenv('SMTP_PORT');
+        */
 
-        $mail->setFrom('no-reply@yourdomain.com', 'Finn Hustle');
+        $mail->setFrom(getenv('FROM_EMAIL'), getenv('FROM_NAME') ?: 'Lokale Tjenester');
         $mail->addAddress($email);
         $mail->isHTML(true);
         $mail->Subject = 'Verify your email';
@@ -597,7 +601,7 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])){
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width,initial-scale=1">
             <link rel="stylesheet" href="static/style.css">
-            <title><?php echo ($act==='login') ? 'Login' : 'Sign Up'; ?> — Finn Hustle</title>
+            <title><?php echo ($act==='login') ? 'Login' : 'Sign Up'; ?> — Lokale Tjenester</title>
             <style>body{font-family:Arial,Helvetica,sans-serif;margin:0;padding:24px;background:#f7f7f7}.wrap{max-width:640px;margin:0 auto}.card{background:#fff;padding:16px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.08)}</style>
         </head>
         <body>
