@@ -1040,3 +1040,8 @@
 2026-01-26T07:57:00+00:00 - display.php loaded
 2026-01-26T08:25:52+00:00 - display.php loaded
 2026-01-26T08:54:02+00:00 - display.php loaded
+2026-01-26T10:19:15+00:00 - display.php loaded
+2026-01-26T10:19:17+00:00 - display.php loaded
+2026-01-26T10:19:17+00:00 - POST start: action=send_verification method=POST remote=193.213.190.26
+2026-01-26T10:19:17+00:00 - POST keys: action
+2026-01-26T10:19:17+00:00 - COOKIES: ["PLESKSESSID","sites-dynamic-list-state-collapsed","PHPSESSID"]

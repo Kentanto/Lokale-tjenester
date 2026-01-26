@@ -18,7 +18,7 @@ echo getenv('APP_ENV');
 $DB_HOST = 'localhost';
 $DB_NAME = 'lokale-tjenester';
 $DB_USER = 'lokale-tjenester';
-$DB_PASS = 'pwlt01!';
+$DB_PASS = getenv('SMTP_PASSWORD');
 $conn = new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME);
 if ($conn->connect_error) {
     echo "<p><strong>DB Error:</strong> " . $conn->connect_error . "</p>";
@@ -26,10 +26,9 @@ if ($conn->connect_error) {
     echo "<p>DB Connected OK</p>";
 }
 
-// Test email sending
 echo "<h2>Sending Test Email</h2>";
-$test_email = 'wil.oversveen@gmail.com'; // Replace with your real test email
-$user_id = 5; // Dummy user ID
+$test_email = 'holb04@icloud.com'; 
+$user_id = 5;
 
 try {
     $token = bin2hex(random_bytes(32));
@@ -40,22 +39,11 @@ try {
 
     $mail = new PHPMailer\PHPMailer\PHPMailer(true);
     $mail->isSendmail();
-    // SMTP commented
-    /*
-    $mail->isSMTP();
-    $mail->Host = getenv('SMTP_HOST');
-    $mail->SMTPAuth = true;
-    $mail->Username = getenv('SMTP_USERNAME');
-    $mail->Password = getenv('SMTP_PASSWORD');
-    $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
-    $mail->Port = (int)getenv('SMTP_PORT');
-    */
-
     $mail->setFrom(getenv('FROM_EMAIL'), getenv('FROM_NAME') ?: 'Test');
     $mail->addAddress($test_email);
     $mail->isHTML(true);
     $mail->Subject = 'Test Email from Debug Page';
-    $mail->Body = "<p>HAHAHAHAHHA I GOT IT WORKING BICH, the link doesnt work yet but im sending you a maillllllllllllllll, this is a big step for our sanity <a href='$verifyLink'>Verify Link</a></p>";
+    $mail->Body = "<p>HAHAHAHAHHA I GOT IT WORKING BICH, the link doesnt work yet but im sending you a maillllllllllllllll, this is a big step for our sanity <a href='$verifyLink'>Verify Email</a></p>";
 
     echo "<p>Attempting to send...</p>";
     if ($mail->send()) {

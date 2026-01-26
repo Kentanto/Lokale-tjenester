@@ -162,12 +162,63 @@ if(isset($_GET['action']) && $_GET['action'] === 'logout'){
     header('Location: index2.php');
     exit;
 }
-
+session_start();
+require_once __DIR__ . '/vendor/autoload.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-use PHPMailer\PHPMailer\SMTP;
 
-require_once __DIR__ . '/vendor/autoload.php';
+// ---- DEBUGGING: log every POST ----
+error_log("=== display.php hit ===");
+error_log("POST keys: " . implode(',', array_keys($_POST)));
+error_log("SESSION keys: " . implode(',', array_keys($_SESSION)));
+error_log("REMOTE_ADDR: " . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
+
+// Make sure $action exists
+$action = $_POST['action'] ?? null;
+error_log("Action received: " . var_export($action, true));
+
+// Only handle resend_verification
+if ($action === 'resend_verification') {
+
+    $user_id = $_SESSION['user_id'] ?? null;
+    if (!$user_id) {
+        error_log("No user_id in session");
+        echo json_encode(['success'=>false,'message'=>'Not logged in']);
+        exit;
+    }
+
+    // Fetch email from DB
+    $stmt = $conn->prepare("SELECT email FROM users WHERE id=?");
+    $stmt->bind_param('i', $user_id);
+    $stmt->execute();
+    $user = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    $user_email = $user['email'] ?? null;
+    if (!$user_email) {
+        error_log("User email not found for ID $user_id");
+        echo json_encode(['success'=>false,'message'=>'Email not found']);
+        exit;
+    }
+
+    error_log("Sending verification email to $user_email for user ID $user_id");
+
+    $ok = send_verification_email($conn, $user_email, $user_id);
+
+    if ($ok) {
+        error_log("Mail sent successfully to $user_email");
+    } else {
+        error_log("Failed to send mail to $user_email");
+    }
+
+    echo json_encode([
+        'success' => $ok,
+        'message' => $ok ? 'Verification email resent!' : 'Failed to send verification email'
+    ]);
+    exit;
+} else {
+    error_log("Unknown action: " . var_export($action, true));
+}
 
 function send_verification_email(mysqli $conn, string $email, int $user_id): bool {
     $token = bin2hex(random_bytes(32));
@@ -190,14 +241,7 @@ function send_verification_email(mysqli $conn, string $email, int $user_id): boo
 
     $mail = new PHPMailer(true);
     try {
-        $mail->isSMTP();
-        $mail->Host = getenv('SMTP_HOST');
-        $mail->SMTPAuth = true;
-        $mail->Username = getenv('SMTP_USERNAME');
-        $mail->Password = getenv('SMTP_PASSWORD');
-        $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
-        $mail->Port = (int)getenv('SMTP_PORT');
-
+        $mail->isSendmail();
         $mail->setFrom(getenv('FROM_EMAIL'), getenv('FROM_NAME') ?: 'Lokale Tjenester');
         $mail->addAddress($email);
         $mail->isHTML(true);
@@ -221,7 +265,8 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
     $post_log = date('c') . " - POST start: action=" . ($_POST['action'] ?? '(none)') . " method=" . ($_SERVER['REQUEST_METHOD'] ?? '') . " remote=" . ($_SERVER['REMOTE_ADDR'] ?? '') . "\n";
     @file_put_contents(__DIR__ . '/debug_display_exec.log', $post_log, FILE_APPEND);
 
-    $action = trim(strtolower($_POST['action'] ?? ''));
+    $action = $_POST['action'] ?? null;
+
 
     header('Content-Type: application/json');
     // Also log POST keys and cookies briefly

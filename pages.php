@@ -288,7 +288,7 @@ switch ($page) {
 
         if ($token) {
             $stmt = $conn->prepare(
-                "SELECT user_id FROM email_tokens WHERE token = ? LIMIT 1"
+                "SELECT user_id FROM email_tokens WHERE token = ? AND created_at > NOW() - INTERVAL 24 HOUR LIMIT 1"
             );
             $stmt->bind_param('s', $token);
             $stmt->execute();

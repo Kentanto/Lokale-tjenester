@@ -10,6 +10,7 @@ function toggleDropdown(){
     if(dropdownMenu) dropdownMenu.classList.toggle('active');
 }
 
+
 document.addEventListener('DOMContentLoaded',function(){
     // Dark mode toggle
     const darkModeToggle = document.getElementById('darkModeToggle');
@@ -32,39 +33,7 @@ document.addEventListener('DOMContentLoaded',function(){
             }
         });
     }
-    
-    const userBtn=document.querySelector('.user-btn');
-    if(userBtn){
-        userBtn.addEventListener('click',function(e){
-            e.stopPropagation();
-            toggleDropdown();
-        });
-    }
-
-    document.addEventListener('click',function(e){
-        const userProfile=document.querySelector('.user-profile');
-        const dropdownMenu=document.getElementById('dropdownMenu');
-        if(userProfile && dropdownMenu && !userProfile.contains(e.target)){
-            dropdownMenu.classList.remove('active');
-        }
-    });
-
-    document.querySelectorAll('.btn').forEach(button=>{
-        button.addEventListener('click',function(){
-            console.log('Button clicked:',this.textContent);
-        });
-    });
-
-    async function parseJsonResponse(res){
-        // read text and try to parse JSON; return object with status and message on failure
-        let text = '';
-        try{ text = await res.text(); }catch(e){ return {status:'error', message:'No response from server'}; }
-        if(!text) return {status:'error', message:'Empty server response'};
-        try{ return JSON.parse(text); }catch(e){
-            return {status:'error', message: text};
-        }
-    }
-
+      
     // Confirmation modal helper
     function ensureConfirmModal(){
         if(document.getElementById('confirmOverlay')) return;
@@ -407,18 +376,65 @@ document.addEventListener('DOMContentLoaded',function(){
     });
 
     // Resend verification
-    document.getElementById('resendVerifyBtn')?.addEventListener('click', async e=>{
+ document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('resendVerifyBtn');
+    if (!btn) {
+        console.warn('Resend verification button not found!');
+        return;
+    }
+
+    btn.addEventListener('click', async e => {
         e.preventDefault();
-        const btn = e.target;
         btn.disabled = true;
-        let fd = new FormData(); fd.append('action','send_verification');
+
+        console.log('Resend verification clicked — sending POST');
+
+        const fd = new FormData();
+        fd.append('action', 'resend_verification');
+
         let res;
-        try{ res = await fetch('display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
-        catch(err){ showFormMessage(document.getElementById('settingsForm')||document.body,'Network error','error'); btn.disabled=false; return; }
-        let data = await parseJsonResponse(res);
-        // show a toast in profile area
+        try {
+            res = await fetch('display.php', {
+                method: 'POST',
+                body: fd,
+                credentials: 'same-origin'
+            });
+        } catch (err) {
+            console.error('Network error:', err);
+            btn.disabled = false;
+            return;
+        }
+
+        let data;
+        try {
+            data = await res.json();
+        } catch (err) {
+            console.error('Invalid JSON response:', err, await res.text());
+            btn.disabled = false;
+            return;
+        }
+
+        console.log('Server response:', data);
+
         const profileForm = document.getElementById('settingsForm');
-        if(profileForm) showFormMessage(profileForm, data.message + (data.verification_url? (' — ' + data.verification_url) : ''), data.status);
+        if (profileForm) {
+            showFormMessage(profileForm, data.message + (data.verification_url ? (' — ' + data.verification_url) : ''), data.status);
+        } else {
+            alert(data.message);
+        }
+
         btn.disabled = false;
     });
 });
+});
+
+// Helper: parse JSON response with error handling
+async function parseJsonResponse(response){
+    let data;
+    try{
+        data = await response.json();
+    } catch(err){
+        data = {status:'error', message:'Invalid server response'};
+    }
+    return data;
+}
