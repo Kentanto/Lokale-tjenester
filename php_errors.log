@@ -1943,3 +1943,7 @@ Stack trace:
 [26-Jan-2026 08:25:52 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
 2026-01-26T08:25:52+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
 [26-Jan-2026 08:25:52 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T08:54:02+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 08:54:02 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T08:54:02+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 08:54:02 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
