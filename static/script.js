@@ -10,6 +10,51 @@ function toggleDropdown(){
     if(dropdownMenu) dropdownMenu.classList.toggle('active');
 }
 
+const userBtn=document.querySelector('.user-btn');
+if(userBtn){
+    userBtn.addEventListener('click',function(e){
+        e.stopPropagation();
+        toggleDropdown();
+    });
+}
+
+document.addEventListener('click',function(e){
+    const userProfile=document.querySelector('.user-profile');
+    const dropdownMenu=document.getElementById('dropdownMenu');
+    if(userProfile && dropdownMenu && !userProfile.contains(e.target)){
+        dropdownMenu.classList.remove('active');
+    }
+});
+
+document.querySelectorAll('.btn').forEach(button=>{
+    button.addEventListener('click',function(){
+        console.log('Button clicked:',this.textContent);
+    });
+});
+
+async function parseJsonResponse(res){
+    // read text and try to parse JSON; return object with status and message on failure
+    let text = '';
+    try{ text = await res.text(); }catch(e){ return {status:'error', message:'No response from server'}; }
+    if(!text) return {status:'error', message:'Empty server response'};
+    try{ return JSON.parse(text); }catch(e){
+        return {status:'error', message: text};
+    }
+}
+
+function showFormMessage(form, message, status){
+    if (!form) return;
+
+    const container = form.querySelector('.form-message');
+    if (!container) {
+        alert(message);
+        return;
+    }
+
+    container.textContent = message || '';
+    container.classList.remove('success', 'error');
+    container.classList.add(status === 'success' ? 'success' : 'error');
+}
 
 document.addEventListener('DOMContentLoaded',function(){
     // Dark mode toggle
@@ -376,7 +421,7 @@ document.addEventListener('DOMContentLoaded',function(){
     });
 });
     // Resend verification
- document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
     const btn = document.getElementById('resendVerifyBtn');
     if (!btn) {
         console.warn('Resend verification button not found!');
@@ -428,13 +473,3 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 
 
-// Helper: parse JSON response with error handling
-async function parseJsonResponse(response){
-    let data;
-    try{
-        data = await response.json();
-    } catch(err){
-        data = {status:'error', message:'Invalid server response'};
-    }
-    return data;
-}
