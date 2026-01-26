@@ -76,12 +76,15 @@ CREATE TABLE `remember_tokens` (
 -- Username: system
 -- Password: system123
 INSERT INTO `users` (`username`, `email`, `password_hash`, `email_verified`, `is_admin`) 
-VALUES ('system', 'system@lokale-tjenester.local', '$2y$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36P4/1Cm', 1, 1);
+VALUES ('system', 'system@lokale-tjenester.local', '$2y$10$5sz8vnuQCDMPjMyeduYjI.6Fh3OFkJAE.gAYddUGUvT0OkCjvRLHG', 1, 1);
 
 -- Insert backend admin account
 -- Username: adminpyx
 -- Password: Techno3Lives
 INSERT INTO `users` (`username`, `email`, `password_hash`, `email_verified`, `is_admin`) 
 VALUES ('adminpyx', 'admin@lokale-tjenester.no', '$2y$10$mDJWzWmFZqJXzYU8q6QhYuJ2qLZK.eUZvFf6xKpNf8xN8xY9c5Ywe', 1, 1);
+
+INSERT INTO `users` (`username`, `email`, `password_hash`, `email_verified`, `is_admin`) 
+VALUES ('kentanto', 'admin@lokale-tjenester.no', '$2y$10$NRwJQ3q4JSwa.zkwqXz.GOMntHPkL5p76Ct6OV7V/nXo5lDxykzSa', 1, 1);
 
 SET FOREIGN_KEY_CHECKS = 1;

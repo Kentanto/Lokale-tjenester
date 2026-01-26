@@ -1,4 +1,4 @@
--- Migration: create missing tables for Finn Hustle
+-- Migration: create missing tables for Lokale Tjenester
 -- Run with: mysql -h HOST -u USER -p DATABASE < create_tables.sql
 
 SET FOREIGN_KEY_CHECKS = 0;

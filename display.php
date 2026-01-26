@@ -78,6 +78,12 @@ $DB_PASS = 'pwlt01!';
 
 // Try to connect; fail quietly but log errors.
 //connect (fail quietly)
+
+if ($conn->connect_error) {
+    @file_put_contents(__DIR__ . '/debug_db.log', 'Connect error: ' . $conn->connect_error . "\n", FILE_APPEND);
+} else {
+    @file_put_contents(__DIR__ . '/debug_db.log', 'Connected successfully' . "\n", FILE_APPEND);
+}
 $conn = @new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME);
 if ($conn && $conn->connect_error) {
     error_log('display.php: DB connect error: ' . $conn->connect_error);
@@ -180,19 +186,19 @@ function send_verification_email(mysqli $conn, string $email, int $user_id): boo
     $stmt->execute();
     $stmt->close();
 
-    $verifyLink = "https://yourdomain.com/pages.php?page=verify&token=" . urlencode($token);
+    $verifyLink = "https://" . getenv('DOMAIN') . "/pages.php?page=verify&token=" . urlencode($token);
 
     $mail = new PHPMailer(true);
     try {
         $mail->isSMTP();
-        $mail->Host = 'smtp.gmail.com';
+        $mail->Host = getenv('SMTP_HOST');
         $mail->SMTPAuth = true;
-        $mail->Username = 'your_smtp_user';
-        $mail->Password = 'your_smtp_pass';
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port = 587;
+        $mail->Username = getenv('SMTP_USERNAME');
+        $mail->Password = getenv('SMTP_PASSWORD');
+        $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
+        $mail->Port = (int)getenv('SMTP_PORT');
 
-        $mail->setFrom('no-reply@yourdomain.com', 'Finn Hustle');
+        $mail->setFrom(getenv('FROM_EMAIL'), getenv('FROM_NAME') ?: 'Lokale Tjenester');
         $mail->addAddress($email);
         $mail->isHTML(true);
         $mail->Subject = 'Verify your email';
@@ -294,9 +300,12 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         if($stmt){
             $stmt->bind_param('ss', $username, $username);
             $stmt->execute();
+            @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - Login: query executed for username=$username\n", FILE_APPEND);
             $stmt->bind_result($user_id, $user_name, $user_email, $password_hash);
             if($stmt->fetch()){
+                @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - Login: user found, id=$user_id, hash starts with " . substr($password_hash, 0, 10) . "\n", FILE_APPEND);
                 if(password_verify($password, $password_hash)){
+                    @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - Login: password correct\n", FILE_APPEND);
                     session_regenerate_id(true);
                     $_SESSION['user_id'] = $user_id;
                     $_SESSION['user_name'] = $user_name;
@@ -319,13 +328,16 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
                     
                     echo json_encode(['status'=>'success','message'=>'Logged in successfully']);
                 } else {
+                    @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - Login: password incorrect\n", FILE_APPEND);
                     echo json_encode(['status'=>'error','message'=>'Invalid username or password']);
                 }
             } else {
+                @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - Login: user not found\n", FILE_APPEND);
                 echo json_encode(['status'=>'error','message'=>'Invalid username or password']);
             }
             $stmt->close();
         } else {
+            @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - Login: DB error preparing statement\n", FILE_APPEND);
             echo json_encode(['status'=>'error','message'=>'Database error']); exit;
         }
         exit;
@@ -585,7 +597,7 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])){
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width,initial-scale=1">
             <link rel="stylesheet" href="static/style.css">
-            <title><?php echo ($act==='login') ? 'Login' : 'Sign Up'; ?> — Finn Hustle</title>
+            <title><?php echo ($act==='login') ? 'Login' : 'Sign Up'; ?> — Lokale Tjenester</title>
             <style>body{font-family:Arial,Helvetica,sans-serif;margin:0;padding:24px;background:#f7f7f7}.wrap{max-width:640px;margin:0 auto}.card{background:#fff;padding:16px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.08)}</style>
         </head>
         <body>

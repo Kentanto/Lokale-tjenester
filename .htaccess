@@ -1,0 +1,7 @@
+SetEnv SMTP_HOST mail.lokale-tjenester.no
+SetEnv SMTP_PORT 465
+SetEnv SMTP_USERNAME post@lokale-tjenester.no
+SetEnv SMTP_PASSWORD pwlt01!
+SetEnv FROM_EMAIL noreply@lokale-tjenester.no
+SetEnv FROM_NAME "Lokale Tjenester"
+SetEnv DOMAIN lokale-tjenester.no
