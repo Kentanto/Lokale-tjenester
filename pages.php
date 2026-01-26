@@ -297,7 +297,7 @@ switch ($page) {
             $stmt->close();
 
             if ($uid) {
-                $stmt = $conn->prepare("UPDATE users SET verified = 1 WHERE id = ?");
+                $stmt = $conn->prepare("UPDATE users SET email_verified = 1 WHERE id = ?");
                 $stmt->bind_param('i', $uid);
                 $stmt->execute();
                 $stmt->close();
