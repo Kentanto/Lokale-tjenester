@@ -1947,3 +1947,676 @@ Stack trace:
 [26-Jan-2026 08:54:02 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
 2026-01-26T08:54:02+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
 [26-Jan-2026 08:54:02 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:45:21+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:45:21 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:45:21+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:45:21 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:45:25+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:45:25 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:45:25+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:45:25 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:47:20+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:47:20 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:47:20+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:47:20 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:47:22+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:47:22 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:47:22+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:47:22 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:48:12+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:48:12 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:48:12+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:48:12 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:48:13+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:48:13 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:48:13+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:48:13 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:52:59+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:52:59 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:52:59+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:52:59 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:52:59+00:00 [2] Undefined variable $action in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:170
+[26-Jan-2026 10:52:59 UTC] PHP Warning:  Undefined variable $action in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 170
+2026-01-26T10:53:00+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:53:00 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:53:00+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:53:00 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:53:00+00:00 [2] Undefined variable $action in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:170
+[26-Jan-2026 10:53:00 UTC] PHP Warning:  Undefined variable $action in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 170
+2026-01-26T10:55:11+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:55:11 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:55:11+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:55:11 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:55:11+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 10:55:11 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 10:55:11 UTC] === display.php hit ===
+[26-Jan-2026 10:55:11 UTC] POST keys: 
+[26-Jan-2026 10:55:11 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 10:55:11 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 10:55:11 UTC] Action received: NULL
+[26-Jan-2026 10:55:11 UTC] Unknown action: NULL
+2026-01-26T10:55:13+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:55:13 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:55:13+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:55:13 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:55:13+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 10:55:13 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 10:55:13 UTC] === display.php hit ===
+[26-Jan-2026 10:55:13 UTC] POST keys: action
+[26-Jan-2026 10:55:13 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 10:55:13 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 10:55:13 UTC] Action received: 'send_verification'
+[26-Jan-2026 10:55:13 UTC] Unknown action: 'send_verification'
+2026-01-26T10:55:19+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:55:19 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:55:19+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:55:19 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:55:19+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 10:55:19 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 10:55:19 UTC] === display.php hit ===
+[26-Jan-2026 10:55:19 UTC] POST keys: action
+[26-Jan-2026 10:55:19 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 10:55:19 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 10:55:19 UTC] Action received: 'send_verification'
+[26-Jan-2026 10:55:19 UTC] Unknown action: 'send_verification'
+2026-01-26T10:55:19+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:55:19 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:55:19+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:55:19 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:55:19+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 10:55:19 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 10:55:19 UTC] === display.php hit ===
+[26-Jan-2026 10:55:19 UTC] POST keys: action
+[26-Jan-2026 10:55:19 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 10:55:19 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 10:55:19 UTC] Action received: 'send_verification'
+[26-Jan-2026 10:55:19 UTC] Unknown action: 'send_verification'
+2026-01-26T10:55:19+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:55:19 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:55:19+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:55:19 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:55:19+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 10:55:19 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 10:55:19 UTC] === display.php hit ===
+[26-Jan-2026 10:55:19 UTC] POST keys: action
+[26-Jan-2026 10:55:19 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 10:55:19 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 10:55:19 UTC] Action received: 'send_verification'
+[26-Jan-2026 10:55:19 UTC] Unknown action: 'send_verification'
+2026-01-26T10:55:23+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:55:23 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:55:23+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:55:23 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:55:23+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 10:55:23 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 10:55:23 UTC] === display.php hit ===
+[26-Jan-2026 10:55:23 UTC] POST keys: action
+[26-Jan-2026 10:55:23 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 10:55:23 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 10:55:23 UTC] Action received: 'send_verification'
+[26-Jan-2026 10:55:23 UTC] Unknown action: 'send_verification'
+2026-01-26T10:55:24+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:55:24 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:55:24+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:55:24 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:55:24+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 10:55:24 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 10:55:24 UTC] === display.php hit ===
+[26-Jan-2026 10:55:24 UTC] POST keys: action
+[26-Jan-2026 10:55:24 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 10:55:24 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 10:55:24 UTC] Action received: 'send_verification'
+[26-Jan-2026 10:55:24 UTC] Unknown action: 'send_verification'
+2026-01-26T10:55:24+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:55:24 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:55:24+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:55:24 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:55:24+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 10:55:24 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 10:55:24 UTC] === display.php hit ===
+[26-Jan-2026 10:55:24 UTC] POST keys: action
+[26-Jan-2026 10:55:24 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 10:55:24 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 10:55:24 UTC] Action received: 'send_verification'
+[26-Jan-2026 10:55:24 UTC] Unknown action: 'send_verification'
+2026-01-26T10:55:25+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:55:25 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:55:25+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:55:25 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:55:25+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 10:55:25 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 10:55:25 UTC] === display.php hit ===
+[26-Jan-2026 10:55:25 UTC] POST keys: action
+[26-Jan-2026 10:55:25 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 10:55:25 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 10:55:25 UTC] Action received: 'send_verification'
+[26-Jan-2026 10:55:25 UTC] Unknown action: 'send_verification'
+2026-01-26T10:55:25+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:55:25 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:55:25+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:55:25 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:55:25+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 10:55:25 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 10:55:25 UTC] === display.php hit ===
+[26-Jan-2026 10:55:25 UTC] POST keys: action
+[26-Jan-2026 10:55:25 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 10:55:25 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 10:55:25 UTC] Action received: 'send_verification'
+[26-Jan-2026 10:55:25 UTC] Unknown action: 'send_verification'
+2026-01-26T10:55:25+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:55:25 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:55:25+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:55:25 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:55:25+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 10:55:25 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 10:55:25 UTC] === display.php hit ===
+[26-Jan-2026 10:55:25 UTC] POST keys: action
+[26-Jan-2026 10:55:25 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 10:55:25 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 10:55:25 UTC] Action received: 'send_verification'
+[26-Jan-2026 10:55:25 UTC] Unknown action: 'send_verification'
+2026-01-26T10:56:18+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:56:18 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:56:18+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 10:56:18 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T10:56:18+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 10:56:18 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 10:56:18 UTC] === display.php hit ===
+[26-Jan-2026 10:56:18 UTC] POST keys: d2
+[26-Jan-2026 10:56:18 UTC] SESSION keys: 
+[26-Jan-2026 10:56:18 UTC] REMOTE_ADDR: 5.189.173.122
+[26-Jan-2026 10:56:18 UTC] Action received: NULL
+[26-Jan-2026 10:56:18 UTC] Unknown action: NULL
+2026-01-26T11:00:22+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:22 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:22+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:22 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:22+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:00:22 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:00:22 UTC] === display.php hit ===
+[26-Jan-2026 11:00:22 UTC] POST keys: 
+[26-Jan-2026 11:00:22 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:00:22 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:00:22 UTC] Action received: NULL
+[26-Jan-2026 11:00:22 UTC] Unknown action: NULL
+2026-01-26T11:00:23+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:23 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:23+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:23 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:23+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:00:23 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:00:23 UTC] === display.php hit ===
+[26-Jan-2026 11:00:23 UTC] POST keys: action
+[26-Jan-2026 11:00:23 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:00:23 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:00:23 UTC] Action received: 'send_verification'
+[26-Jan-2026 11:00:23 UTC] Unknown action: 'send_verification'
+2026-01-26T11:00:28+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:28 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:28+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:28 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:28+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:00:28 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:00:28 UTC] === display.php hit ===
+[26-Jan-2026 11:00:28 UTC] POST keys: action
+[26-Jan-2026 11:00:28 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:00:28 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:00:28 UTC] Action received: 'send_verification'
+[26-Jan-2026 11:00:28 UTC] Unknown action: 'send_verification'
+2026-01-26T11:00:29+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:29 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:29+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:29 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:29+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:00:29 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:00:29 UTC] === display.php hit ===
+[26-Jan-2026 11:00:29 UTC] POST keys: action
+[26-Jan-2026 11:00:29 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:00:29 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:00:29 UTC] Action received: 'send_verification'
+[26-Jan-2026 11:00:29 UTC] Unknown action: 'send_verification'
+2026-01-26T11:00:30+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:30 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:30+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:30 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:30+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:00:30 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:00:30 UTC] === display.php hit ===
+[26-Jan-2026 11:00:30 UTC] POST keys: 
+[26-Jan-2026 11:00:30 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:00:30 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:00:30 UTC] Action received: NULL
+[26-Jan-2026 11:00:30 UTC] Unknown action: NULL
+2026-01-26T11:00:31+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:31 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:31+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:31 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:31+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:00:31 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:00:31 UTC] === display.php hit ===
+[26-Jan-2026 11:00:31 UTC] POST keys: action
+[26-Jan-2026 11:00:31 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:00:31 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:00:31 UTC] Action received: 'send_verification'
+[26-Jan-2026 11:00:31 UTC] Unknown action: 'send_verification'
+2026-01-26T11:00:33+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:33 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:33+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:33 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:33+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:00:33 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:00:33 UTC] === display.php hit ===
+[26-Jan-2026 11:00:33 UTC] POST keys: action
+[26-Jan-2026 11:00:33 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:00:33 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:00:33 UTC] Action received: 'send_verification'
+[26-Jan-2026 11:00:33 UTC] Unknown action: 'send_verification'
+2026-01-26T11:00:39+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:39 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:39+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:39 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:39+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:00:39 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:00:39 UTC] === display.php hit ===
+[26-Jan-2026 11:00:39 UTC] POST keys: action
+[26-Jan-2026 11:00:39 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:00:39 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:00:39 UTC] Action received: 'send_verification'
+[26-Jan-2026 11:00:39 UTC] Unknown action: 'send_verification'
+2026-01-26T11:00:40+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:40 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:40+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:40 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:40+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:00:40 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:00:40 UTC] === display.php hit ===
+[26-Jan-2026 11:00:40 UTC] POST keys: action
+[26-Jan-2026 11:00:40 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:00:40 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:00:40 UTC] Action received: 'send_verification'
+[26-Jan-2026 11:00:40 UTC] Unknown action: 'send_verification'
+2026-01-26T11:00:40+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:40 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:40+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:40 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:40+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:00:40 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:00:40 UTC] === display.php hit ===
+[26-Jan-2026 11:00:40 UTC] POST keys: action
+[26-Jan-2026 11:00:40 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:00:40 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:00:40 UTC] Action received: 'send_verification'
+[26-Jan-2026 11:00:40 UTC] Unknown action: 'send_verification'
+2026-01-26T11:00:40+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:40 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:40+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:40 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:40+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:00:40 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:00:40 UTC] === display.php hit ===
+[26-Jan-2026 11:00:40 UTC] POST keys: action
+[26-Jan-2026 11:00:40 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:00:40 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:00:40 UTC] Action received: 'send_verification'
+[26-Jan-2026 11:00:40 UTC] Unknown action: 'send_verification'
+2026-01-26T11:00:40+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:40 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:40+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:40 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:40+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:00:40 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:00:40 UTC] === display.php hit ===
+[26-Jan-2026 11:00:40 UTC] POST keys: action
+[26-Jan-2026 11:00:40 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:00:40 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:00:40 UTC] Action received: 'send_verification'
+[26-Jan-2026 11:00:40 UTC] Unknown action: 'send_verification'
+2026-01-26T11:00:40+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:40 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:40+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:40 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:40+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:00:40 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:00:40 UTC] === display.php hit ===
+[26-Jan-2026 11:00:40 UTC] POST keys: action
+[26-Jan-2026 11:00:40 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:00:40 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:00:40 UTC] Action received: 'send_verification'
+[26-Jan-2026 11:00:40 UTC] Unknown action: 'send_verification'
+2026-01-26T11:00:53+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:53 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:53+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:53 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:53+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:00:53 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:00:53 UTC] === display.php hit ===
+[26-Jan-2026 11:00:53 UTC] POST keys: 
+[26-Jan-2026 11:00:53 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:00:53 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:00:53 UTC] Action received: NULL
+[26-Jan-2026 11:00:53 UTC] Unknown action: NULL
+2026-01-26T11:00:55+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:55 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:55+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:55 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:55+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:00:55 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:00:55 UTC] === display.php hit ===
+[26-Jan-2026 11:00:55 UTC] POST keys: action
+[26-Jan-2026 11:00:55 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:00:55 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:00:55 UTC] Action received: 'send_verification'
+[26-Jan-2026 11:00:55 UTC] Unknown action: 'send_verification'
+2026-01-26T11:00:56+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:56 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:56+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:56 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:56+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:00:56 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:00:56 UTC] === display.php hit ===
+[26-Jan-2026 11:00:56 UTC] POST keys: action
+[26-Jan-2026 11:00:56 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:00:56 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:00:56 UTC] Action received: 'send_verification'
+[26-Jan-2026 11:00:56 UTC] Unknown action: 'send_verification'
+2026-01-26T11:00:56+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:56 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:56+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:56 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:56+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:00:56 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:00:56 UTC] === display.php hit ===
+[26-Jan-2026 11:00:56 UTC] POST keys: action
+[26-Jan-2026 11:00:56 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:00:56 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:00:56 UTC] Action received: 'send_verification'
+[26-Jan-2026 11:00:56 UTC] Unknown action: 'send_verification'
+2026-01-26T11:00:56+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:56 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:56+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:56 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:56+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:00:56 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:00:56 UTC] === display.php hit ===
+[26-Jan-2026 11:00:56 UTC] POST keys: action
+[26-Jan-2026 11:00:56 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:00:56 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:00:56 UTC] Action received: 'send_verification'
+[26-Jan-2026 11:00:56 UTC] Unknown action: 'send_verification'
+2026-01-26T11:00:57+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:57 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:57+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:00:57 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:00:57+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:00:57 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:00:57 UTC] === display.php hit ===
+[26-Jan-2026 11:00:57 UTC] POST keys: action
+[26-Jan-2026 11:00:57 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:00:57 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:00:57 UTC] Action received: 'send_verification'
+[26-Jan-2026 11:00:57 UTC] Unknown action: 'send_verification'
+2026-01-26T11:02:34+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:02:34 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:02:34+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:02:34 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:02:34+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:02:34 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:02:34 UTC] === display.php hit ===
+[26-Jan-2026 11:02:34 UTC] POST keys: 
+[26-Jan-2026 11:02:34 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:02:34 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:02:34 UTC] Action received: NULL
+[26-Jan-2026 11:02:34 UTC] Unknown action: NULL
+2026-01-26T11:02:36+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:02:36 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:02:36+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:02:36 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:02:36+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:02:36 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:02:36 UTC] === display.php hit ===
+[26-Jan-2026 11:02:36 UTC] POST keys: action
+[26-Jan-2026 11:02:36 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:02:36 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:02:36 UTC] Action received: 'send_verification'
+[26-Jan-2026 11:02:36 UTC] Unknown action: 'send_verification'
+2026-01-26T11:04:56+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:04:56 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:04:56+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:04:56 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:04:56+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:04:56 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:04:56 UTC] === display.php hit ===
+[26-Jan-2026 11:04:56 UTC] POST keys: action
+[26-Jan-2026 11:04:56 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:04:56 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:04:56 UTC] Action received: 'send_verification'
+[26-Jan-2026 11:04:56 UTC] Unknown action: 'send_verification'
+2026-01-26T11:04:57+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:04:57 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:04:57+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:04:57 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:04:57+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:04:57 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:04:57 UTC] === display.php hit ===
+[26-Jan-2026 11:04:57 UTC] POST keys: action
+[26-Jan-2026 11:04:57 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:04:57 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:04:57 UTC] Action received: 'send_verification'
+[26-Jan-2026 11:04:57 UTC] Unknown action: 'send_verification'
+2026-01-26T11:04:57+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:04:57 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:04:57+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:04:57 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:04:57+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:04:57 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:04:57 UTC] === display.php hit ===
+[26-Jan-2026 11:04:57 UTC] POST keys: action
+[26-Jan-2026 11:04:57 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:04:57 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:04:57 UTC] Action received: 'send_verification'
+[26-Jan-2026 11:04:57 UTC] Unknown action: 'send_verification'
+2026-01-26T11:04:57+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:04:57 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:04:57+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:04:57 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:04:57+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:04:57 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:04:57 UTC] === display.php hit ===
+[26-Jan-2026 11:04:57 UTC] POST keys: action
+[26-Jan-2026 11:04:57 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:04:57 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:04:57 UTC] Action received: 'send_verification'
+[26-Jan-2026 11:04:57 UTC] Unknown action: 'send_verification'
+2026-01-26T11:04:58+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:04:58 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:04:58+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:04:58 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:04:58+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:04:58 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:04:58 UTC] === display.php hit ===
+[26-Jan-2026 11:04:58 UTC] POST keys: action
+[26-Jan-2026 11:04:58 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:04:58 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:04:58 UTC] Action received: 'send_verification'
+[26-Jan-2026 11:04:58 UTC] Unknown action: 'send_verification'
+2026-01-26T11:08:11+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:08:11 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:08:11+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:08:11 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:08:11+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:08:11 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:08:11 UTC] === display.php hit ===
+[26-Jan-2026 11:08:11 UTC] POST keys: 
+[26-Jan-2026 11:08:11 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:08:11 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:08:11 UTC] Action received: NULL
+[26-Jan-2026 11:08:11 UTC] Unknown action: NULL
+2026-01-26T11:08:12+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:08:12 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:08:12+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:08:12 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:08:12+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:08:12 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:08:12 UTC] === display.php hit ===
+[26-Jan-2026 11:08:12 UTC] POST keys: action
+[26-Jan-2026 11:08:12 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:08:12 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:08:12 UTC] Action received: 'send_verification'
+[26-Jan-2026 11:08:12 UTC] Unknown action: 'send_verification'
+2026-01-26T11:08:13+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:08:13 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:08:13+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:08:13 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:08:13+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:08:13 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:08:13 UTC] === display.php hit ===
+[26-Jan-2026 11:08:13 UTC] POST keys: action
+[26-Jan-2026 11:08:13 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:08:13 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:08:13 UTC] Action received: 'send_verification'
+[26-Jan-2026 11:08:13 UTC] Unknown action: 'send_verification'
+2026-01-26T11:08:13+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:08:13 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:08:13+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:08:13 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:08:13+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:08:13 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:08:13 UTC] === display.php hit ===
+[26-Jan-2026 11:08:13 UTC] POST keys: action
+[26-Jan-2026 11:08:13 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:08:13 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:08:13 UTC] Action received: 'send_verification'
+[26-Jan-2026 11:08:13 UTC] Unknown action: 'send_verification'
+2026-01-26T11:21:06+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:21:06 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:21:06+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:21:06 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:21:06+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:21:06 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:21:06 UTC] === display.php hit ===
+[26-Jan-2026 11:21:06 UTC] POST keys: 
+[26-Jan-2026 11:21:06 UTC] SESSION keys: 
+[26-Jan-2026 11:21:06 UTC] REMOTE_ADDR: 158.149.96.15
+[26-Jan-2026 11:21:06 UTC] Action received: NULL
+[26-Jan-2026 11:21:06 UTC] Unknown action: NULL
+2026-01-26T11:25:56+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:25:56 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:25:56+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:25:56 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:25:56+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:25:56 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:25:56 UTC] === display.php hit ===
+[26-Jan-2026 11:25:56 UTC] POST keys: 
+[26-Jan-2026 11:25:56 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:25:56 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:25:56 UTC] Action received: NULL
+[26-Jan-2026 11:25:56 UTC] Unknown action: NULL
+2026-01-26T11:25:57+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:25:57 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:25:57+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:25:57 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:25:57+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:25:57 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:25:57 UTC] === display.php hit ===
+[26-Jan-2026 11:25:57 UTC] POST keys: action
+[26-Jan-2026 11:25:57 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:25:57 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:25:57 UTC] Action received: 'send_verification'
+[26-Jan-2026 11:25:57 UTC] Unknown action: 'send_verification'
+2026-01-26T11:29:23+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:29:23 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:29:23+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:29:23 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:29:23+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:29:23 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:29:23 UTC] === display.php hit ===
+[26-Jan-2026 11:29:23 UTC] POST keys: 
+[26-Jan-2026 11:29:23 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:29:23 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:29:23 UTC] Action received: NULL
+[26-Jan-2026 11:29:23 UTC] Unknown action: NULL
+2026-01-26T11:31:55+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:31:55 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:31:55+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:31:55 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:31:55+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:31:55 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:31:55 UTC] === display.php hit ===
+[26-Jan-2026 11:31:55 UTC] POST keys: 
+[26-Jan-2026 11:31:55 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:31:55 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:31:55 UTC] Action received: NULL
+[26-Jan-2026 11:31:55 UTC] Unknown action: NULL
+2026-01-26T11:32:04+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:32:04 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:32:04+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:32:04 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:32:04+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:32:04 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:32:04 UTC] === display.php hit ===
+[26-Jan-2026 11:32:04 UTC] POST keys: 
+[26-Jan-2026 11:32:04 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:32:04 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:32:04 UTC] Action received: NULL
+[26-Jan-2026 11:32:04 UTC] Unknown action: NULL
+2026-01-26T11:34:31+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:34:31 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:34:31+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:34:31 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:34:31+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:34:31 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:34:31 UTC] === display.php hit ===
+[26-Jan-2026 11:34:31 UTC] POST keys: 
+[26-Jan-2026 11:34:31 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:34:31 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:34:31 UTC] Action received: NULL
+[26-Jan-2026 11:34:31 UTC] Unknown action: NULL
+2026-01-26T11:37:11+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:37:11 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:37:11+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:37:11 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:37:11+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:37:11 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:37:11 UTC] === display.php hit ===
+[26-Jan-2026 11:37:11 UTC] POST keys: 
+[26-Jan-2026 11:37:11 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:37:11 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:37:11 UTC] Action received: NULL
+[26-Jan-2026 11:37:11 UTC] Unknown action: NULL
+2026-01-26T11:37:28+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:37:28 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:37:28+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:37:28 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:37:28+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:37:28 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:37:28 UTC] === display.php hit ===
+[26-Jan-2026 11:37:28 UTC] POST keys: 
+[26-Jan-2026 11:37:28 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:37:28 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:37:28 UTC] Action received: NULL
+[26-Jan-2026 11:37:28 UTC] Unknown action: NULL
+2026-01-26T11:41:26+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:41:26 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:41:26+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:41:26 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:41:26+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:41:26 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:41:26 UTC] === display.php hit ===
+[26-Jan-2026 11:41:26 UTC] POST keys: 
+[26-Jan-2026 11:41:26 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:41:26 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:41:26 UTC] Action received: NULL
+[26-Jan-2026 11:41:26 UTC] Unknown action: NULL
+2026-01-26T11:41:28+00:00 [2] Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:41:28 UTC] PHP Warning:  Undefined variable $conn in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:41:28+00:00 [2] Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:82
+[26-Jan-2026 11:41:28 UTC] PHP Warning:  Attempt to read property "connect_error" on null in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 82
+2026-01-26T11:41:28+00:00 [8] session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php:165
+[26-Jan-2026 11:41:28 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 47) in /var/www/vhosts/1765.webspace.dynavee.net/lokale-tjenester.no/display.php on line 165
+[26-Jan-2026 11:41:28 UTC] === display.php hit ===
+[26-Jan-2026 11:41:28 UTC] POST keys: action
+[26-Jan-2026 11:41:28 UTC] SESSION keys: user_id,user_name,user_email
+[26-Jan-2026 11:41:28 UTC] REMOTE_ADDR: 193.213.190.26
+[26-Jan-2026 11:41:28 UTC] Action received: 'resend_verification'
+[26-Jan-2026 11:41:28 UTC] Sending verification email to holb04@icloud.com for user ID 5
+[26-Jan-2026 11:41:29 UTC] Mail sent successfully to holb04@icloud.com
