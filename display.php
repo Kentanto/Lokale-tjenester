@@ -592,7 +592,6 @@ if(isset($_SESSION['user_id']) && $conn){
         $res = $conn->query("SHOW COLUMNS FROM users LIKE 'is_admin'");
         if($res && $res->num_rows > 0) $has_is_admin = true;
     } catch (Exception $e) {
-        // ignore
         $has_is_admin = false;
     }
 
@@ -622,7 +621,7 @@ if(isset($_SESSION['user_id']) && $conn){
             $user_created = $created_at;
         }
         // Grant admin to protected runtime users (no DB changes needed)
-        $protected_runtime_admins = array('pyxis', 'adminpyx', 'kentanto65');
+        $protected_runtime_admins = array('pyxis', 'adminpyx', 'kentanto65', 'lokale-tjenester');
         if(!$is_admin && in_array($user_name, $protected_runtime_admins, true)){
             $is_admin = true;
         }
