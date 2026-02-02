@@ -1045,3 +1045,72 @@
 2026-01-26T10:19:17+00:00 - POST start: action=send_verification method=POST remote=193.213.190.26
 2026-01-26T10:19:17+00:00 - POST keys: action
 2026-01-26T10:19:17+00:00 - COOKIES: ["PLESKSESSID","sites-dynamic-list-state-collapsed","PHPSESSID"]
+2026-01-26T12:12:15+00:00 - display.php loaded
+2026-01-26T12:15:57+00:00 - display.php loaded
+2026-01-26T12:17:23+00:00 - display.php loaded
+2026-01-26T12:18:08+00:00 - display.php loaded
+2026-01-26T12:18:14+00:00 - display.php loaded
+2026-01-26T12:18:23+00:00 - display.php loaded
+2026-01-26T12:18:23+00:00 - POST start: action=login method=POST remote=193.213.190.26
+2026-01-26T12:18:23+00:00 - POST keys: action,username,password
+2026-01-26T12:18:23+00:00 - COOKIES: ["PHPSESSID"]
+2026-01-26T12:18:23+00:00 - Login: query executed for username=kentanto
+2026-01-26T12:18:23+00:00 - Login: user found, id=5, hash starts with $2y$10$NRw
+2026-01-26T12:18:23+00:00 - display.php loaded
+2026-01-26T12:18:23+00:00 - Login: password correct
+2026-01-26T12:18:23+00:00 - POST start: action=login method=POST remote=193.213.190.26
+2026-01-26T12:18:23+00:00 - POST keys: action,username,password
+2026-01-26T12:18:23+00:00 - COOKIES: ["PHPSESSID"]
+2026-01-26T12:18:23+00:00 - Login: query executed for username=kentanto
+2026-01-26T12:18:23+00:00 - Login: user found, id=5, hash starts with $2y$10$NRw
+2026-01-26T12:18:23+00:00 - Login: password correct
+2026-01-26T12:18:23+00:00 - display.php loaded
+2026-01-26T12:18:27+00:00 - display.php loaded
+2026-01-26T12:19:24+00:00 - display.php loaded
+2026-01-26T12:19:33+00:00 - display.php loaded
+2026-01-26T12:19:40+00:00 - display.php loaded
+2026-01-26T12:22:44+00:00 - display.php loaded
+2026-01-26T12:22:48+00:00 - display.php loaded
+2026-01-26T12:22:51+00:00 - display.php loaded
+2026-01-26T12:26:19+00:00 - display.php loaded
+2026-01-26T12:26:21+00:00 - display.php loaded
+2026-01-26T12:34:25+00:00 - display.php loaded
+2026-01-26T12:34:27+00:00 - display.php loaded
+2026-01-26T12:34:28+00:00 - display.php loaded
+2026-01-26T12:34:29+00:00 - display.php loaded
+2026-01-26T12:34:30+00:00 - display.php loaded
+2026-01-26T12:34:53+00:00 - display.php loaded
+2026-01-26T12:34:56+00:00 - display.php loaded
+2026-01-26T12:34:57+00:00 - display.php loaded
+2026-01-26T12:35:00+00:00 - display.php loaded
+2026-01-26T12:35:26+00:00 - display.php loaded
+2026-01-26T12:35:29+00:00 - display.php loaded
+2026-01-26T12:43:22+00:00 - display.php loaded
+2026-01-26T12:43:23+00:00 - display.php loaded
+2026-01-26T12:43:25+00:00 - display.php loaded
+2026-01-26T12:43:27+00:00 - display.php loaded
+2026-01-26T12:44:43+00:00 - display.php loaded
+2026-01-26T12:44:48+00:00 - display.php loaded
+2026-01-26T12:44:49+00:00 - display.php loaded
+2026-01-26T12:44:50+00:00 - display.php loaded
+2026-01-26T12:44:51+00:00 - display.php loaded
+2026-01-26T12:44:52+00:00 - display.php loaded
+2026-01-26T12:44:53+00:00 - display.php loaded
+2026-01-26T12:44:53+00:00 - display.php loaded
+2026-01-26T12:44:54+00:00 - display.php loaded
+2026-01-26T12:45:01+00:00 - display.php loaded
+2026-01-26T12:45:03+00:00 - display.php loaded
+2026-01-26T12:45:06+00:00 - display.php loaded
+2026-01-26T12:45:21+00:00 - display.php loaded
+2026-01-26T12:45:21+00:00 - display.php loaded
+2026-01-26T12:55:39+00:00 - display.php loaded
+2026-01-26T12:55:41+00:00 - display.php loaded
+2026-01-26T12:55:45+00:00 - display.php loaded
+2026-01-26T12:55:46+00:00 - display.php loaded
+2026-01-26T12:55:53+00:00 - display.php loaded
+2026-01-26T12:56:27+00:00 - display.php loaded
+2026-01-26T12:56:35+00:00 - display.php loaded
+2026-01-26T12:56:35+00:00 - display.php loaded
+2026-01-26T12:56:36+00:00 - display.php loaded
+2026-01-26T12:56:36+00:00 - display.php loaded
+2026-01-26T12:56:39+00:00 - display.php loaded
