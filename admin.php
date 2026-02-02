@@ -30,8 +30,9 @@ unset($_SESSION['notice']);
 
 if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
     $action = $_POST['action'];
+    @file_put_contents(__DIR__ . '/debug_admin.log', date('c') . " - POST received: action=$action\n", FILE_APPEND);
     
-    if($action === 'toggle_admin'){
+    if($action === 'update_user'){
         $target = intval($_POST['user_id'] ?? 0);
         if($target > 0){
             // Protect specific accounts from being demoted (server-side enforcement)
@@ -99,7 +100,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
                 $safe->bind_result($tusername);
                 $safe->fetch();
                 $safe->close();
-                if(isset($tusername) && $tusername === 'adminpyx'){
+                if(isset($tusername) && $tusername === 'system'){
                     $_SESSION['notice'] = 'This account is protected and password cannot be changed here.';
                 } else {
                     $hash = password_hash($newpw, PASSWORD_BCRYPT);
@@ -129,7 +130,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
                     $safe->bind_result($tusername);
                     $safe->fetch();
                     $safe->close();
-                    if(isset($tusername) && $tusername === 'adminpyx'){
+                    if(isset($tusername) && ($tusername === 'adminpyx' || $tusername === 'kentanto' || $tusername === 'system' || $tusername === 'lokale-tjenester')){
                         $_SESSION['notice'] = 'This account is protected and cannot be deleted.';
                     } else {
                         $stmt = safe_prepare($conn, "DELETE FROM users WHERE id = ?");
@@ -140,6 +141,80 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
                     }
                 } else { $_SESSION['notice'] = 'Database error.'; }
             }
+        }
+        header('Location: admin.php');
+        exit;
+    }
+    if($action === 'update_user'){
+        $target = intval($_POST['user_id'] ?? 0);
+        $username = trim($_POST['username'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $password = $_POST['password'] ?? '';
+        $is_admin = !empty($_POST['is_admin']) ? 1 : 0;
+
+        @file_put_contents(__DIR__ . '/debug_admin.log', date('c') . " - Update user start: target=$target, username=$username, email=$email, password=" . (empty($password) ? 'empty' : 'provided') . ", is_admin=$is_admin\n", FILE_APPEND);
+
+        if($target > 0 && $username && $email){
+            // Prevent editing protected accounts
+            $safe = safe_prepare($conn, "SELECT username FROM users WHERE id = ? LIMIT 1");
+            if($safe){
+                $safe->bind_param('i', $target);
+                $safe->execute();
+                $safe->bind_result($tusername);
+                $safe->fetch();
+                $safe->close();
+                if(isset($tusername) && ($tusername === 'adminpyx' || $tusername === 'kentanto' || $tusername === 'system' || $tusername === 'lokale-tjenester')){
+                    $_SESSION['notice'] = 'This account is protected and cannot be edited.';
+                    $_SESSION['notice_type'] = 'danger';
+                    @file_put_contents(__DIR__ . '/debug_admin.log', date('c') . " - Protected account, abort\n", FILE_APPEND);
+                } else {
+                    // Check for duplicate username/email
+                    $stmt = safe_prepare($conn, "SELECT id FROM users WHERE (username=? OR email=?) AND id != ?");
+                    if($stmt){
+                        $stmt->bind_param('ssi', $username, $email, $target);
+                        $stmt->execute();
+                        $stmt->store_result();
+                        if($stmt->num_rows > 0){
+                            $_SESSION['notice'] = 'Username or email already exists.';
+                            $_SESSION['notice_type'] = 'danger';
+                            @file_put_contents(__DIR__ . '/debug_admin.log', date('c') . " - Duplicate found, abort\n", FILE_APPEND);
+                        } else {
+                            // Update user
+                            if($password){
+                                $hash = password_hash($password, PASSWORD_BCRYPT);
+                                $stmt = safe_prepare($conn, "UPDATE users SET username=?, email=?, password_hash=?, is_admin=? WHERE id=?");
+                                $stmt->bind_param('sssii', $username, $email, $hash, $is_admin, $target);
+                                @file_put_contents(__DIR__ . '/debug_admin.log', date('c') . " - Updating with password\n", FILE_APPEND);
+                            } else {
+                                $stmt = safe_prepare($conn, "UPDATE users SET username=?, email=?, is_admin=? WHERE id=?");
+                                $stmt->bind_param('ssii', $username, $email, $is_admin, $target);
+                                @file_put_contents(__DIR__ . '/debug_admin.log', date('c') . " - Updating without password\n", FILE_APPEND);
+                            }
+                            if($stmt->execute()){
+                                $_SESSION['notice'] = 'User updated successfully.';
+                                @file_put_contents(__DIR__ . '/debug_admin.log', date('c') . " - Update successful\n", FILE_APPEND);
+                            } else {
+                                $_SESSION['notice'] = 'Failed to update user.';
+                                $_SESSION['notice_type'] = 'danger';
+                                @file_put_contents(__DIR__ . '/debug_admin.log', date('c') . " - Update failed: " . $stmt->error . "\n", FILE_APPEND);
+                            }
+                        }
+                        $stmt->close();
+                    } else {
+                        $_SESSION['notice'] = 'Database error.';
+                        $_SESSION['notice_type'] = 'danger';
+                        @file_put_contents(__DIR__ . '/debug_admin.log', date('c') . " - DB error on duplicate check\n", FILE_APPEND);
+                    }
+                }
+            } else {
+                $_SESSION['notice'] = 'Database error.';
+                $_SESSION['notice_type'] = 'danger';
+                @file_put_contents(__DIR__ . '/debug_admin.log', date('c') . " - DB error on safe check\n", FILE_APPEND);
+            }
+        } else {
+            $_SESSION['notice'] = 'Invalid input.';
+            $_SESSION['notice_type'] = 'danger';
+            @file_put_contents(__DIR__ . '/debug_admin.log', date('c') . " - Invalid input: target=$target, username=$username, email=$email\n", FILE_APPEND);
         }
         header('Location: admin.php');
         exit;
@@ -199,33 +274,40 @@ if($q !== ''){
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="stylesheet" href="static/style.css">
-<title>Admin Panel — Finn Hustle</title>
+<title>Admin Panel — Lokale Tjenester</title>
 </head>
 <body>
-    <!-- Password Change Confirmation Modal -->
-    <div id="passwordConfirmModal" class="confirm-overlay">
-        <div class="confirm-box">
-            <h3>Change Password</h3>
-            <p>Are you sure you want to change the password for <strong id="modalUsername"></strong>? This action cannot be undone.</p>
-            <div class="confirm-actions">
-                <button class="btn btn-secondary" onclick="closePasswordModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="submitPasswordForm()">Confirm Change</button>
-            </div>
+    <!-- Edit User Modal -->
+    <div id="editUserModal" class="confirm-overlay">
+        <div class="confirm-box" style="max-width: 500px;">
+            <h3>Edit User</h3>
+            <form id="editUserForm" method="post" action="admin.php">
+                <input type="hidden" name="user_id" id="editUserId">
+                <div class="form-group">
+                    <label for="editUsername">Username</label>
+                    <input type="text" id="editUsername" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="editEmail">Email</label>
+                    <input type="email" id="editEmail" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="editPassword">New Password (leave blank to keep current)</label>
+                    <input type="password" id="editPassword" name="password">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="editIsAdmin" name="is_admin"> Admin
+                    </label>
+                </div>
+                <div class="confirm-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" name="action" value="update_user" class="btn btn-primary">Save Changes</button>
+                    <button type="submit" name="action" value="delete_user" class="btn delete-btn">Delete User</button>
+                </div>
+            </form>
         </div>
     </div>
-
-    <!-- Password Changed Success Modal -->
-    <div id="passwordSuccessModal" class="confirm-overlay">
-        <div class="confirm-box">
-            <h3>Password Changed</h3>
-            <p>The password has been successfully updated.</p>
-            <div class="confirm-actions">
-                <button class="btn btn-primary" onclick="closeSuccessModal()">OK</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Make Admin Confirmation Modal -->
 
     <?php require_once 'navigation/navbar.php'; ?>
 <div class="page-wrapper">
@@ -237,17 +319,18 @@ if($q !== ''){
                 unset($_SESSION['notice_type']);
                 $bg_color = ($notice_type === 'danger') ? '#dc3545' : 'var(--green)';
             ?>
-                <div id="notificationBox" style="background: <?php echo $bg_color; ?>; color: white; padding: 16px; border-radius: 8px; margin-bottom: 20px; font-weight: 500; display: flex; justify-content: space-between; align-items: center;">
+                <div id="notificationBox" class="<?php echo $notice_type === 'danger' ? 'danger' : ''; ?>">
                     <span><?php echo htmlspecialchars($notice); ?></span>
-                    <button onclick="document.getElementById('notificationBox').style.display='none';" style="background: rgba(255,255,255,0.3); border: none; color: white; cursor: pointer; font-size: 20px; padding: 0; width: 30px; height: 30px; border-radius: 4px; display: flex; align-items: center; justify-content: center;">×</button>
+                    <button onclick="document.getElementById('notificationBox').style.display='none';">×</button>
                 </div>
             <?php endif; ?>
 
-            <form method="get" action="admin.php" style="margin:12px 0;display:flex;gap:8px;align-items:center">
-                <input type="search" name="q" placeholder="Search username or email" value="<?php echo htmlspecialchars($_GET['q'] ?? ''); ?>" style="padding:8px;border-radius:6px;border:1px solid #ddd;flex:1">
+           
+            <form method="get" action="admin.php" class="admin-search-form">
+                <input type="search" name="q" placeholder="Search username or email" value="<?php echo htmlspecialchars($_GET['q'] ?? ''); ?>" >
                 <button class="btn btn-secondary" type="submit">Search</button>
                 <?php if(!empty($_GET['q'])): ?>
-                    <a class="btn" href="admin.php" style="background:#eee;border-radius:6px;padding:8px 12px;text-decoration:none;color:#333">Clear</a>
+                    <a class="btn btn-secondary" href="admin.php">Clear</a>
                 <?php endif; ?>
             </form>
             <section class="lead centered">
@@ -257,36 +340,19 @@ if($q !== ''){
             <section class="services-grid">
                 <div class="grid">
                     <?php foreach($users as $u): ?>
-                    <?php $is_protected = ($u['username'] === 'adminpyx'); ?>
+                    <?php $is_protected = ($u['username'] === 'adminpyx' || $u['username'] === 'system' || $u['username'] === 'kentanto' || $u['username'] === 'lokale-tjenester'); ?>
                     <div class="service-card<?php echo $is_protected ? ' protected-card' : ''; ?>">
                         <h3><?php echo htmlspecialchars($u['username']); ?> <?php if(!empty($u['is_admin'])): ?> <small style="color:var(--green);font-weight:700">(admin)</small><?php endif; ?></h3>
                         <p>Email: <?php echo htmlspecialchars($u['email']); ?></p>
                         <p>Created: <?php echo htmlspecialchars($u['created_at']); ?></p>
-                        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-                            <form id="adminForm_<?php echo intval($u['id']); ?>" method="post" style="display:inline">
-                                <input type="hidden" name="user_id" value="<?php echo intval($u['id']); ?>">
-                                <input type="hidden" name="action" value="toggle_admin">
-                                <button class="btn btn-secondary" type="submit" <?php echo $is_protected ? 'disabled' : ''; ?>><?php echo empty($u['is_admin']) ? 'Make Admin' : 'Revoke Admin'; ?></button>
-                            </form>
-
-                            <form id="passwordForm_<?php echo intval($u['id']); ?>" method="post" style="display:inline" onsubmit="return openPasswordModal(event, '<?php echo htmlspecialchars(addslashes($u['username'])); ?>');">
-                                <input type="hidden" name="user_id" value="<?php echo intval($u['id']); ?>">
-                                <input type="password" name="new_password" placeholder="New password" required style="padding:8px;border-radius:6px;border:1px solid #ddd" <?php echo $is_protected ? 'disabled' : ''; ?>>
-                                <input type="hidden" name="action" value="change_password">
-                                <button class="btn btn-primary" type="submit" <?php echo $is_protected ? 'disabled' : ''; ?>>Change Password</button>
-                            </form>
-
-                            <form method="post" style="display:inline" onsubmit="return confirm('Delete user <?php echo htmlspecialchars(addslashes($u['username'])); ?>? This cannot be undone.');">
-                                <input type="hidden" name="user_id" value="<?php echo intval($u['id']); ?>">
-                                <input type="hidden" name="action" value="delete_user">
-                                <button class="btn" style="background:#ef4444;color:#fff;border-radius:8px;padding:8px 12px;border:none" type="submit" <?php echo $is_protected ? 'disabled' : ''; ?>>Delete</button>
-                            </form>
-                            <?php if($is_protected): ?>
-                                <div class="card-overlay" role="img" aria-label="System account" title="System account">
-                                    <span class="overlay-label">System account</span>
-                                </div>
-                            <?php endif; ?>
+                        <div class="user-actions">
+                            <button class="btn btn-primary edit-btn" onclick="openEditModal(<?php echo intval($u['id']); ?>, '<?php echo htmlspecialchars(addslashes($u['username'])); ?>', '<?php echo htmlspecialchars(addslashes($u['email'])); ?>', <?php echo intval($u['is_admin']); ?>)">Edit</button>
                         </div>
+                        <?php if($is_protected): ?>
+                            <div class="card-overlay" role="img" aria-label="System account" title="System account">
+                                <span class="overlay-label">System account</span>
+                            </div>
+                        <?php endif; ?>
                     </div>
                     <?php endforeach; ?>
                 </div>
@@ -294,58 +360,9 @@ if($q !== ''){
         </div>
     </main>
 </div>
-</script>
 
-// Password change modal functions
-let pendingPasswordForm = null;
 
-function openPasswordModal(event, username) {
-    event.preventDefault();
-    pendingPasswordForm = event.target;
-    document.getElementById('modalUsername').textContent = username;
-    document.getElementById('passwordConfirmModal').classList.add('active');
-}
-
-function closePasswordModal() {
-    document.getElementById('passwordConfirmModal').classList.remove('active');
-    if (pendingPasswordForm) {
-        const passwordInput = pendingPasswordForm.querySelector('input[name="new_password"]');
-        if (passwordInput) passwordInput.value = '';
-    }
-    pendingPasswordForm = null;
-}
-
-function submitPasswordForm() {
-    if (pendingPasswordForm) {
-        const formData = new FormData(pendingPasswordForm);
-        const passwordInput = pendingPasswordForm.querySelector('input[name="new_password"]');
-        
-        fetch('admin.php', {
-            method: 'POST',
-            body: formData,
-            credentials: 'same-origin'
-        })
-        .then(response => response.text())
-        .then(data => {
-            closePasswordModal();
-            // Clear the password field
-            passwordInput.value = '';
-            // Show success modal
-            document.getElementById('passwordSuccessModal').classList.add('active');
-        })
-        .catch(error => {
-            closePasswordModal();
-            alert('Error: ' + error);
-        });
-    }
-}
-
-function closeSuccessModal() {
-    document.getElementById('passwordSuccessModal').classList.remove('active');
-    // Reload to reflect any changes
-    window.location.reload();
-</script>
-
+    <script src="static/admin.js"></script>
     <script src="static/script.js"></script>
 </body>
 </html>

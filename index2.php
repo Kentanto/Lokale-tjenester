@@ -15,7 +15,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="static/style.css">
-    <title>Finn Hustle - Your Platform</title>
+    <title>Lokale Tjenester - Your Platform</title>
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -58,7 +58,7 @@
                     <a href="pages.php?page=contact">Contact</a>
                 </div>
                 <div class="footer-right">
-                    <span>&copy; <?php echo date('Y'); ?> Finn Hustle</span>
+                    <span>&copy; <?php echo date('Y'); ?> Lokale Tjenester</span>
                     <span class="footer-sep">|</span>
                     <a href="LICENSE" class="license-link">Basic Fair Use (US)</a>
                 </div>

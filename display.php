@@ -78,6 +78,12 @@ $DB_PASS = 'pwlt01!';
 
 // Try to connect; fail quietly but log errors.
 //connect (fail quietly)
+
+if ($conn->connect_error) {
+    @file_put_contents(__DIR__ . '/debug_db.log', 'Connect error: ' . $conn->connect_error . "\n", FILE_APPEND);
+} else {
+    @file_put_contents(__DIR__ . '/debug_db.log', 'Connected successfully' . "\n", FILE_APPEND);
+}
 $conn = @new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME);
 if ($conn && $conn->connect_error) {
     error_log('display.php: DB connect error: ' . $conn->connect_error);
@@ -156,12 +162,63 @@ if(isset($_GET['action']) && $_GET['action'] === 'logout'){
     header('Location: index2.php');
     exit;
 }
-
+session_start();
+require_once __DIR__ . '/vendor/autoload.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-use PHPMailer\PHPMailer\SMTP;
 
-require_once __DIR__ . '/vendor/autoload.php';
+// ---- DEBUGGING: log every POST ----
+error_log("=== display.php hit ===");
+error_log("POST keys: " . implode(',', array_keys($_POST)));
+error_log("SESSION keys: " . implode(',', array_keys($_SESSION)));
+error_log("REMOTE_ADDR: " . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
+
+// Make sure $action exists
+$action = $_POST['action'] ?? null;
+error_log("Action received: " . var_export($action, true));
+
+// Only handle resend_verification
+if ($action === 'resend_verification') {
+
+    $user_id = $_SESSION['user_id'] ?? null;
+    if (!$user_id) {
+        error_log("No user_id in session");
+        echo json_encode(['success'=>false,'message'=>'Not logged in']);
+        exit;
+    }
+
+    // Fetch email from DB
+    $stmt = $conn->prepare("SELECT email FROM users WHERE id=?");
+    $stmt->bind_param('i', $user_id);
+    $stmt->execute();
+    $user = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    $user_email = $user['email'] ?? null;
+    if (!$user_email) {
+        error_log("User email not found for ID $user_id");
+        echo json_encode(['success'=>false,'message'=>'Email not found']);
+        exit;
+    }
+
+    error_log("Sending verification email to $user_email for user ID $user_id");
+
+    $ok = send_verification_email($conn, $user_email, $user_id);
+
+    if ($ok) {
+        error_log("Mail sent successfully to $user_email");
+    } else {
+        error_log("Failed to send mail to $user_email");
+    }
+
+    echo json_encode([
+        'success' => $ok,
+        'message' => $ok ? 'Verification email resent!' : 'Failed to send verification email'
+    ]);
+    exit;
+} else {
+    error_log("Unknown action: " . var_export($action, true));
+}
 
 function send_verification_email(mysqli $conn, string $email, int $user_id): bool {
     $token = bin2hex(random_bytes(32));
@@ -180,19 +237,12 @@ function send_verification_email(mysqli $conn, string $email, int $user_id): boo
     $stmt->execute();
     $stmt->close();
 
-    $verifyLink = "https://yourdomain.com/pages.php?page=verify&token=" . urlencode($token);
+    $verifyLink = "https://" . getenv('DOMAIN') . "/pages.php?page=verify&token=" . urlencode($token);
 
     $mail = new PHPMailer(true);
     try {
-        $mail->isSMTP();
-        $mail->Host = 'smtp.gmail.com';
-        $mail->SMTPAuth = true;
-        $mail->Username = 'your_smtp_user';
-        $mail->Password = 'your_smtp_pass';
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port = 587;
-
-        $mail->setFrom('no-reply@yourdomain.com', 'Finn Hustle');
+        $mail->isSendmail();
+        $mail->setFrom(getenv('FROM_EMAIL'), getenv('FROM_NAME') ?: 'Lokale Tjenester');
         $mail->addAddress($email);
         $mail->isHTML(true);
         $mail->Subject = 'Verify your email';
@@ -215,7 +265,8 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
     $post_log = date('c') . " - POST start: action=" . ($_POST['action'] ?? '(none)') . " method=" . ($_SERVER['REQUEST_METHOD'] ?? '') . " remote=" . ($_SERVER['REMOTE_ADDR'] ?? '') . "\n";
     @file_put_contents(__DIR__ . '/debug_display_exec.log', $post_log, FILE_APPEND);
 
-    $action = trim(strtolower($_POST['action'] ?? ''));
+    $action = $_POST['action'] ?? null;
+
 
     header('Content-Type: application/json');
     // Also log POST keys and cookies briefly
@@ -294,9 +345,12 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         if($stmt){
             $stmt->bind_param('ss', $username, $username);
             $stmt->execute();
+            @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - Login: query executed for username=$username\n", FILE_APPEND);
             $stmt->bind_result($user_id, $user_name, $user_email, $password_hash);
             if($stmt->fetch()){
+                @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - Login: user found, id=$user_id, hash starts with " . substr($password_hash, 0, 10) . "\n", FILE_APPEND);
                 if(password_verify($password, $password_hash)){
+                    @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - Login: password correct\n", FILE_APPEND);
                     session_regenerate_id(true);
                     $_SESSION['user_id'] = $user_id;
                     $_SESSION['user_name'] = $user_name;
@@ -319,13 +373,16 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
                     
                     echo json_encode(['status'=>'success','message'=>'Logged in successfully']);
                 } else {
+                    @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - Login: password incorrect\n", FILE_APPEND);
                     echo json_encode(['status'=>'error','message'=>'Invalid username or password']);
                 }
             } else {
+                @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - Login: user not found\n", FILE_APPEND);
                 echo json_encode(['status'=>'error','message'=>'Invalid username or password']);
             }
             $stmt->close();
         } else {
+            @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - Login: DB error preparing statement\n", FILE_APPEND);
             echo json_encode(['status'=>'error','message'=>'Database error']); exit;
         }
         exit;
@@ -535,7 +592,6 @@ if(isset($_SESSION['user_id']) && $conn){
         $res = $conn->query("SHOW COLUMNS FROM users LIKE 'is_admin'");
         if($res && $res->num_rows > 0) $has_is_admin = true;
     } catch (Exception $e) {
-        // ignore
         $has_is_admin = false;
     }
 
@@ -565,7 +621,7 @@ if(isset($_SESSION['user_id']) && $conn){
             $user_created = $created_at;
         }
         // Grant admin to protected runtime users (no DB changes needed)
-        $protected_runtime_admins = array('pyxis', 'adminpyx', 'kentanto65');
+        $protected_runtime_admins = array('pyxis', 'adminpyx', 'kentanto65', 'lokale-tjenester');
         if(!$is_admin && in_array($user_name, $protected_runtime_admins, true)){
             $is_admin = true;
         }
@@ -585,7 +641,7 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])){
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width,initial-scale=1">
             <link rel="stylesheet" href="static/style.css">
-            <title><?php echo ($act==='login') ? 'Login' : 'Sign Up'; ?> — Finn Hustle</title>
+            <title><?php echo ($act==='login') ? 'Login' : 'Sign Up'; ?> — Lokale Tjenester</title>
             <style>body{font-family:Arial,Helvetica,sans-serif;margin:0;padding:24px;background:#f7f7f7}.wrap{max-width:640px;margin:0 auto}.card{background:#fff;padding:16px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.08)}</style>
         </head>
         <body>

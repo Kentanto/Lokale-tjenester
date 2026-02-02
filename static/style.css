@@ -1550,5 +1550,105 @@ input:focus + .slider {
     }
 }
 
-        
-        
+
+
+/* Admin Panel Styles */
+#notificationBox {
+    background: var(--green);
+    color: white;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-weight: 500;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#notificationBox.danger {
+    background: #dc3545;
+}
+
+#notificationBox button {
+    background: rgba(255,255,255,0.3);
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 20px;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-search-form {
+    margin: 12px 0;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.admin-search-form input[type="search"] {
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    flex: 1;
+}
+
+.admin-search-form .btn {
+    padding: 8px 12px;
+}
+
+.admin-search-form .btn-secondary {
+    background: #eee;
+    border-radius: 6px;
+    padding: 8px 12px;
+    text-decoration: none;
+    color: #333;
+}
+
+.user-actions {
+    margin-top: 12px;
+}
+
+.edit-btn {
+    padding: 8px 16px;
+}
+
+.confirm-box form .form-group {
+    margin-bottom: 15px;
+}
+
+.confirm-box form .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.confirm-box form .form-group input[type="text"],
+.confirm-box form .form-group input[type="email"],
+.confirm-box form .form-group input[type="password"] {
+    width: 100%;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    box-sizing: border-box;
+}
+
+.confirm-box form .form-group input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.confirm-actions .btn {
+    padding: 8px 12px;
+    font-size: 14px;
+}
+
+.confirm-actions .btn:last-child {
+    background: #ef4444;
+    color: #fff;
+    border: none;
+}

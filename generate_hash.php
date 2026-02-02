@@ -1,6 +1,6 @@
 <?php
-// Generate bcrypt hash for password: Techno3Lives
-$password = 'Techno3Lives';
+// Generate bcrypt hash for password: Lokale-Tjenester123!
+$password = '';
 $hash = password_hash($password, PASSWORD_BCRYPT);
 echo $hash;
 ?>

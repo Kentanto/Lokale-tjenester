@@ -10,6 +10,48 @@ function toggleDropdown(){
     if(dropdownMenu) dropdownMenu.classList.toggle('active');
 }
 
+const userBtn=document.querySelector('.user-btn');
+if(userBtn){
+    userBtn.addEventListener('click',function(e){
+        e.stopPropagation();
+        toggleDropdown();
+    });
+}
+
+document.addEventListener('click',function(e){
+    const userProfile=document.querySelector('.user-profile');
+    const dropdownMenu=document.getElementById('dropdownMenu');
+    if(userProfile && dropdownMenu && !userProfile.contains(e.target)){
+        dropdownMenu.classList.remove('active');
+    }
+});
+
+
+
+async function parseJsonResponse(res){
+    // read text and try to parse JSON; return object with status and message on failure
+    let text = '';
+    try{ text = await res.text(); }catch(e){ return {status:'error', message:'No response from server'}; }
+    if(!text) return {status:'error', message:'Empty server response'};
+    try{ return JSON.parse(text); }catch(e){
+        return {status:'error', message: text};
+    }
+}
+
+function showFormMessage(form, message, status){
+    if (!form) return;
+
+    const container = form.querySelector('.form-message');
+    if (!container) {
+        alert(message);
+        return;
+    }
+
+    container.textContent = message || '';
+    container.classList.remove('success', 'error');
+    container.classList.add(status === 'success' ? 'success' : 'error');
+}
+
 document.addEventListener('DOMContentLoaded',function(){
     // Dark mode toggle
     const darkModeToggle = document.getElementById('darkModeToggle');
@@ -32,39 +74,7 @@ document.addEventListener('DOMContentLoaded',function(){
             }
         });
     }
-    
-    const userBtn=document.querySelector('.user-btn');
-    if(userBtn){
-        userBtn.addEventListener('click',function(e){
-            e.stopPropagation();
-            toggleDropdown();
-        });
-    }
-
-    document.addEventListener('click',function(e){
-        const userProfile=document.querySelector('.user-profile');
-        const dropdownMenu=document.getElementById('dropdownMenu');
-        if(userProfile && dropdownMenu && !userProfile.contains(e.target)){
-            dropdownMenu.classList.remove('active');
-        }
-    });
-
-    document.querySelectorAll('.btn').forEach(button=>{
-        button.addEventListener('click',function(){
-            console.log('Button clicked:',this.textContent);
-        });
-    });
-
-    async function parseJsonResponse(res){
-        // read text and try to parse JSON; return object with status and message on failure
-        let text = '';
-        try{ text = await res.text(); }catch(e){ return {status:'error', message:'No response from server'}; }
-        if(!text) return {status:'error', message:'Empty server response'};
-        try{ return JSON.parse(text); }catch(e){
-            return {status:'error', message: text};
-        }
-    }
-
+      
     // Confirmation modal helper
     function ensureConfirmModal(){
         if(document.getElementById('confirmOverlay')) return;
@@ -121,7 +131,7 @@ document.addEventListener('DOMContentLoaded',function(){
         let form = e.target;
         disableForm(form, true);
         let res;
-        try{ res = await fetch('display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
+        try{ res = await fetch('/display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
         catch(err){ showFormMessage(form,'Network error','error'); disableForm(form,false); return; }
         let data = await parseJsonResponse(res);
         showFormMessage(form, data.message, data.status);
@@ -139,7 +149,7 @@ document.addEventListener('DOMContentLoaded',function(){
         let form = e.target;
         disableForm(form, true);
         let res;
-        try{ res = await fetch('display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
+        try{ res = await fetch('/display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
         catch(err){ showFormMessage(form,'Network error','error'); disableForm(form,false); return; }
         let data = await parseJsonResponse(res);
         showFormMessage(form, data.message, data.status);
@@ -157,7 +167,7 @@ document.addEventListener('DOMContentLoaded',function(){
         let form = e.target;
         disableForm(form, true);
         let res;
-        try{ res = await fetch('display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
+        try{ res = await fetch('/display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
         catch(err){ showFormMessage(form,'Network error','error'); disableForm(form,false); return; }
         let data = await parseJsonResponse(res);
         showFormMessage(form, data.message, data.status);
@@ -208,7 +218,7 @@ document.addEventListener('DOMContentLoaded',function(){
         if(filters.min_budget) fd.append('min_budget', filters.min_budget);
         if(filters.max_budget) fd.append('max_budget', filters.max_budget);
         let res;
-        try{ res = await fetch('display.php',{method:'POST', body: fd, credentials:'same-origin'}); }
+        try{ res = await fetch('/display.php',{method:'POST', body: fd, credentials:'same-origin'}); }
         catch(err){ container.innerHTML = '<div class="note">Network error</div>'; return; }
         let data = await parseJsonResponse(res);
         if(data.status === 'success') renderJobs(data.jobs, container);
@@ -248,7 +258,7 @@ document.addEventListener('DOMContentLoaded',function(){
         disableForm(form, true);
         // forms in pages.php include a hidden input 'action'
         let res;
-        try{ res = await fetch('display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
+        try{ res = await fetch('/display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
         catch(err){ showFormMessage(form,'Network error','error'); disableForm(form,false); return; }
         let data = await parseJsonResponse(res);
         showFormMessage(form, data.message, data.status);
@@ -265,7 +275,7 @@ document.addEventListener('DOMContentLoaded',function(){
         let form = e.target;
         disableForm(form, true);
         let res;
-        try{ res = await fetch('display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
+        try{ res = await fetch('/display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
         catch(err){ showFormMessage(form,'Network error','error'); disableForm(form,false); return; }
         let data = await parseJsonResponse(res);
         showFormMessage(form, data.message, data.status);
@@ -303,7 +313,7 @@ document.addEventListener('DOMContentLoaded',function(){
         let fd=new FormData();
         fd.append('action','logout');
         let res;
-        try{ res = await fetch('display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
+        try{ res = await fetch('/display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
         catch(err){ return; }
         let data = await parseJsonResponse(res);
         if(data.status==='success') location.reload();
@@ -317,7 +327,7 @@ document.addEventListener('DOMContentLoaded',function(){
         fd.append('action','update_settings');
         disableForm(form, true);
         let res;
-        try{ res = await fetch('display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
+        try{ res = await fetch('/display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
         catch(err){ showFormMessage(form,'Network error','error'); disableForm(form,false); return; }
         let data = await parseJsonResponse(res);
         showFormMessage(form, data.message, data.status);
@@ -336,7 +346,7 @@ document.addEventListener('DOMContentLoaded',function(){
         fd.append('action','contact');
         disableForm(form, true);
         let res;
-        try{ res = await fetch('display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
+        try{ res = await fetch('/display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
         catch(err){ showFormMessage(form,'Network error','error'); disableForm(form,false); return; }
         let data = await parseJsonResponse(res);
         showFormMessage(form, data.message || 'Unknown response', data.status || 'error');
@@ -396,7 +406,7 @@ document.addEventListener('DOMContentLoaded',function(){
         fd.append('new_password', nw);
         disableForm(form, true);
         let res;
-        try{ res = await fetch('display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
+        try{ res = await fetch('/display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
         catch(err){ showFormMessage(form,'Network error','error'); disableForm(form,false); return; }
         let data = await parseJsonResponse(res);
         showFormMessage(form, data.message, data.status);
@@ -405,20 +415,57 @@ document.addEventListener('DOMContentLoaded',function(){
             form.reset();
         }
     });
-
+});
     // Resend verification
-    document.getElementById('resendVerifyBtn')?.addEventListener('click', async e=>{
+document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('resendVerifyBtn');
+    if (!btn) {
+        console.warn('Resend verification button not found!');
+        return;
+    }
+
+    btn.addEventListener('click', async e => {
         e.preventDefault();
-        const btn = e.target;
         btn.disabled = true;
-        let fd = new FormData(); fd.append('action','send_verification');
+
+        console.log('Resend verification clicked — sending POST');
+
+        const fd = new FormData();
+        fd.append('action', 'resend_verification');
+
         let res;
-        try{ res = await fetch('display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
-        catch(err){ showFormMessage(document.getElementById('settingsForm')||document.body,'Network error','error'); btn.disabled=false; return; }
-        let data = await parseJsonResponse(res);
-        // show a toast in profile area
+        try {
+            res = await fetch('/display.php', {
+                method: 'POST',
+                body: fd,
+                credentials: 'same-origin'
+            });
+        } catch (err) {
+            console.error('Network error:', err);
+            btn.disabled = false;
+            return;
+        }
+
+        let data;
+        try {
+            data = await res.json();
+        } catch (err) {
+            console.error('Invalid JSON response:', err, await res.text());
+            btn.disabled = false;
+            return;
+        }
+
+        console.log('Server response:', data);
+
         const profileForm = document.getElementById('settingsForm');
-        if(profileForm) showFormMessage(profileForm, data.message + (data.verification_url? (' — ' + data.verification_url) : ''), data.status);
+        if (profileForm) {
+            showFormMessage(profileForm, data.message + (data.verification_url ? (' — ' + data.verification_url) : ''), data.status);
+        } else {
+            alert(data.message);
+        }
+
         btn.disabled = false;
     });
 });
+
+
