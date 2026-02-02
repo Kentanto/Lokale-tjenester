@@ -79,8 +79,13 @@ switch ($page) {
         render_header('About');
         ?>
         <section class="lead">
+<<<<<<< HEAD
             <p>Velkommen til <strong>Lokale Tjenester</strong> — din lokale hub for å finne pålitelige tjenester i nærheten. Vi kobler
             hjemmeier og små bedrifter med lokale, for å få ting gjort raskt og pålitelig!</p>
+=======
+            <p>Welcome to <strong>Lokale Tjenester</strong> — your local hub for finding trusted services nearby. We connect
+            homeowners and small businesses with local professionals to get things done quickly and reliably!</p>
+>>>>>>> 67a4a878a9cbbc12a2daf6e2107779e884c0ee1a
         </section>
 
         <section class="features">
@@ -514,7 +519,11 @@ case 'contact':
         render_header('Login');
         ?>
         <div class="auth-section">
+<<<<<<< HEAD
             <p>Logg inn på Lokale Tjenester-kontoen din for å administrere bestillinger, leverandører og profilinnstillinger.</p>
+=======
+            <p>Log in to your Lokale Tjenester account to manage bookings, providers, and profile settings.</p>
+>>>>>>> 67a4a878a9cbbc12a2daf6e2107779e884c0ee1a
             <form id="loginPageForm" class="auth-form">
                 <input type="hidden" name="action" value="login">
                 <div class="form-message" aria-live="polite"></div>

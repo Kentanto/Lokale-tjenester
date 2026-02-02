@@ -163,7 +163,11 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
                 $safe->bind_result($tusername);
                 $safe->fetch();
                 $safe->close();
+<<<<<<< HEAD
                 if(isset($tusername) && ($tusername === 'adminpyx' || $tusername === 'kentanto' || $tusername === 'system' || $tusername === 'lokale-tjenester')){
+=======
+                if(isset($tusername) && $tusername === 'adminpyx'){
+>>>>>>> 67a4a878a9cbbc12a2daf6e2107779e884c0ee1a
                     $_SESSION['notice'] = 'This account is protected and cannot be edited.';
                     $_SESSION['notice_type'] = 'danger';
                     @file_put_contents(__DIR__ . '/debug_admin.log', date('c') . " - Protected account, abort\n", FILE_APPEND);

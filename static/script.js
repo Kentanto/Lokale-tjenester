@@ -26,7 +26,15 @@ document.addEventListener('click',function(e){
     }
 });
 
+<<<<<<< HEAD
 
+=======
+document.querySelectorAll('.btn').forEach(button=>{
+    button.addEventListener('click',function(){
+        console.log('Button clicked:',this.textContent);
+    });
+});
+>>>>>>> 67a4a878a9cbbc12a2daf6e2107779e884c0ee1a
 
 async function parseJsonResponse(res){
     // read text and try to parse JSON; return object with status and message on failure
@@ -73,7 +81,11 @@ document.addEventListener('DOMContentLoaded',function(){
                 localStorage.setItem('darkMode', 'false');
             }
         });
+<<<<<<< HEAD
     }
+=======
+    }});
+>>>>>>> 67a4a878a9cbbc12a2daf6e2107779e884c0ee1a
       
     // Confirmation modal helper
     function ensureConfirmModal(){
@@ -435,7 +447,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         let res;
         try {
+<<<<<<< HEAD
             res = await fetch('/display.php', {
+=======
+            res = await fetch('display.php', {
+>>>>>>> 67a4a878a9cbbc12a2daf6e2107779e884c0ee1a
                 method: 'POST',
                 body: fd,
                 credentials: 'same-origin'
@@ -468,4 +484,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 67a4a878a9cbbc12a2daf6e2107779e884c0ee1a
