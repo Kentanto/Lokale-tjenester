@@ -26,11 +26,7 @@ document.addEventListener('click',function(e){
     }
 });
 
-document.querySelectorAll('.btn').forEach(button=>{
-    button.addEventListener('click',function(){
-        console.log('Button clicked:',this.textContent);
-    });
-});
+
 
 async function parseJsonResponse(res){
     // read text and try to parse JSON; return object with status and message on failure

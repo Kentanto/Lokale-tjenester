@@ -100,7 +100,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
                 $safe->bind_result($tusername);
                 $safe->fetch();
                 $safe->close();
-                if(isset($tusername) && $tusername === 'adminpyx'){
+                if(isset($tusername) && $tusername === 'system'){
                     $_SESSION['notice'] = 'This account is protected and password cannot be changed here.';
                 } else {
                     $hash = password_hash($newpw, PASSWORD_BCRYPT);
@@ -130,7 +130,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
                     $safe->bind_result($tusername);
                     $safe->fetch();
                     $safe->close();
-                    if(isset($tusername) && $tusername === 'adminpyx'){
+                    if(isset($tusername) && ($tusername === 'adminpyx' || $tusername === 'kentanto' || $tusername === 'system' || $tusername === 'lokale-tjenester')){
                         $_SESSION['notice'] = 'This account is protected and cannot be deleted.';
                     } else {
                         $stmt = safe_prepare($conn, "DELETE FROM users WHERE id = ?");
@@ -163,7 +163,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
                 $safe->bind_result($tusername);
                 $safe->fetch();
                 $safe->close();
-                if(isset($tusername) && $tusername === 'adminpyx'){
+                if(isset($tusername) && ($tusername === 'adminpyx' || $tusername === 'kentanto' || $tusername === 'system' || $tusername === 'lokale-tjenester')){
                     $_SESSION['notice'] = 'This account is protected and cannot be edited.';
                     $_SESSION['notice_type'] = 'danger';
                     @file_put_contents(__DIR__ . '/debug_admin.log', date('c') . " - Protected account, abort\n", FILE_APPEND);
@@ -340,7 +340,7 @@ if($q !== ''){
             <section class="services-grid">
                 <div class="grid">
                     <?php foreach($users as $u): ?>
-                    <?php $is_protected = ($u['username'] === 'adminpyx'); ?>
+                    <?php $is_protected = ($u['username'] === 'adminpyx' || $u['username'] === 'system' || $u['username'] === 'kentanto' || $u['username'] === 'lokale-tjenester'); ?>
                     <div class="service-card<?php echo $is_protected ? ' protected-card' : ''; ?>">
                         <h3><?php echo htmlspecialchars($u['username']); ?> <?php if(!empty($u['is_admin'])): ?> <small style="color:var(--green);font-weight:700">(admin)</small><?php endif; ?></h3>
                         <p>Email: <?php echo htmlspecialchars($u['email']); ?></p>

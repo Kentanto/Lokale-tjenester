@@ -52,10 +52,10 @@ function render_footer() {
     <footer class="site-footer">
         <div class="footer-inner">
             <div class="footer-links">
-                <a href="index2.php">Home</a>
-                <a href="pages.php?page=about">About</a>
-                <a href="pages.php?page=services">Services</a>
-                <a href="pages.php?page=contact">Contact</a>
+                <a href="index2.php">Hjem</a>
+                <a href="pages.php?page=about">Om</a>
+                <a href="pages.php?page=services">Tjenester</a>
+                <a href="pages.php?page=contact">Kontakt</a>
             </div>
             <div class="footer-right">
                 <span>&copy; <?php echo date('Y'); ?> Lokale Tjenester</span>
@@ -79,20 +79,20 @@ switch ($page) {
         render_header('About');
         ?>
         <section class="lead">
-            <p>Welcome to <strong>Lokale Tjenester</strong> — your local hub for finding trusted services nearby. We connect
-            homeowners and small businesses with local professionals to get things done quickly and reliably!</p>
+            <p>Velkommen til <strong>Lokale Tjenester</strong> — din lokale hub for å finne pålitelige tjenester i nærheten. Vi kobler
+            hjemmeier og små bedrifter med lokale, for å få ting gjort raskt og pålitelig!</p>
         </section>
 
         <section class="features">
-            <h2>Why choose us?</h2>
+            <h2>hvorfor velge oss?</h2>
             <ul class="page-list">
-                <li><strong>Trusted Providers:</strong> Every provider is reviewed and rated by real users.</li>
-                <li><strong>Easy Booking:</strong> Book, manage, and review services from one simple dashboard.</li>
-                <li><strong>Great Help</strong> Standard help services from us or your local town/city people</li>
+                <li><strong>Pålitelige leverandører:</strong> Alle leverandører er vurdert og rangert av ekte brukere.</li>
+                <li><strong>Enkel bestilling:</strong> Bestill, administrer og vurder tjenester fra ett enkelt dashbord.</li>
+                <li><strong>God hjelp:</strong> Standard hjelpetjenester fra oss eller folk i din lokale by/kommune.</li>
             </ul>
             <p class="cta">
-                <a class="btn btn-primary" href="pages.php?page=services">Explore Services</a>
-                <a class="btn btn-secondary" href="pages.php?page=signup">Join Now</a>
+                <a class="btn btn-primary" href="pages.php?page=services">Utforsk tjenester</a>
+                <a class="btn btn-secondary" href="pages.php?page=signup">Bli med nå</a>
             </p>
         </section>
         <?php
@@ -103,36 +103,36 @@ switch ($page) {
         render_header('Services');
         ?>
         <section class="services-grid">
-            <p>Discover local services organized by category. Click a category to see available providers.</p>
+            <p>Oppdag lokale tjenester organisert etter kategori. Klikk på en kategori for å se tilgjengelige leverandører.</p>
             <div class="grid">
                 <div class="service-card">
-                    <h3>Home Repair</h3>
-                    <p>Handyman services, small repairs, and maintenance.</p>
+                    <h3>Hjemmereparasjon</h3>
+                    <p>Vaktmestertjenester, små reparasjoner og vedlikehold.</p>
                 </div>
                 <div class="service-card">
-                    <h3>Cleaning</h3>
-                    <p>Residential and commercial cleaning services.</p>
+                    <h3>Renhold</h3>
+                    <p>Renholdstjenester for bolig og næring.</p>
                 </div>
                 <div class="service-card">
-                    <h3>Gardening</h3>
-                    <p>Lawn care, planting, and landscape maintenance.</p>
+                    <h3>Hagearbeid</h3>
+                    <p>Plenpleie, planting og vedlikehold av uteområder.</p>
                 </div>
                 <div class="service-card">
-                    <h3>IT & Tech</h3>
-                    <p>Setup, troubleshooting, and device support.</p>
+                    <h3>IT & Teknologi</h3>
+                    <p>Oppsett, feilsøking og støtte for enheter.</p>
                 </div>
             </div>
-            <p class="note">Don't see what you need? <a href="pages.php?page=contact">Contact us</a> and we'll help.</p>
+            <p class="note">Finner du ikke det du trenger? <a href="pages.php?page=contact">Kontakt oss</a>, så hjelper vi deg.</p>
         </section>
         <?php
         render_footer();
         break;
 
-    case 'create_job':
+case 'create_job':
         render_header('Create Job');
         ?>
         <section class="lead">
-            <p>Create a job listing to reach local providers. Fill in the details below.</p>
+            <p>Opprett en jobbannonse. Fyll inn detaljene nedenfor.</p>
         </section>
 
         <section class="services-grid">
@@ -142,50 +142,50 @@ switch ($page) {
                         <input type="hidden" name="action" value="create_post">
                         <div class="form-message" aria-live="polite"></div>
                         <div class="form-group">
-                            <label for="job-title">Title</label>
-                            <input id="job-title" name="title" type="text" required placeholder="Fix my leaking tap">
+                            <label for="job-title">Tittel</label>
+                            <input id="job-title" name="title" type="text" required placeholder="Fiks en lekkende kran">
                         </div>
                         <div class="form-group">
-                            <label for="job-desc">Description</label>
-                            <textarea id="job-desc" name="description" rows="6" required placeholder="Describe the work, any access details, and preferred schedule."></textarea>
+                            <label for="job-desc">Beskrivelse</label>
+                            <textarea id="job-desc" name="description" rows="6" required placeholder="Beskriv arbeidet, eventuelle tilgangsdetaljer og ønsket tidspunkt."></textarea>
                         </div>
                         <div class="form-group" style="display:flex;gap:12px;flex-wrap:wrap">
                             <div style="flex:1;min-width:180px">
-                                <label for="job-category">Category</label>
-                                <input id="job-category" name="category" type="text" placeholder="e.g. Plumbing">
+                                <label for="job-category">Kategori</label>
+                                <input id="job-category" name="category" type="text" placeholder="f.eks. rørlegger">
                             </div>
                             <div style="width:140px">
-                                <label for="job-budget">Budget</label>
+                                <label for="job-budget">Budsjett</label>
                                 <input id="job-budget" name="budget" type="number" min="0" step="1" placeholder="NOK">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="job-location">Location</label>
-                            <input id="job-location" name="location" type="text" placeholder="City or postcode">
+                            <label for="job-location">Sted</label>
+                            <input id="job-location" name="location" type="text" placeholder="By eller postnummer">
                         </div>
-                        <button class="btn btn-primary" type="submit">Create Job</button>
+                        <button class="btn btn-primary" type="submit">Opprett jobb</button>
                     </form>
                 </div>
 
                 <aside class="service-card" style="position:relative">
                     <div style="margin-bottom:12px">
                         <div class="column-image" style="width:100%;height:160px;">
-                            <img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=800&q=60" alt="Job help">
+                            <img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=800&q=60" alt="Jobbhjelp">
                         </div>
                     </div>
-                    <h3 style="margin-top:8px">Tips for good job posts</h3>
+                    <h3 style="margin-top:8px">Tips for gode jobbannonser</h3>
                     <ul class="page-list">
-                        <li>Give a clear title and concise description.</li>
-                        <li>Include a realistic budget or mark as negotiable.</li>
-                        <li>Mention access, parking, or required tools.</li>
+                        <li>Gi en tydelig tittel og en kortfattet beskrivelse.</li>
+                        <li>Inkluder et realistisk budsjett eller merk som forhandlingsbart.</li>
+                        <li>Nevn tilgang, parkering eller nødvendige verktøy.</li>
                     </ul>
                     <div style="margin-top:12px">
-                        <h4 style="margin:6px 0">Sample budgets</h4>
-                        <div class="small-muted">Quick reference for common tasks</div>
+                        <h4 style="margin:6px 0">Eksempelbudsjetter</h4>
+                        <div class="small-muted">Rask referanse for vanlige oppdrag</div>
                         <ul style="margin-top:8px">
-                            <li>Small repair: 200–500 NOK</li>
-                            <li>Half-day job: 800–1500 NOK</li>
-                            <li>Full-day job: 1500+ NOK</li>
+                            <li>Liten reparasjon: 200–500 NOK</li>
+                            <li>Halvdagsjobb: 800–1500 NOK</li>
+                            <li>Heldagsjobb: 1500+ NOK</li>
                         </ul>
                     </div>
                 </aside>
@@ -195,29 +195,30 @@ switch ($page) {
         render_footer();
         break;
 
+
     case 'jobs':
         render_header('Find Jobs');
         ?>
         <section class="lead">
-            <p>Browse available jobs nearby. Use the search and filters to narrow results.</p>
+            <p>Bla gjennom tilgjengelige jobber i nærheten. Bruk søk og filtre for å avgrense resultatene.</p>
         </section>
         <section class="services-grid">
             <div class="grid" style="grid-template-columns: 320px 1fr; gap:18px; align-items:start;">
                 <aside class="service-card">
-                    <h3>Search & Filters</h3>
+                    <h3>Søk og filtre</h3>
                     <form id="jobsSearchForm" class="auth-form" method="post" action="#">
                         <input type="hidden" name="action" value="list_jobs">
                         <div class="form-group">
-                            <label for="search-q">Keyword</label>
-                            <input name="q" id="search-q" type="search" placeholder="Search title or description">
+                            <label for="search-q">Søkeord</label>
+                            <input name="q" id="search-q" type="search" placeholder="Søk i tittel eller beskrivelse">
                         </div>
                         <div class="form-group">
-                            <label for="search-category">Category</label>
-                            <input name="category" id="search-category" type="text" placeholder="e.g. Cleaning">
+                            <label for="search-category">Kategori</label>
+                            <input name="category" id="search-category" type="text" placeholder="f.eks. renhold">
                         </div>
                         <div class="form-group">
-                            <label for="search-location">Location</label>
-                            <input name="location" id="search-location" type="text" placeholder="City or postcode">
+                            <label for="search-location">Sted</label>
+                            <input name="location" id="search-location" type="text" placeholder="By eller postnummer">
                         </div>
                         <div style="display:flex;gap:8px">
                             <div style="flex:1">
@@ -225,16 +226,16 @@ switch ($page) {
                                 <input name="min_budget" id="search-min" type="number" placeholder="Min">
                             </div>
                             <div style="flex:1">
-                                <label for="search-max">Max</label>
-                                <input name="max_budget" id="search-max" type="number" placeholder="Max">
+                                <label for="search-max">Maks</label>
+                                <input name="max_budget" id="search-max" type="number" placeholder="Maks">
                             </div>
                         </div>
                         <div style="margin-top:12px;display:flex;gap:8px">
-                            <button id="jobsSearchBtn" class="btn btn-primary" type="submit">Search</button>
-                            <button id="jobsResetBtn" type="button" class="btn btn-secondary">Reset</button>
+                            <button id="jobsSearchBtn" class="btn btn-primary" type="submit">Søk</button>
+                            <button id="jobsResetBtn" type="button" class="btn btn-secondary">Nullstill</button>
                         </div>
                     </form>
-                    <div style="margin-top:14px" class="small-muted">Tip: leave filters empty to show latest jobs.</div>
+                    <div style="margin-top:14px" class="small-muted">Tips: la filtrene stå tomme for å vise de nyeste jobbene.</div>
                 </aside>
 
                 <div>
@@ -246,39 +247,41 @@ switch ($page) {
         render_footer();
         break;
 
-    case 'contact':
+
+case 'contact':
         render_header('Contact');
         ?>
         <section class="contact-section">
-            <p>If you have a question or need help finding a provider, send us a message and we'll respond as soon as possible.</p>
+            <p>Hvis du har et spørsmål eller trenger hjelp med å finne en leverandør, send oss en melding, så svarer vi så snart som mulig.</p>
 
             <form id="contactForm" class="contact-form" method="POST" action="#">
                 <div class="form-group">
-                    <label for="name">Name</label>
+                    <label for="name">Navn</label>
                     <input id="name" name="name" type="text" required>
                 </div>
                 <div class="form-group">
-                    <label for="email">Email</label>
+                    <label for="email">E-post</label>
                     <input id="email" name="email" type="email" required>
                 </div>
                 <div class="form-group">
-                    <label for="message">Message</label>
+                    <label for="message">Melding</label>
                     <textarea id="message" name="message" rows="5" required></textarea>
                 </div>
                 <div class="form-message" aria-live="polite"></div>
-                <button class="btn btn-primary" type="submit">Send Message</button>
+                <button class="btn btn-primary" type="submit">Send melding</button>
             </form>
 
             <div class="contact-details">
-                <h3>Other ways to reach us</h3>
-                <p>Email: <a href="mailto:support@finnhustle.example">example@lokaletjenester.no</a></p>
-                <p>Hours: Mon–Fri, 09:00–17:00</p>
+                <h3>Andre måter å kontakte oss på</h3>
+                <p>E-post: <a href="mailto:lokaletjenester.gjovik@gmail.com">lokaletjenester.gjovik@gmail.com</a></p>
+                <p>Åpningstider: Man–Fre, 09:00–17:00</p>
             </div>
         </section>
         <?php
         render_footer();
         
         break;
+
 
 
     case 'verify':
@@ -307,12 +310,12 @@ switch ($page) {
                 $stmt->execute();
                 $stmt->close();
 
-                echo "<p>Email verified successfully! You now have full access.</p>";
+                echo "<p>E-post verifisert! Du har nå full tilgang.</p>";
             } else {
-                echo "<p>Invalid or expired verification link.</p>";
+                echo "<p>Ugyldig eller utløpt verifiseringslenke.</p>";
             }
         } else {
-            echo "<p>No token provided.</p>";
+            echo "<p>Ingen token Gitt.</p>";
         }
 
         render_footer();
@@ -337,99 +340,100 @@ switch ($page) {
         if ($is_logged_in) {
             ?>
             <div class="profile-section">
-                <h2>Your account</h2>
-                <p>Welcome back, <strong><?php echo htmlspecialchars($user_name); ?></strong>.</p>
+                <h2>Kontoen din</h2>
+                <p>Velkommen tilbake, <strong><?php echo htmlspecialchars($user_name); ?></strong>.</p>
                 <ul>
-                    <li><strong>Email:</strong> <?php echo htmlspecialchars($user_email ?? ''); ?></li>
-                    <li><strong>Member since:</strong> <?php echo htmlspecialchars($user_created ? date('Y-m-d', strtotime($user_created)) : '—'); ?></li>
+                    <li><strong>E-post:</strong> <?php echo htmlspecialchars($user_email ?? ''); ?></li>
+                    <li><strong>Medlem siden:</strong> <?php echo htmlspecialchars($user_created ? date('Y-m-d', strtotime($user_created)) : '—'); ?></li>
                 </ul>
                 <p class="mt-16">
-                    <a class="btn btn-primary" href="pages.php?page=dashboard">Go to Dashboard</a>
-                    <a class="btn btn-secondary" href="#settingsForm">Account Settings</a>
+                    <a class="btn btn-primary" href="pages.php?page=dashboard">Gå til kontrollpanelet</a>
+                    <a class="btn btn-secondary" href="#settingsForm">Kontoinnstillinger</a>
                 </p>
 
-                <h3 style="margin-top:18px;">Edit Settings</h3>
+                <h3 style="margin-top:18px;">Rediger innstillinger</h3>
                 <form id="settingsForm" class="settings-form">
                     <input type="hidden" name="action" value="update_settings">
                     <div class="form-message" aria-live="polite"></div>
                     <div class="form-group">
-                        <label for="profile-username">Username</label>
+                        <label for="profile-username">Brukernavn</label>
                         <input id="profile-username" name="username" type="text" value="<?php echo htmlspecialchars($user_name); ?>" required>
                         <div class="field-error" data-for="profile-username"></div>
                     </div>
                     <div class="form-group">
-                        <label for="profile-email">Email</label>
+                        <label for="profile-email">E-post</label>
                         <input id="profile-email" name="email" type="email" value="<?php echo htmlspecialchars($user_email ?? ''); ?>" required>
                         <div class="field-error" data-for="profile-email"></div>
                     </div>
-                    <button class="btn btn-primary" type="submit">Save Settings</button>
+                    <button class="btn btn-primary" type="submit">Lagre innstillinger</button>
                 </form>
 
-                <h3 style="margin-top:18px;">Change Password</h3>
+                <h3 style="margin-top:18px;">Endre passord</h3>
                 <form id="passwordForm" class="settings-form">
                     <div class="form-message" aria-live="polite"></div>
                     <div class="form-group">
-                        <label for="current-password">Current Password</label>
+                        <label for="current-password">Nåværende passord</label>
                         <input id="current-password" name="current_password" type="password" required>
                         <div class="field-error" data-for="current-password"></div>
                     </div>
                     <div class="form-group">
-                        <label for="new-password">New Password</label>
+                        <label for="new-password">Nytt passord</label>
                         <input id="new-password" name="new_password" type="password" required>
                         <div class="field-error" data-for="new-password"></div>
-                        <div class="small-muted">Choose a password with at least 6 characters.</div>
+                        <div class="small-muted">Velg et passord med minst 6 tegn.</div>
                     </div>
                     <div class="form-group">
-                        <label for="confirm-password">Confirm New Password</label>
+                        <label for="confirm-password">Bekreft nytt passord</label>
                         <input id="confirm-password" name="confirm_password" type="password" required>
                         <div class="field-error" data-for="confirm-password"></div>
                     </div>
-                    <button class="btn btn-primary" type="submit">Change Password</button>
+                    <button class="btn btn-primary" type="submit">Endre passord</button>
                 </form>
 
-                <h3 style="margin-top:18px;">Email Verification</h3>
+                <h3 style="margin-top:18px;">E-postverifisering</h3>
                 <div class="lead" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
                     <div>
-                        <div><strong>Email:</strong> <?php echo htmlspecialchars($user_email ?? ''); ?></div>
-                        <div class="small-muted">Status: <?php echo (isset($user_email) && $user_email? ( (isset($user_created) && $user_created && isset($is_logged_in) ) ? 'Unknown' : 'Unknown' ) : '—'); ?></div>
+                        <div><strong>E-post:</strong> <?php echo htmlspecialchars($user_email ?? ''); ?></div>
+                        <div class="small-muted">Status: <?php echo (isset($user_email) && $user_email? ( (isset($user_created) && $user_created && isset($is_logged_in) ) ? 'Ukjent' : 'Ukjent' ) : '—'); ?></div>
                     </div>
                     <div>
-                        <button id="resendVerifyBtn" class="btn btn-secondary">Resend verification</button>
+                        <button id="resendVerifyBtn" class="btn btn-secondary">Send verifisering på nytt</button>
                     </div>
                 </div>
             </div>
             <?php
         } else {
             ?>
-            <p>You are not logged in. <a href="pages.php?page=login">Login</a></p>
+            <p>Du er ikke logget inn. <a href="pages.php?page=login">Logg inn</a></p>
             <?php
         }
         render_footer();
         break;
+
 
     case 'settings':
         render_header('Settings','settings');
         if ($is_logged_in) {
             ?>
             <div class="settings-section">
-                <h2>Account Settings</h2>
+                <h2>Kontoinnstillinger</h2>
                 <form class="settings-form" method="post" action="#">
                     <input type="hidden" name="action" value="update_settings">
                     <div class="form-group">
-                        <label for="display-name">Display name</label>
+                        <label for="display-name">Visningsnavn</label>
                         <input id="display-name" name="username" type="text" value="<?php echo htmlspecialchars($user_name); ?>">
                     </div>
-                    <button class="btn btn-primary" type="submit">Save changes</button>
+                    <button class="btn btn-primary" type="submit">Lagre endringer</button>
                     <label style="margin-left:12px;">
-                        <input type="checkbox" checked> Receive email notifications
+                        <input type="checkbox" checked> Motta e-postvarsler
                     </label>
                 </form>
             </div>
 
             <div class="settings-section">
-                <h2>Theme</h2>
+                <h2>Tema</h2>
                 <div class="theme-toggle-box">
-                    <label for="darkModeToggle" class="theme-label">Dark Mode</label>
+                    <label for="darkModeToggle" class="theme-label">Mørk modus</label>
                     <label class="switch">
                         <input type="checkbox" id="darkModeToggle">
                         <span class="slider"></span>
@@ -438,32 +442,32 @@ switch ($page) {
             </div>
 
             <div class="settings-section">
-                <h2>Change Password</h2>
+                <h2>Endre passord</h2>
                 <form id="passwordForm" class="settings-form">
                     <div class="form-message" aria-live="polite"></div>
                     <div class="form-group">
-                        <label for="current-password">Current Password</label>
+                        <label for="current-password">Nåværende passord</label>
                         <input id="current-password" name="current_password" type="password" required>
                         <div class="field-error" data-for="current-password"></div>
                     </div>
                     <div class="form-group">
-                        <label for="new-password">New Password</label>
+                        <label for="new-password">Nytt passord</label>
                         <input id="new-password" name="new_password" type="password" required>
                         <div class="field-error" data-for="new-password"></div>
-                        <div class="small-muted">Choose a password with at least 6 characters.</div>
+                        <div class="small-muted">Velg et passord med minst 6 tegn.</div>
                     </div>
                     <div class="form-group">
-                        <label for="confirm-password">Confirm New Password</label>
+                        <label for="confirm-password">Bekreft nytt passord</label>
                         <input id="confirm-password" name="confirm_password" type="password" required>
                         <div class="field-error" data-for="confirm-password"></div>
                     </div>
-                    <button class="btn btn-primary" type="submit">Change Password</button>
+                    <button class="btn btn-primary" type="submit">Endre passord</button>
                 </form>
             </div>
             <?php
         } else {
             ?>
-            <p>Please <a href="pages.php?page=login">login</a> to manage settings.</p>
+            <p>Vennligst <a href="pages.php?page=login">logg inn</a> for å administrere innstillingene.</p>
             <?php
         }
         render_footer();
@@ -474,60 +478,61 @@ switch ($page) {
         if ($is_logged_in) {
             ?>
             <div class="dashboard-section">
-                <h2>Overview</h2>
+                <h2>Oversikt</h2>
                 <div class="dashboard-stats">
                     <div class="stat-card">
                         <h3>5</h3>
-                        <p>Active Services</p>
+                        <p>Aktive tjenester</p>
                     </div>
                     <div class="stat-card">
                         <h3>12</h3>
-                        <p>Total Bookings</p>
+                        <p>Totale bestillinger</p>
                     </div>
                     <div class="stat-card">
                         <h3>4.8</h3>
-                        <p>Your Rating</p>
+                        <p>Din vurdering</p>
                     </div>
                 </div>
 
-                <h3 class="mt-20">Recent activity</h3>
+                <h3 class="mt-20">Nylig aktivitet</h3>
                 <ul class="activity-list">
-                    <li>Booked cleaning service — 2 days ago</li>
-                    <li>Left a review for John — 1 week ago</li>
+                    <li>Bestilte rengjøringstjeneste — for 2 dager siden</li>
+                    <li>La igjen en vurdering av John — for 1 uke siden</li>
                 </ul>
             </div>
             <?php
         } else {
             ?>
-            <p>Please <a href="pages.php?page=login">login</a> to view the dashboard.</p>
+            <p>Vennligst <a href="pages.php?page=login">logg inn</a> for å se kontrollpanelet.</p>
             <?php
         }
         render_footer();
         break;
 
+
     case 'login':
         render_header('Login');
         ?>
         <div class="auth-section">
-            <p>Log in to your Lokale Tjenester account to manage bookings, providers, and profile settings.</p>
+            <p>Logg inn på Lokale Tjenester-kontoen din for å administrere bestillinger, leverandører og profilinnstillinger.</p>
             <form id="loginPageForm" class="auth-form">
                 <input type="hidden" name="action" value="login">
                 <div class="form-message" aria-live="polite"></div>
                 <div class="form-group">
-                    <label for="username">Username or Email</label>
-                    <input id="username" name="username" type="text" required placeholder="username or email">
+                    <label for="username">Brukernavn eller e-post</label>
+                    <input id="username" name="username" type="text" required placeholder="brukernavn eller e-post">
                 </div>
                 <div class="form-group">
-                    <label for="password">Password</label>
+                    <label for="password">Passord</label>
                     <input id="password" name="password" type="password" required>
                 </div>
                 <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
                     <input id="remember_me" name="remember_me" type="checkbox" value="1">
-                    <label for="remember_me" style="margin: 0;">Remember me for 30 days</label>
+                    <label for="remember_me" style="margin: 0;">Husk meg i 30 dager</label>
                 </div>
-                <button class="btn btn-primary" type="submit">Log In</button>
+                <button class="btn btn-primary" type="submit">Logg inn</button>
             </form>
-            <p class="auth-link">Don't have an account? <a href="pages.php?page=signup">Sign up</a></p>
+            <p class="auth-link">Har du ikke en konto? <a href="pages.php?page=signup">Registrer deg</a></p>
         </div>
         <script>
         document.getElementById('loginPageForm').addEventListener('submit', function(e) {
@@ -543,20 +548,21 @@ switch ($page) {
             .then(r => r.json())
             .then(data => {
                 if(data.status === 'success') {
-                    msgDiv.innerHTML = '<p style="color: green;">Login successful! Redirecting...</p>';
+                    msgDiv.innerHTML = '<p style="color: green;">Innlogging vellykket! Omdirigerer...</p>';
                     setTimeout(() => window.location.href = 'pages.php?page=dashboard', 1000);
                 } else {
-                    msgDiv.innerHTML = '<p style="color: red;">' + (data.message || 'Login failed') + '</p>';
+                    msgDiv.innerHTML = '<p style="color: red;">' + (data.message || 'Innlogging mislyktes') + '</p>';
                 }
             })
             .catch(err => {
-                msgDiv.innerHTML = '<p style="color: red;">Error: ' + err.message + '</p>';
+                msgDiv.innerHTML = '<p style="color: red;">Feil: ' + err.message + '</p>';
             });
         });
         </script>
         <?php
         render_footer();
         break;
+
 
     case 'signup':
         render_header('Sign Up');
@@ -571,38 +577,38 @@ switch ($page) {
             $user_id = $conn->insert_id;
 
 
-            if (send_verification_email($conn, $user_email, $user_id)
-) {
-                echo json_encode(['success'=>true,'message'=>'Signup successful! Check your email to verify.']);
+            if (send_verification_email($conn, $user_email, $user_id)) {
+                echo json_encode(['success'=>true,'message'=>'Registrering suksess! sjekk din e-post for å verifisere. OBS husk å sjekke søppelpostmappen.']);
             } else {
-                echo json_encode(['success'=>false,'message'=>'Signup successful but failed to send email.']);
+                echo json_encode(['success'=>false,'message'=>'registrering suksess men feil ved sending av e-post.']);
             }
             exit;
 }
 
         ?>
         <div class="auth-section">
-            <p>Create an account to start booking services and managing your listings.</p>
+            <p>Opprett en konto for å begynne å bestille tjenester og administrere annonsene dine.</p>
             <form id="signupPageForm" method="post" class="auth-form">
                 <input type="hidden" name="action" value="signup">
                 <div class="form-message" aria-live="polite"></div>
                 <div class="form-group">
-                    <label for="username">Username</label>
+                    <label for="username">Brukernavn</label>
                     <input id="username" name="username" type="text" required>
                 </div>
                 <div class="form-group">
-                    <label for="email">Email</label>
+                    <label for="email">E-post</label>
                     <input id="email" name="email" type="email" required>
                 </div>
                 <div class="form-group">
-                    <label for="password">Password</label>
+                    <label for="password">Passord</label>
                     <input id="password" name="password" type="password" required>
                 </div>
-                <button class="btn btn-primary" type="submit">Create Account</button>
+                <button class="btn btn-primary" type="submit">Opprett konto</button>
             </form>
-            <p class="auth-link">Already have an account? <a href="pages.php?page=login">Log in</a></p>
+            <p class="auth-link">Har du allerede en konto? <a href="pages.php?page=login">Logg inn</a></p>
         </div>
         <?php
         render_footer();
         break;
-}
+        }
+
