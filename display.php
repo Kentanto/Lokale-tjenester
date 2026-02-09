@@ -574,6 +574,45 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         } else { echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
     }
 
+    if($action === 'contact'){
+        // Handle contact form submission
+        $name = trim($_POST['name'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $message = trim($_POST['message'] ?? '');
+
+        // Validate inputs
+        if(!$name){ echo json_encode(['status'=>'error','message'=>'Name is required']); exit; }
+        if(!filter_var($email, FILTER_VALIDATE_EMAIL)){ echo json_encode(['status'=>'error','message'=>'Invalid email address']); exit; }
+        if(!$message){ echo json_encode(['status'=>'error','message'=>'Message cannot be empty']); exit; }
+
+        // Send contact email to site admin
+        $mail = new PHPMailer(true);
+        try {
+            $mail->isSendmail();
+            $mail->setFrom($email, $name);
+            $mail->addAddress('post@lokale-tjenester.no');
+            $mail->isHTML(true);
+            $mail->Subject = 'Ny kontaktmelding fra ' . htmlspecialchars($name);
+            
+            // Format the email body
+            $mail->Body = "
+                <h2>Ny kontaktmelding mottatt</h2>
+                <p><strong>Fra:</strong> " . htmlspecialchars($name) . "</p>
+                <p><strong>E-post:</strong> <a href=\"mailto:" . htmlspecialchars($email) . "\">" . htmlspecialchars($email) . "</a></p>
+                <p><strong>Melding:</strong></p>
+                <p>" . nl2br(htmlspecialchars($message)) . "</p>
+                <hr>
+                <p><em>Sendt fra kontaktskjemaet på lokale-tjenester.no</em></p>
+            ";
+
+            $mail->send();
+            echo json_encode(['status'=>'success','message'=>'Takk for meldingen din! Vi svarer så snart som mulig.']); exit;
+        } catch (Exception $e) {
+            error_log('Contact email error: ' . $mail->ErrorInfo);
+            echo json_encode(['status'=>'error','message'=>'Kunne ikke sende melding. Vennligst prøv igjen senere.']); exit;
+        }
+    }
+
     // Unknown action
     echo json_encode(['status'=>'error','message'=>'Unknown action']);
     exit;

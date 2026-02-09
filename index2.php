@@ -52,10 +52,10 @@
     <footer class="site-footer">
             <div class="footer-inner">
                 <div class="footer-links">
-                    <a href="index2.php">Home</a>
-                    <a href="pages.php?page=about">About</a>
-                    <a href="pages.php?page=services">Services</a>
-                    <a href="pages.php?page=contact">Contact</a>
+                    <a href="index2.php">Hjem</a>
+                    <a href="pages.php?page=about">Om oss</a>
+                    <a href="pages.php?page=services">Tjenester</a>
+                    <a href="pages.php?page=contact">Kontakt</a>
                 </div>
                 <div class="footer-right">
                     <span>&copy; <?php echo date('Y'); ?> Lokale Tjenester</span>
