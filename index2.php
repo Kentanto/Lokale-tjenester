@@ -27,10 +27,10 @@
                 <div class="column-image">
                     <img src="https://media.istockphoto.com/id/1199554243/photo/engineer-men-making-handshake-in-construction-site-employee-or-worker-shake-hands-to-employer.jpg?s=612x612&w=0&k=20&c=kU_76i5whSa-3aPuMDdcAJsmRwtq3sF0Z7SLXVdosuc=" alt="Feature 1">
                 </div>
-                <h2>Create Job</h2>
-                <p>Post a new job quickly to reach local providers — set details, budget and availability.</p>
+                <h2>Opprett jobb</h2>
+                <p>Post en ny jobb raskt for å nå lokale leverandører — sett detaljer, budsjett og tilgjengelighet.</p>
                 <div class="column-buttons">
-                    <a href="pages.php?page=create_job" class="btn btn-primary">Post a Job</a>
+                    <a href="pages.php?page=create_job" class="btn btn-primary">Post en jobb</a>
                 </div>
             </div>
         </div>
@@ -40,10 +40,10 @@
                 <div class="column-image">
                     <img src="https://media-cldnry.s-nbcnews.com/image/upload/t_fit-1500w,f_auto,q_auto:best/rockcms/2022-01/shoveling-snow-kb-main-220107-b13b2a.jpg" alt="Feature 2">
                 </div>
-                <h2>Find Job</h2>
-                <p>Browse available jobs nearby or search by category to find the right match for your skills.</p>
+                <h2>Finn jobb</h2>
+                <p>Bla gjennom tilgjengelige jobber i nærheten eller søk etter kategori for å finne den rette matchen for dine ferdigheter.</p>
                 <div class="column-buttons">
-                    <a href="pages.php?page=jobs" class="btn btn-primary">Search Jobs</a>
+                    <a href="pages.php?page=jobs" class="btn btn-primary">Søk jobber</a>
                 </div>
             </div>
         </div>

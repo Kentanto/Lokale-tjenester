@@ -5,6 +5,10 @@
             box-sizing: border-box;
         }
 
+        html {
+            overflow: auto !important;
+        }
+
         :root {
             --green: #2C8C42; /* primary */
             --green-dark: #236E36; /* hover/shade */
@@ -24,8 +28,9 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background-color: var(--page-bg);
             color: var(--jet);
-            overflow: hidden;
-            height: 100vh;
+            min-height: 100vh;
+            overflow: auto !important;
+            padding-bottom: 72px; /* Ensure content doesn't get hidden behind the fixed footer */
         }
 
         /* Navbar Styles */
@@ -285,9 +290,9 @@
         .container {
             display: flex;
             /* Let the page background (off-white) show — cards remain white via their own styles. */
-            min-height: calc(100vh - 70px);
             width: 100%;
             background: transparent;
+            min-height: calc(100vh - 70px - 72px);
         }
 
         /* Two-Column Layout */
@@ -571,20 +576,14 @@
 .site-footer .footer-links a:hover { text-decoration: underline; }
 .site-footer .footer-right { color: var(--muted); font-size: 14px; }
 
-/* Ensure content doesn't get hidden behind the fixed footer */
-body {
-    padding-bottom: 72px; /* should be >= footer height */
-}
-
 /* Page wrapper for consolidated pages */
 .page-wrapper {
     display: flex;
     flex-direction: column;
-    min-height: calc(100vh - 70px - 72px);
+    min-height: auto;
 }
 
 .page-main {
-    flex: 1;
     padding: 40px 20px;
     max-width: 1200px;
     margin: 0 auto;
