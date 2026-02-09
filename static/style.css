@@ -959,7 +959,7 @@
 }
 
 .profile-verification-card {
-    background: linear-gradient(135deg, rgba(44, 140, 66, 0.06) 0%, rgba(44, 140, 66, 0.02) 100%);
+    background: linear-gradient(135deg, rgba(221, 228, 228, 0.90) 0%, rgba(224, 230, 230, 0.90) 100%);
     border: 1px solid rgba(44, 140, 66, 0.15);
     border-radius: 12px;
     padding: 28px;
