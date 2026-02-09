@@ -340,66 +340,106 @@ case 'contact':
         if ($is_logged_in) {
             ?>
             <div class="profile-section">
-                <h2>Kontoen din</h2>
-                <p>Velkommen tilbake, <strong><?php echo htmlspecialchars($user_name); ?></strong>.</p>
-                <ul>
-                    <li><strong>E-post:</strong> <?php echo htmlspecialchars($user_email ?? ''); ?></li>
-                    <li><strong>Medlem siden:</strong> <?php echo htmlspecialchars($user_created ? date('Y-m-d', strtotime($user_created)) : '—'); ?></li>
-                </ul>
-                <p class="mt-16">
-                    <a class="btn btn-primary" href="pages.php?page=dashboard">Gå til kontrollpanelet</a>
-                    <a class="btn btn-secondary" href="#settingsForm">Kontoinnstillinger</a>
-                </p>
-
-                <h3 style="margin-top:18px;">Rediger innstillinger</h3>
-                <form id="settingsForm" class="settings-form">
-                    <input type="hidden" name="action" value="update_settings">
-                    <div class="form-message" aria-live="polite"></div>
-                    <div class="form-group">
-                        <label for="profile-username">Brukernavn</label>
-                        <input id="profile-username" name="username" type="text" value="<?php echo htmlspecialchars($user_name); ?>" required>
-                        <div class="field-error" data-for="profile-username"></div>
+                <!-- Welcome Card -->
+                <div class="profile-welcome-card">
+                    <h2>Velkommen tilbake, <?php echo htmlspecialchars($user_name); ?></h2>
+                    <p>Her administrerer du kontoen din og innstillingene.</p>
+                    <div class="profile-info">
+                        <div class="profile-info-item">
+                            <strong>E-post</strong>
+                            <span><?php echo htmlspecialchars($user_email ?? ''); ?></span>
+                        </div>
+                        <div class="profile-info-item">
+                            <strong>Medlem siden</strong>
+                            <span><?php echo htmlspecialchars($user_created ? date('d. M Y', strtotime($user_created)) : '—'); ?></span>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="profile-email">E-post</label>
-                        <input id="profile-email" name="email" type="email" value="<?php echo htmlspecialchars($user_email ?? ''); ?>" required>
-                        <div class="field-error" data-for="profile-email"></div>
-                    </div>
-                    <button class="btn btn-primary" type="submit">Lagre innstillinger</button>
-                </form>
-
-                <h3 style="margin-top:18px;">Endre passord</h3>
-                <form id="passwordForm" class="settings-form">
-                    <div class="form-message" aria-live="polite"></div>
-                    <div class="form-group">
-                        <label for="current-password">Nåværende passord</label>
-                        <input id="current-password" name="current_password" type="password" required>
-                        <div class="field-error" data-for="current-password"></div>
-                    </div>
-                    <div class="form-group">
-                        <label for="new-password">Nytt passord</label>
-                        <input id="new-password" name="new_password" type="password" required>
-                        <div class="field-error" data-for="new-password"></div>
-                        <div class="small-muted">Velg et passord med minst 6 tegn.</div>
-                    </div>
-                    <div class="form-group">
-                        <label for="confirm-password">Bekreft nytt passord</label>
-                        <input id="confirm-password" name="confirm_password" type="password" required>
-                        <div class="field-error" data-for="confirm-password"></div>
-                    </div>
-                    <button class="btn btn-primary" type="submit">Endre passord</button>
-                </form>
-
-                <h3 style="margin-top:18px;">E-postverifisering</h3>
-                <div class="lead" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-                    <div>
-                        <div><strong>E-post:</strong> <?php echo htmlspecialchars($user_email ?? ''); ?></div>
-                        <div class="small-muted">Status: <?php echo (isset($user_email) && $user_email? ( (isset($user_created) && $user_created && isset($is_logged_in) ) ? 'Ukjent' : 'Ukjent' ) : '—'); ?></div>
-                    </div>
-                    <div>
-                        <button id="resendVerifyBtn" class="btn btn-secondary">Send verifisering på nytt</button>
+                    <div class="profile-actions">
+                        <a class="btn btn-primary" href="pages.php?page=dashboard">📊 Kontrollpanel</a>
+                        <a class="btn btn-secondary" href="#settingsForm">⚙️ Innstillinger</a>
                     </div>
                 </div>
+
+                <!-- Action Cards Grid -->
+                <div class="profile-cards-grid">
+                    <!-- Edit Profile Card -->
+                    <div class="profile-card">
+                        <h3><span class="profile-card-icon">👤</span> Rediger profil</h3>
+                        <form id="settingsForm" class="settings-form">
+                            <input type="hidden" name="action" value="update_settings">
+                            <div class="form-message" aria-live="polite"></div>
+                            <div class="form-group">
+                                <label for="profile-username">Brukernavn</label>
+                                <input id="profile-username" name="username" type="text" value="<?php echo htmlspecialchars($user_name); ?>" required placeholder="Ditt brukernavn">
+                                <div class="field-error" data-for="profile-username"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="profile-email">E-post</label>
+                                <input id="profile-email" name="email" type="email" value="<?php echo htmlspecialchars($user_email ?? ''); ?>" required placeholder="Din e-postadresse">
+                                <div class="field-error" data-for="profile-email"></div>
+                            </div>
+                            <button class="btn btn-primary" type="submit">Lagre endringer</button>
+                        </form>
+                    </div>
+
+                    <!-- Change Password Card -->
+                    <div class="profile-card">
+                        <h3><span class="profile-card-icon">🔒</span> Endre passord</h3>
+                        <form id="passwordForm" class="settings-form">
+                            <input type="hidden" name="action" value="change_password">
+                            <div class="form-message" aria-live="polite"></div>
+                            <div class="form-group">
+                                <label for="current-password">Nåværende passord</label>
+                                <input id="current-password" name="current_password" type="password" required placeholder="Ditt nåværende passord">
+                                <div class="field-error" data-for="current-password"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="new-password">Nytt passord</label>
+                                <input id="new-password" name="new_password" type="password" required placeholder="Velg et sterkt passord">
+                                <div class="field-error" data-for="new-password"></div>
+                                <div class="small-muted">Minst 6 tegn. Velg noe som er vanskelig å gjette.</div>
+                            </div>
+                            <div class="form-group">
+                                <label for="confirm-password">Bekreft passord</label>
+                                <input id="confirm-password" name="confirm_password" type="password" required placeholder="Gjenta det nye passordet">
+                                <div class="field-error" data-for="confirm-password"></div>
+                            </div>
+                            <button class="btn btn-primary" type="submit">Oppdater passord</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Email Verification Section (Only if not verified) -->
+                <?php if (!$email_verified): ?>
+                <div class="profile-verification-card">
+                    <h3>✉️ E-postverifisering</h3>
+                    <div class="profile-verification-content">
+                        <div>
+                            <p><strong>E-post:</strong> <?php echo htmlspecialchars($user_email ?? ''); ?></p>
+                            <div class="profile-verification-status unverified">
+                                <span class="verification-indicator"></span>
+                                Ikke verifisert
+                            </div>
+                            <p class="small-muted" style="margin-top: 8px;">Verifiser e-posten din for å få full tilgang til alle funksjoner.</p>
+                        </div>
+                        <button id="resendVerifyBtn" class="btn btn-primary">Send verifiseringslenke</button>
+                    </div>
+                </div>
+                <?php else: ?>
+                <div class="profile-verification-card">
+                    <h3>✉️ E-postverifisering</h3>
+                    <div class="profile-verification-content">
+                        <div>
+                            <p><strong>E-post:</strong> <?php echo htmlspecialchars($user_email ?? ''); ?></p>
+                            <div class="profile-verification-status verified">
+                                <span class="verification-indicator"></span>
+                                Verifisert
+                            </div>
+                            <p class="small-muted" style="margin-top: 8px;">Din e-post er verifisert. Du har full tilgang.</p>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
             <?php
         } else {

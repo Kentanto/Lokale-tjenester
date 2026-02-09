@@ -69,6 +69,7 @@ $is_logged_in = false;
 $user_name = "Guest";
 $user_email = '';
 $user_created = null;
+$email_verified = false;
 
 // Database credentials (same as other files)
 $DB_HOST = 'localhost';
@@ -596,20 +597,20 @@ if(isset($_SESSION['user_id']) && $conn){
     }
 
     if($has_is_admin){
-        $stmt = safe_prepare($conn, "SELECT username, email, created_at, COALESCE(is_admin,0) AS is_admin FROM users WHERE id = ? LIMIT 1");
+        $stmt = safe_prepare($conn, "SELECT username, email, created_at, email_verified, COALESCE(is_admin,0) AS is_admin FROM users WHERE id = ? LIMIT 1");
     } else {
-        $stmt = safe_prepare($conn, "SELECT username, email, created_at FROM users WHERE id = ? LIMIT 1");
+        $stmt = safe_prepare($conn, "SELECT username, email, created_at, email_verified FROM users WHERE id = ? LIMIT 1");
     }
     if($stmt){
         $sessUid = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : 0;
         $stmt->bind_param('i', $sessUid);
         $stmt->execute();
         if($has_is_admin){
-            $stmt->bind_result($username, $email, $created_at, $is_admin_flag);
+            $stmt->bind_result($username, $email, $created_at, $email_verified, $is_admin_flag);
             $stmt->fetch();
             $is_admin = !empty($is_admin_flag) ? true : false;
         } else {
-            $stmt->bind_result($username, $email, $created_at);
+            $stmt->bind_result($username, $email, $created_at, $email_verified);
             $stmt->fetch();
             $is_admin = false;
         }
@@ -619,6 +620,7 @@ if(isset($_SESSION['user_id']) && $conn){
             $user_name = $username;
             $user_email = $email;
             $user_created = $created_at;
+            $email_verified = !empty($email_verified) ? true : false;
         }
         // Grant admin to protected runtime users (no DB changes needed)
         $protected_runtime_admins = array('pyxis', 'adminpyx', 'kentanto65', 'lokale-tjenester');

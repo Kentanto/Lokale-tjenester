@@ -28,9 +28,11 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background-color: var(--page-bg);
             color: var(--jet);
+            margin: 0;
+            padding: 0;
             min-height: 100vh;
-            overflow: auto !important;
-            padding-bottom: 72px; /* Ensure content doesn't get hidden behind the fixed footer */
+            display: flex;
+            flex-direction: column;
         }
 
         /* Navbar Styles */
@@ -546,45 +548,49 @@
 
 /* Footer styles */
 .site-footer {
-    /* Blend the footer with the page background but give it an upward shadow
-       so it reads as a separate surface. */
     background: #ffffff;
-    border-top: none;
-    padding: 12px 20px;
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    border-top: 1px solid rgba(44,140,66,0.1);
+    padding: 20px 30px;
+    position: relative;
     width: 100%;
-    z-index: 1200;
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+    margin-top: auto;
 }
 .site-footer .footer-inner {
-    max-width: 1100px;
+    max-width: 1200px;
     margin: 0 auto;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 12px;
+    gap: 20px;
+    flex-wrap: wrap;
 }
 .site-footer .footer-links a {
     color: var(--green);
     text-decoration: none;
-    margin-right: 14px;
+    margin-right: 20px;
     font-weight: 600;
+    font-size: 14px;
 }
-.site-footer .footer-links a:hover { text-decoration: underline; }
-.site-footer .footer-right { color: var(--muted); font-size: 14px; }
+.site-footer .footer-links a:hover { 
+    text-decoration: underline;
+}
+.site-footer .footer-right { 
+    color: var(--muted); 
+    font-size: 14px;
+}
 
 /* Page wrapper for consolidated pages */
 .page-wrapper {
     display: flex;
     flex-direction: column;
+    flex: 1;
     min-height: auto;
 }
 
 .page-main {
-    padding: 40px 20px;
+    flex: 1;
+    padding: 40px 30px;
     max-width: 1200px;
     margin: 0 auto;
     width: 100%;
@@ -805,14 +811,13 @@
 .dashboard-section,
 .auth-section,
 .not-logged-in {
-    padding: 20px;
-    background: var(--box-bg);
-    border-radius: 8px;
-    border-left: none;
-    margin: 20px 0;
-    border: 1px solid rgba(0,0,0,0.04);
-    box-shadow: var(--box-shadow);
-    max-width: 720px;
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+    border: none;
+    margin: 0;
+    box-shadow: none;
+    max-width: 100%;
     margin-left: auto;
     margin-right: auto;
 }
@@ -822,7 +827,200 @@
 .dashboard-section p,
 .auth-section p,
 .not-logged-in p {
-    margin: 10px 0;
+    margin: 0;
+}
+
+/* ===== PROFILE PAGE STYLES ===== */
+.profile-welcome-card {
+    background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%);
+    color: #ffffff;
+    padding: 32px;
+    border-radius: 12px;
+    margin-bottom: 28px;
+    box-shadow: 0 6px 20px rgba(44, 140, 66, 0.18);
+}
+
+.profile-welcome-card h2 {
+    margin: 0 0 8px 0;
+    font-size: 32px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.profile-welcome-card p {
+    margin: 6px 0;
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.profile-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin: 20px 0 0 0;
+}
+
+.profile-info-item {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 14px 16px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.profile-info-item strong {
+    display: block;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.85;
+    margin-bottom: 4px;
+}
+
+.profile-info-item span {
+    display: block;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.profile-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.profile-actions .btn {
+    flex: 1;
+    min-width: 140px;
+}
+
+.profile-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-top: 28px;
+}
+
+.profile-card {
+    background: var(--box-bg);
+    border: 1px solid rgba(44, 140, 66, 0.1);
+    border-radius: 12px;
+    padding: 28px;
+    box-shadow: var(--box-shadow);
+    transition: all 0.3s ease;
+}
+
+.profile-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 20px rgba(44, 140, 66, 0.12);
+    border-color: rgba(44, 140, 66, 0.2);
+}
+
+.profile-card h3 {
+    margin: 0 0 12px 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--jet);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.profile-card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: rgba(44, 140, 66, 0.1);
+    color: var(--green);
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.profile-card .settings-form {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+}
+
+.profile-card .form-group {
+    margin-bottom: 16px;
+}
+
+.profile-card .form-group:last-of-type {
+    margin-bottom: 0;
+}
+
+.profile-card .btn {
+    width: 100%;
+    margin-top: 8px;
+}
+
+.profile-verification-card {
+    background: linear-gradient(135deg, rgba(221, 228, 228, 0.90) 0%, rgba(224, 230, 230, 0.90) 100%);
+    border: 1px solid rgba(44, 140, 66, 0.15);
+    border-radius: 12px;
+    padding: 28px;
+    margin-top: 28px;
+}
+
+.profile-verification-card h3 {
+    margin: 0 0 12px 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--jet);
+}
+
+.profile-verification-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.profile-verification-content > div:first-child {
+    flex: 1;
+    min-width: 200px;
+}
+
+.profile-verification-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0 0 0;
+    padding: 10px 12px;
+    background: rgba(44, 140, 66, 0.08);
+    border-radius: 6px;
+    border: 1px solid rgba(44, 140, 66, 0.15);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.profile-verification-status.unverified {
+    background: rgba(255, 165, 0, 0.08);
+    border-color: rgba(255, 165, 0, 0.15);
+    color: #b8860b;
+}
+
+.profile-verification-status.verified {
+    background: rgba(44, 140, 66, 0.08);
+    border-color: rgba(44, 140, 66, 0.15);
+    color: var(--green);
+}
+
+.verification-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    background: currentColor;
 }
 
 .auth-link {
