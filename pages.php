@@ -76,7 +76,7 @@ function render_footer() {
 // Page content
 switch ($page) {
     case 'about':
-        render_header('About');
+        render_header('Om');
         ?>
         <section class="lead">
             <p>Velkommen til <strong>Lokale Tjenester</strong> — din lokale hub for å finne pålitelige tjenester i nærheten. Vi kobler
@@ -100,7 +100,7 @@ switch ($page) {
         break;
 
     case 'services':
-        render_header('Services');
+        render_header('Tjenester');
         ?>
         <section class="services-grid">
             <p>Oppdag lokale tjenester organisert etter kategori. Klikk på en kategori for å se tilgjengelige leverandører.</p>
@@ -197,7 +197,7 @@ switch ($page) {
 
 
     case 'jobs':
-        render_header('Find Jobs');
+        render_header('Finn jobber');
         ?>
         <section class="lead">
             <p>Bla gjennom tilgjengelige jobber i nærheten. Bruk søk og filtre for å avgrense resultatene.</p>
@@ -285,7 +285,7 @@ switch ($page) {
 
 
     case 'verify':
-        render_header('Verify Email');
+        render_header('Bekreft e-post');
 
         $token = $_GET['token'] ?? '';
 
@@ -336,7 +336,7 @@ switch ($page) {
 
 
     case 'profile':
-        render_header('Profile');
+        render_header('Profil');
         if ($is_logged_in) {
             ?>
             <div class="profile-section">
@@ -452,7 +452,7 @@ switch ($page) {
 
 
     case 'settings':
-        render_header('Settings','settings');
+        render_header('Instillinger','settings');
         if ($is_logged_in) {
             ?>
             <div class="settings-section">
@@ -551,7 +551,7 @@ switch ($page) {
 
 
     case 'login':
-        render_header('Login');
+        render_header('Logg inn');
         ?>
         <div class="auth-section">
             <p>Logg inn på Lokale Tjenester-kontoen din for å administrere bestillinger, leverandører og profilinnstillinger.</p>
@@ -613,7 +613,7 @@ switch ($page) {
 
 
     case 'signup':
-        render_header('Sign Up');
+        render_header('Registrer');
         if ($action === 'signup') {
             $username = $_POST['username'];
             $email    = $_POST['email'];

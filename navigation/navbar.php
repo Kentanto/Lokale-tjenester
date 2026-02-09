@@ -21,25 +21,25 @@
                 <?php if (!empty($is_admin)): ?>
                     <a href="admin.php">Admin Panel</a>
                 <?php endif; ?>
-                <a href="pages.php?page=profile">Profile</a>
-                <a href="pages.php?page=settings">Settings</a>
+                <a href="pages.php?page=profile">Profil</a>
+                <a href="pages.php?page=settings">Innstillinger</a>
                 <a href="pages.php?page=dashboard">Dashboard</a>
                 <div class="dropdown-divider"></div>
-                <button id="logoutBtn">Logout</button>
+                <button id="logoutBtn">Logg ut</button>
             <?php else: ?>
                 <form id="loginForm" class="auth-form">
                     <div class="form-message" aria-live="polite"></div>
-                    <input type="text" name="username" placeholder="Username or email" required>
-                    <input type="password" name="password" placeholder="Password" required>
-                    <button type="submit">Login</button>
+                    <input type="text" name="username" placeholder="Brukernavn eller e-post" required>
+                    <input type="password" name="password" placeholder="Passord" required>
+                    <button type="submit">Logg inn</button>
                 </form>
                 <div class="dropdown-divider"></div>
                 <form id="signupForm" class="auth-form">
                     <div class="form-message" aria-live="polite"></div>
-                    <input type="text" name="username" placeholder="Username" required>
-                    <input type="email" name="email" placeholder="Email" required>
-                    <input type="password" name="password" placeholder="Password" required>
-                    <button type="submit" aria-disabled="true" disabled>Sign Up (Disabled)</button>
+                    <input type="text" name="username" placeholder="Brukernavn" required>
+                    <input type="email" name="email" placeholder="E-post" required>
+                    <input type="password" name="password" placeholder="Passord" required>
+                    <button type="submit" aria-disabled="true" disabled>Registrer (Deaktivert)</button>
                 </form>
             <?php endif; ?>
         </div>

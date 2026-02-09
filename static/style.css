@@ -5,6 +5,10 @@
             box-sizing: border-box;
         }
 
+        html {
+            overflow: auto !important;
+        }
+
         :root {
             --green: #2C8C42; /* primary */
             --green-dark: #236E36; /* hover/shade */
@@ -288,9 +292,9 @@
         .container {
             display: flex;
             /* Let the page background (off-white) show — cards remain white via their own styles. */
-            min-height: calc(100vh - 70px);
             width: 100%;
             background: transparent;
+            min-height: calc(100vh - 70px - 72px);
         }
 
         /* Two-Column Layout */
