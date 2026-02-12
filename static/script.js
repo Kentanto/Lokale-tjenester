@@ -52,6 +52,103 @@ function showFormMessage(form, message, status){
     container.classList.add(status === 'success' ? 'success' : 'error');
 }
 
+// Helper: escape HTML special characters
+function escapeHtml(s){ if(!s && s!==0) return ''; return String(s).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];}); }
+
+// Render jobs list
+function renderJobs(jobs, container){
+    if(!container) return;
+    if(!jobs || jobs.length === 0){
+        container.innerHTML = `
+            <div class="empty-state">
+                <h3>No jobs found</h3>
+                <p>Try widening your search or create a new job to attract local providers.</p>
+                <div style="margin-top:12px;">
+                    <a href="pages.php?page=create_job" class="btn btn-primary">Post a Job</a>
+                </div>
+            </div>`;
+        return;
+    }
+    let out = '';
+    jobs.forEach(j=>{
+        let imageHtml = j.image ? `<img src="${j.image}" alt="${escapeHtml(j.title)}" style="width:100%;height:200px;object-fit:cover;border-radius:6px;margin-bottom:12px;">` : '';
+        out += `<article class="service-card" style="margin-bottom:12px;cursor:pointer;" onclick="openJobDetail(${j.id})">
+            ${imageHtml}
+            <h3>${escapeHtml(j.title)}</h3>
+            <p>${escapeHtml(j.description.substring(0,150)) + (j.description.length > 150 ? '...' : '')}</p>
+            <p style="color:#666;font-size:13px">${escapeHtml(j.username)} — ${escapeHtml(j.location||'')}</p>
+            <p style="font-weight:600;margin-top:6px">Budget: ${j.budget ? (parseInt(j.budget) + ' NOK') : 'Negotiable'}</p>
+            <div style="font-size:12px;color:#888;margin-top:6px">Posted: ${escapeHtml(j.created_at)}</div>
+        </article>`;
+    });
+    container.innerHTML = out;
+}
+
+// Load jobs from server
+async function loadJobs(filters={}){
+    const container = document.getElementById('jobsList');
+    if(!container) return;
+    const fd = new FormData();
+    fd.append('action','list_jobs');
+    if(filters.q) fd.append('q', filters.q);
+    if(filters.category) fd.append('category', filters.category);
+    if(filters.location) fd.append('location', filters.location);
+    if(filters.min_budget) fd.append('min_budget', filters.min_budget);
+    if(filters.max_budget) fd.append('max_budget', filters.max_budget);
+    let res;
+    try{ res = await fetch('/display.php',{method:'POST', body: fd, credentials:'same-origin'}); }
+    catch(err){ container.innerHTML = '<div class="note">Network error</div>'; return; }
+    let data = await parseJsonResponse(res);
+    if(data.status === 'success') renderJobs(data.jobs, container);
+    else container.innerHTML = `<div class="note">${escapeHtml(data.message || 'Error')}</div>`;
+}
+
+// Open job detail modal
+async function openJobDetail(postId){
+    const modal = document.getElementById('jobDetailModal');
+    const detailContent = document.getElementById('jobDetailContent');
+    if(!modal || !detailContent) return;
+    
+    const fd = new FormData();
+    fd.append('action', 'get_post_detail');
+    fd.append('post_id', postId);
+    
+    detailContent.innerHTML = '<p>Loading...</p>';
+    modal.style.display = 'flex';
+    
+    try{
+        const res = await fetch('/display.php', {method:'POST', body:fd, credentials:'same-origin'});
+        const data = await res.json();
+        
+        if(data.status === 'success'){
+            const p = data.post;
+            let imageHtml = '';
+            if(p.image){
+                imageHtml = `<img src="${p.image}" alt="${escapeHtml(p.title)}" style="width:100%;max-height:400px;object-fit:cover;border-radius:8px;margin-bottom:16px;">`;
+            }
+            
+            detailContent.innerHTML = `
+                ${imageHtml}
+                <h2>${escapeHtml(p.title)}</h2>
+                <p style="color:#666;font-size:14px;margin-bottom:16px;">${escapeHtml(p.username)} • ${escapeHtml(p.location||'Not specified')}</p>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+                    <div><strong>Budget:</strong> <span style="font-size:18px;color:var(--green);">${p.budget ? (parseInt(p.budget) + ' NOK') : 'Negotiable'}</span></div>
+                    <div><strong>Category:</strong> ${escapeHtml(p.category||'Not specified')}</div>
+                    <div><strong>Location:</strong> ${escapeHtml(p.location||'Not specified')}</div>
+                    <div><strong>Posted:</strong> ${escapeHtml(p.created_at)}</div>
+                </div>
+                <hr style="margin:20px 0;border:none;border-top:1px solid var(--off-white);">
+                <h3 style="margin-top:0;">Description</h3>
+                <p style="line-height:1.6;white-space:pre-wrap;">${escapeHtml(p.description)}</p>
+            `;
+        } else {
+            detailContent.innerHTML = `<p style="color:red;">Error: ${escapeHtml(data.message)}</p>`;
+        }
+    } catch(err){
+        detailContent.innerHTML = `<p style="color:red;">Network error loading details</p>`;
+    }
+}
+
 document.addEventListener('DOMContentLoaded',function(){
     // Dark mode toggle
     const darkModeToggle = document.getElementById('darkModeToggle');
@@ -178,52 +275,39 @@ document.addEventListener('DOMContentLoaded',function(){
         }
     });
 
-    // Jobs listing + search
-    function renderJobs(jobs, container){
-        if(!container) return;
-        if(!jobs || jobs.length === 0){
-            container.innerHTML = `
-                <div class="empty-state">
-                    <h3>No jobs found</h3>
-                    <p>Try widening your search or create a new job to attract local providers.</p>
-                    <div style="margin-top:12px;">
-                        <a href="pages.php?page=create_job" class="btn btn-primary">Post a Job</a>
-                    </div>
-                </div>`;
-            return;
-        }
-        let out = '';
-        jobs.forEach(j=>{
-            out += `<article class="service-card" style="margin-bottom:12px">
-                <h3>${escapeHtml(j.title)}</h3>
-                <p>${escapeHtml(j.description)}</p>
-                <p style="color:#666;font-size:13px">${escapeHtml(j.username)} — ${escapeHtml(j.location||'')}</p>
-                <p style="font-weight:600;margin-top:6px">Budget: ${j.budget ? (parseInt(j.budget) + ' NOK') : 'Negotiable'}</p>
-                <div style="font-size:12px;color:#888;margin-top:6px">Posted: ${escapeHtml(j.created_at)}</div>
-            </article>`;
-        });
-        container.innerHTML = out;
-    }
-
-    function escapeHtml(s){ if(!s && s!==0) return ''; return String(s).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];}); }
-
-    async function loadJobs(filters={}){
-        const container = document.getElementById('jobsList');
-        if(!container) return;
-        const fd = new FormData();
-        fd.append('action','list_jobs');
-        if(filters.q) fd.append('q', filters.q);
-        if(filters.category) fd.append('category', filters.category);
-        if(filters.location) fd.append('location', filters.location);
-        if(filters.min_budget) fd.append('min_budget', filters.min_budget);
-        if(filters.max_budget) fd.append('max_budget', filters.max_budget);
-        let res;
-        try{ res = await fetch('/display.php',{method:'POST', body: fd, credentials:'same-origin'}); }
-        catch(err){ container.innerHTML = '<div class="note">Network error</div>'; return; }
-        let data = await parseJsonResponse(res);
-        if(data.status === 'success') renderJobs(data.jobs, container);
-        else container.innerHTML = `<div class="note">${escapeHtml(data.message || 'Error')}</div>`;
-    }
+    // Handle image preview for job creation form
+    document.getElementById("job-image")?.addEventListener("change", function(e){
+        const file = this.files[0];
+        const form = this.closest('form');
+        let previewContainer = form.querySelector('.image-preview-container');
+        
+        // Remove existing preview if present
+        if(previewContainer) previewContainer.remove();
+        
+        if(!file) return;
+        
+        // Create preview container
+        previewContainer = document.createElement('div');
+        previewContainer.className = 'image-preview-container';
+        
+        const reader = new FileReader();
+        reader.onload = function(event){
+            const imgSizeKB = (file.size / 1024).toFixed(1);
+            previewContainer.innerHTML = `
+                <div class="image-preview">
+                    <img src="${event.target.result}" alt="Preview">
+                </div>
+                <div class="image-preview-info">
+                    <span>${file.name} (${imgSizeKB} KB)</span>
+                    <button type="button" class="image-preview-remove" onclick="this.closest('.image-preview-container').remove(); document.getElementById('job-image').value=''; return false;">Remove</button>
+                </div>
+            `;
+            
+            const fileInput = document.getElementById('job-image');
+            fileInput.parentElement.insertBefore(previewContainer, fileInput.nextElementSibling);
+        };
+        reader.readAsDataURL(file);
+    });
 
     // wire jobs search form
     document.getElementById('jobsSearchForm')?.addEventListener('submit', async function(e){
@@ -249,6 +333,13 @@ document.addEventListener('DOMContentLoaded',function(){
 
     // auto-load jobs on page load when jobsList exists
     if(document.getElementById('jobsList')) loadJobs();
+
+    // Close job detail modal when clicking the overlay
+    document.getElementById('jobDetailModal')?.addEventListener('click', function(e){
+        if(e.target === this || e.target.classList.contains('job-detail-overlay')){
+            this.style.display = 'none';
+        }
+    });
 
     // Page (full-page) signup form
     document.getElementById("signupPageForm")?.addEventListener("submit",async e=>{
