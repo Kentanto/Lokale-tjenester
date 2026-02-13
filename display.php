@@ -11,6 +11,12 @@ ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/php_errors.log');
 error_reporting(E_ALL);
 
+// Ensure UTF-8 throughout the script to avoid character corruption (Norwegian letters etc.)
+ini_set('default_charset', 'UTF-8');
+if (function_exists('mb_internal_encoding')) {
+    mb_internal_encoding('UTF-8');
+}
+
 // Set custom error handler to log errors
 set_error_handler(function($errno, $errstr, $errfile, $errline) {
     @file_put_contents(__DIR__ . '/php_errors.log', 
@@ -242,6 +248,9 @@ function send_verification_email(mysqli $conn, string $email, int $user_id): boo
 
     $mail = new PHPMailer(true);
     try {
+        // Ensure outgoing mail uses UTF-8 charset so Norwegian characters are preserved
+        $mail->CharSet = 'UTF-8';
+        $mail->Encoding = 'base64';
         $mail->isSendmail();
         $mail->setFrom(getenv('FROM_EMAIL'), getenv('FROM_NAME') ?: 'Lokale Tjenester');
         $mail->addAddress($email);
@@ -269,7 +278,7 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
     $action = $_POST['action'] ?? null;
 
 
-    header('Content-Type: application/json');
+    header('Content-Type: application/json; charset=utf-8');
     // Also log POST keys and cookies briefly
     @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - POST keys: " . implode(',', array_keys($_POST)) . "\n", FILE_APPEND);
     @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - COOKIES: " . json_encode(array_keys($_COOKIE)) . "\n", FILE_APPEND);
@@ -588,6 +597,9 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         // Send contact email to site admin
         $mail = new PHPMailer(true);
         try {
+            // Ensure outgoing mail uses UTF-8 charset so Norwegian characters are preserved
+            $mail->CharSet = 'UTF-8';
+            $mail->Encoding = 'base64';
             $mail->isSendmail();
             $mail->setFrom($email, $name);
             $mail->addAddress('post@lokale-tjenester.no');
