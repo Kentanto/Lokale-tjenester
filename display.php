@@ -487,102 +487,209 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
     }
 
     if($action === 'create_post'){
-        // create a job/post supporting multiple images; convert uploads to web-friendly format (webp/jpeg)
+        try {
+            // create a job/post supporting multiple images; convert uploads to web-friendly format (webp/jpeg)
+            error_log('=== CREATE_POST START ===');
+            error_log('POST data: title=' . ($_POST['title'] ?? 'MISSING') . ', desc=' . (strlen($_POST['description'] ?? '') > 0 ? 'OK' : 'MISSING') . ', FILES count=' . count($_FILES));
+            error_log('GD library available: ' . (extension_loaded('gd') ? 'YES' : 'NO'));
+            error_log('imagewebp function: ' . (function_exists('imagewebp') ? 'YES' : 'NO'));
+            error_log('FILES[image]: ' . json_encode($_FILES['image'] ?? 'NOT SET'));
+        
         $title = trim($_POST['title'] ?? '');
         $desc = trim($_POST['description'] ?? '');
-        $category = trim($_POST['category'] ?? '');
-        $budget = intval($_POST['budget'] ?? 0);
-        $location = trim($_POST['location'] ?? '');
+            $category = trim($_POST['category'] ?? '');
+            $budget = intval($_POST['budget'] ?? 0);
+            $location = trim($_POST['location'] ?? '');
 
-        if(!$title || !$desc){ echo json_encode(['status'=>'error','message'=>'Title and description required']); exit; }
-        if(empty($_SESSION['user_id'])){ echo json_encode(['status'=>'error','message'=>'You must be logged in to create a job']); exit; }
-        $uid = intval($_SESSION['user_id']);
+            if(!$title || !$desc){ error_log('create_post: Missing title or desc'); echo json_encode(['status'=>'error','message'=>'Title and description required']); exit; }
+            if(empty($_SESSION['user_id'])){ error_log('create_post: No user_id in session'); echo json_encode(['status'=>'error','message'=>'You must be logged in to create a job']); exit; }
+            $uid = intval($_SESSION['user_id']);
 
-        // Insert post record first (no image columns relied on here)
-        $stmt = safe_prepare($conn, "INSERT INTO posts (title, description, category, budget, location, user_id, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())");
-        if(!$stmt){ error_log('create_post: safe_prepare posts insert failed - ' . ($conn ? $conn->error : 'No connection')); echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
-        $stmt->bind_param('sssisi', $title, $desc, $category, $budget, $location, $uid);
-        if(!$stmt->execute()){ error_log('create_post: execute posts insert failed - ' . $stmt->error); echo json_encode(['status'=>'error','message'=>'Failed to create job']); exit; }
-        $post_id = $conn->insert_id;
-        $stmt->close();
+            // Insert post record first (no image columns relied on here)
+            $stmt = safe_prepare($conn, "INSERT INTO posts (title, description, category, budget, location, user_id, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())");
+            if(!$stmt){ error_log('create_post: safe_prepare posts insert failed - ' . ($conn ? $conn->error : 'No connection')); echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
+            $stmt->bind_param('sssisi', $title, $desc, $category, $budget, $location, $uid);
+            if(!$stmt->execute()){ error_log('create_post: execute posts insert failed - ' . $stmt->error); echo json_encode(['status'=>'error','message'=>'Failed to create job']); exit; }
+            $post_id = $conn->insert_id;
+            error_log('create_post: Successfully created post with id=' . $post_id);
+            $stmt->close();
 
-        // Normalize uploaded files (support single or multiple inputs)
-        $files = [];
-        if(isset($_FILES['image'])){
-            if(is_array($_FILES['image']['name'])){
-                for($i=0;$i<count($_FILES['image']['name']);$i++){
-                    $files[] = [
-                        'name' => $_FILES['image']['name'][$i] ?? '',
-                        'tmp_name' => $_FILES['image']['tmp_name'][$i] ?? '',
-                        'size' => $_FILES['image']['size'][$i] ?? 0,
-                        'error' => $_FILES['image']['error'][$i] ?? UPLOAD_ERR_NO_FILE,
-                    ];
+            // Normalize uploaded files (support single or multiple inputs)
+            $files = [];
+            if(isset($_FILES['image'])){
+                if(is_array($_FILES['image']['name'])){
+                    for($i=0;$i<count($_FILES['image']['name']);$i++){
+                        $files[] = [
+                            'name' => $_FILES['image']['name'][$i] ?? '',
+                            'tmp_name' => $_FILES['image']['tmp_name'][$i] ?? '',
+                            'size' => $_FILES['image']['size'][$i] ?? 0,
+                            'error' => $_FILES['image']['error'][$i] ?? UPLOAD_ERR_NO_FILE,
+                        ];
+                    }
+                } else {
+                    $files[] = [ 'name'=>$_FILES['image']['name'],'tmp_name'=>$_FILES['image']['tmp_name'],'size'=>$_FILES['image']['size'],'error'=>$_FILES['image']['error'] ];
                 }
-            } else {
-                $files[] = [ 'name'=>$_FILES['image']['name'],'tmp_name'=>$_FILES['image']['tmp_name'],'size'=>$_FILES['image']['size'],'error'=>$_FILES['image']['error'] ];
             }
-        }
 
-        // Helper: convert an uploaded file to webp (if available) or jpeg and return [data, type] or false
-        $convertImage = function(string $tmpPath){
-            $raw = @file_get_contents($tmpPath);
-            if($raw === false) return false;
-            $img = @imagecreatefromstring($raw);
-            if(!$img) return false;
-            ob_start();
-            if(function_exists('imagewebp')){
-                // WebP at quality 80
-                imagewebp($img, NULL, 80);
-                $data = ob_get_clean();
-                $type = 'webp';
-            } else {
-                // Fallback to JPEG
-                imagejpeg($img, NULL, 85);
-                $data = ob_get_clean();
-                $type = 'jpeg';
-            }
-            imagedestroy($img);
-            return [$data, $type];
-        };
+            // Helper: convert an uploaded file to webp (if available) or jpeg and return [data, type] or false
+            $convertImage = function(string $tmpPath){
+                error_log('convertImage: reading ' . $tmpPath);
+                $raw = @file_get_contents($tmpPath);
+                if($raw === false){ error_log('convertImage: file_get_contents failed'); return false; }
+                error_log('convertImage: raw file size=' . strlen($raw) . ' bytes');
+                
+                // Detect image type from magic bytes
+                $img = null;
+                if(strpos($raw, "\x89PNG") === 0){
+                    error_log('convertImage: detected PNG format');
+                    $tempFile = tempnam(sys_get_temp_dir(), 'img_');
+                    if(file_put_contents($tempFile, $raw)){
+                        $img = @imagecreatefrompng($tempFile);
+                        if(!$img) error_log('convertImage: imagecreatefrompng failed');
+                        else error_log('convertImage: imagecreatefrompng SUCCESS');
+                        @unlink($tempFile);
+                    }
+                } elseif(strpos($raw, "\xFF\xD8\xFF") === 0){
+                    error_log('convertImage: detected JPEG format');
+                    $tempFile = tempnam(sys_get_temp_dir(), 'img_');
+                    if(file_put_contents($tempFile, $raw)){
+                        $img = @imagecreatefromjpeg($tempFile);
+                        if(!$img) error_log('convertImage: imagecreatefromjpeg failed');
+                        else error_log('convertImage: imagecreatefromjpeg SUCCESS');
+                        @unlink($tempFile);
+                    }
+                } elseif(strpos($raw, "RIFF") === 0 && strpos($raw, "WEBP") !== false){
+                    error_log('convertImage: detected WebP format');
+                    $tempFile = tempnam(sys_get_temp_dir(), 'img_');
+                    if(file_put_contents($tempFile, $raw)){
+                        $img = @imagecreatefromwebp($tempFile);
+                        if(!$img) error_log('convertImage: imagecreatefromwebp failed');
+                        else error_log('convertImage: imagecreatefromwebp SUCCESS');
+                        @unlink($tempFile);
+                    }
+                } else {
+                    error_log('convertImage: unknown format, trying imagecreatefromstring');
+                    $img = @imagecreatefromstring($raw);
+                }
+                
+                if(!$img){ error_log('convertImage: all image load methods failed'); return false; }
+                error_log('convertImage: image resource created');
+                
+                // For PNG with transparency, create a white background to avoid transparency issues
+                $width = imagesx($img);
+                $height = imagesy($img);
+                $bg = imagecreatetruecolor($width, $height);
+                $white = imagecolorallocate($bg, 255, 255, 255);
+                imagefill($bg, 0, 0, $white);
+                imagecopy($bg, $img, 0, 0, 0, 0, $width, $height);
+                imagedestroy($img);
+                $img = $bg;
+                
+                ob_start();
+                if(function_exists('imagewebp')){
+                    // WebP at quality 80
+                    error_log('convertImage: using imagewebp');
+                    $result = @imagewebp($img, NULL, 80);
+                    if(!$result) error_log('convertImage: imagewebp output failed');
+                    $data = ob_get_clean();
+                    $type = 'webp';
+                } else {
+                    // Fallback to JPEG
+                    error_log('convertImage: using imagejpeg (fallback)');
+                    $result = @imagejpeg($img, NULL, 85);
+                    if(!$result) error_log('convertImage: imagejpeg output failed');
+                    $data = ob_get_clean();
+                    $type = 'jpeg';
+                }
+                error_log('convertImage: final data size=' . strlen($data ?? '') . ' bytes, type=' . $type);
+                imagedestroy($img);
+                return [$data, $type];
+            };
 
-        // Insert images into post_images (if any)
-        if(count($files) > 0){
-            $imgStmt = safe_prepare($conn, "INSERT INTO post_images (post_id, image, image_type, sort_order, created_at) VALUES (?, ?, ?, ?, NOW())");
-            if(!$imgStmt){ error_log('create_post: safe_prepare post_images failed - ' . ($conn ? $conn->error : 'No connection')); }
-            $sort = 0;
-            $firstImage = null;
-            foreach($files as $f){
-                if(empty($f['tmp_name']) || $f['error'] !== UPLOAD_ERR_OK) continue;
-                if($f['size'] > 5 * 1024 * 1024) continue; // skip too large
-                $conv = $convertImage($f['tmp_name']);
-                if(!$conv) continue;
-                list($bin, $itype) = $conv;
-                if(!$imgStmt) continue;
-                $null = null;
-                $imgStmt->bind_param('ibsi', $post_id, $null, $itype, $sort);
-                $imgStmt->send_long_data(1, $bin);
-                if(!$imgStmt->execute()){ error_log('create_post: post_images execute failed - ' . $imgStmt->error); }
-                else {
-                    if($firstImage === null){ $firstImage = ['data'=>$bin,'type'=>$itype]; }
+            // Insert images into post_images (if any)
+            if(count($files) > 0){
+                $sort = 0;
+                $firstImage = null;
+                foreach($files as $f){
+                    if(empty($f['tmp_name']) || $f['error'] !== UPLOAD_ERR_OK){ error_log('create_post: file upload error - error code ' . ($f['error'] ?? 'unknown')); continue; }
+                    if($f['size'] > 5 * 1024 * 1024){ error_log('create_post: file too large - ' . $f['size'] . ' bytes'); continue; }
+                    error_log('create_post: processing file ' . ($f['name'] ?? 'unknown') . ' from ' . $f['tmp_name']);
+                    
+                    $conv = $convertImage($f['tmp_name']);
+                    if(!$conv){ error_log('create_post: image conversion FAILED for ' . ($f['name'] ?? 'unknown')); continue; }
+                    list($bin, $itype) = $conv;
+                    $binSize = strlen($bin ?? '');
+                    error_log('create_post: conversion SUCCESS - ' . ($f['name'] ?? 'file') . ' to ' . $itype . ' (' . $binSize . ' bytes)');
+                    
+                    if($binSize <= 0){ error_log('create_post: WARNING - converted image is empty!'); continue; }
+                    
+                    // RE-PREPARE statement for each BLOB insert (required by some drivers)
+                    $imgStmt = safe_prepare($conn, "INSERT INTO post_images (post_id, image, image_type, sort_order, created_at) VALUES (?, ?, ?, ?, NOW())");
+                    if(!$imgStmt){ error_log('create_post: safe_prepare failed on iteration - ' . ($conn ? $conn->error : 'No connection')); continue; }
+                    
+                    // Bind parameters for BLOB
+                    $null = NULL;
+                    if(!$imgStmt->bind_param('ibsi', $post_id, $null, $itype, $sort)){ 
+                        error_log('create_post: bind_param failed - ' . $imgStmt->error); 
+                        $imgStmt->close();
+                        continue; 
+                    }
+                    error_log('create_post: bind_param SUCCESS');
+                    
+                    if(!$imgStmt->send_long_data(1, $bin)){ 
+                        error_log('create_post: send_long_data FAILED - ' . $imgStmt->error); 
+                        $imgStmt->close();
+                        continue; 
+                    }
+                    error_log('create_post: send_long_data SUCCESS (' . $binSize . ' bytes)');
+                    
+                    if(!$imgStmt->execute()){ 
+                        error_log('create_post: execute FAILED - ' . $imgStmt->error); 
+                        $imgStmt->close();
+                        continue;
+                    }
+                    error_log('create_post: execute SUCCESS for ' . ($f['name'] ?? 'file'));
+                    
+                    if($firstImage === null){ 
+                        $firstImage = ['data'=>$bin,'type'=>$itype]; 
+                        error_log('create_post: saved first image (' . strlen($firstImage['data']) . ' bytes)');
+                    }
                     $sort++;
+                    $imgStmt->close();
                 }
-            }
-            if($imgStmt) $imgStmt->close();
 
-            // Update posts.image and posts.image_type for backward compatibility (if columns exist)
-            if($firstImage !== null){
-                $upd = safe_prepare($conn, "UPDATE posts SET image = ?, image_type = ? WHERE id = ?");
-                if($upd){
-                    $null = null;
-                    $upd->bind_param('bsi', $null, $firstImage['type'], $post_id);
-                    $upd->send_long_data(0, $firstImage['data']);
-                    if(!$upd->execute()){ error_log('create_post: update posts.image failed - ' . $upd->error); }
-                    $upd->close();
+                // Update posts.image and posts.image_type for backward compatibility (if columns exist)
+                if($firstImage !== null){
+                    $upd = safe_prepare($conn, "UPDATE posts SET image = ?, image_type = ? WHERE id = ?");
+                    if($upd){
+                        // Bind: 'b'=image (BLOB, passed as NULL then via send_long_data), 's'=image_type, 'i'=id
+                        $null = NULL;
+                        if(!$upd->bind_param('bsi', $null, $firstImage['type'], $post_id)){ 
+                            error_log('create_post: update bind_param failed - ' . $upd->error); 
+                        } else if(!$upd->send_long_data(0, $firstImage['data'])){ 
+                            error_log('create_post: update send_long_data failed - ' . $upd->error); 
+                        } else if(!$upd->execute()){ 
+                            error_log('create_post: update posts.image execute failed - ' . $upd->error); 
+                        } else {
+                            error_log('create_post: successfully updated posts.image for post ' . $post_id);
+                        }
+                        $upd->close();
+                    }
                 }
-            }
+        } else {
+            error_log('create_post: No files uploaded (files count=' . count($files) . ')');
         }
 
-        echo json_encode(['status'=>'success','message'=>'Job created successfully']);
+            error_log('=== CREATE_POST END SUCCESS ===');
+            echo json_encode(['status'=>'success','message'=>'Job created successfully']);
+        } catch(Exception $e) {
+            error_log('create_post EXCEPTION: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            error_log('Trace: ' . $e->getTraceAsString());
+            echo json_encode(['status'=>'error','message'=>'Error: ' . $e->getMessage()]);
+        } catch(Throwable $t) {
+            error_log('create_post THROWABLE: ' . $t->getMessage());
+            echo json_encode(['status'=>'error','message'=>'Fatal error: ' . $t->getMessage()]);
+        }
         exit;
     }
 

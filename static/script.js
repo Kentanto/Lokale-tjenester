@@ -168,6 +168,15 @@ async function openJobDetail(postId){
     }
 }
 
+// Helper: disable/enable form (buttons and inputs)
+function disableForm(form, disabled){
+    [...form.querySelectorAll('input,button,textarea')].forEach(el=>{
+        if(el.type === 'hidden') return;
+        el.disabled = disabled;
+        if(el.tagName === 'BUTTON') el.setAttribute('aria-disabled', disabled);
+    });
+}
+
 document.addEventListener('DOMContentLoaded',function(){
     // Dark mode toggle
     const darkModeToggle = document.getElementById('darkModeToggle');
@@ -239,6 +248,51 @@ document.addEventListener('DOMContentLoaded',function(){
         nowBtn.onclick = ()=>{ clearTimeout(timeout); clearInterval(interval); overlay.classList.remove('active'); window.location.href = redirectUrl; };
         stayBtn.onclick = ()=>{ cancelled = true; clearTimeout(timeout); clearInterval(interval); overlay.classList.remove('active'); };
     }
+
+    // Create job/post form handler
+    document.getElementById("createPostForm")?.addEventListener("submit",async e=>{
+        e.preventDefault();
+        let form = e.target;
+        
+        // Debug: log files being sent
+        let fd = new FormData(form);
+        let hasImage = false;
+        for(let [key,val] of fd){
+            if(key === 'image'){ console.log('Form has image field:', val.name || 'file', val.size || 'no size'); hasImage = true; }
+        }
+        if(!hasImage) console.log('WARNING: No image field in FormData!');
+        
+        fd.append('action','create_post');
+        disableForm(form, true);
+        
+        let res;
+        try{ 
+            res = await fetch('/display.php',{method:'POST',body:fd, credentials:'same-origin'}); 
+        } catch(err){ 
+            console.error('Fetch error:', err);
+            showFormMessage(form,'Network error: ' + err.message,'error'); 
+            disableForm(form,false); 
+            return; 
+        }
+        
+        let data = await parseJsonResponse(res);
+        console.log('Server response:', data);
+        showFormMessage(form, data.message, data.status);
+        disableForm(form, false);
+        
+        if(data.status === 'success'){
+            // Clear form fields
+            form.reset();
+            // Reset file input display
+            let fileInput = form.querySelector('input[name="image"]');
+            if(fileInput){
+                let previewArea = document.getElementById('job-image-preview');
+                if(previewArea) previewArea.innerHTML = '';
+            }
+            // redirect to job listings after successful creation
+            showConfirmation('Job created','Your job was posted successfully.', 'pages.php?page=jobs', 1200);
+        }
+    });
 
     document.getElementById("signupForm")?.addEventListener("submit",async e=>{
         e.preventDefault();
