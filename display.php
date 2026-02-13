@@ -2,6 +2,12 @@
 // Temporary debug log to help diagnose 500 errors when browser shows no response.
 // The webserver must be able to write files in this directory for these logs to appear.
 @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - display.php loaded\n", FILE_APPEND);
+
+// Increase PHP limits for file uploads (5MB + overhead)
+ini_set('upload_max_filesize', '5M');
+ini_set('post_max_size', '15M');
+ini_set('memory_limit', '256M');
+
 // Maximum supported session lifetime (seconds) - 60 days
 // For AJAX/API requests, suppress error output to avoid breaking JSON responses
 $is_ajax_request = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest';
@@ -109,6 +115,21 @@ function safe_prepare($conn, $sql){
         error_log('display.php: prepare exception: ' . $ex->getMessage() . ' -- SQL: ' . $sql);
         return null;
     }
+}
+
+// Helper: get human-readable upload error message
+function getUploadErrorMessage($code){
+    $messages = [
+        UPLOAD_ERR_OK => 'OK',
+        UPLOAD_ERR_INI_SIZE => 'File exceeds upload_max_filesize',
+        UPLOAD_ERR_FORM_SIZE => 'File exceeds form MAX_FILE_SIZE',
+        UPLOAD_ERR_PARTIAL => 'File only partially uploaded',
+        UPLOAD_ERR_NO_FILE => 'No file uploaded',
+        UPLOAD_ERR_NO_TMP_DIR => 'Missing temp directory',
+        UPLOAD_ERR_CANT_WRITE => 'Cannot write to disk',
+        UPLOAD_ERR_EXTENSION => 'PHP extension blocked upload',
+    ];
+    return $messages[$code] ?? 'Unknown error (' . $code . ')';
 }
 
 // Create email_tokens table if it doesn't exist
@@ -490,9 +511,23 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         try {
             // create a job/post supporting multiple images; convert uploads to web-friendly format (webp/jpeg)
             error_log('=== CREATE_POST START ===');
+            error_log('PHP limits: upload_max_filesize=' . ini_get('upload_max_filesize') . ', post_max_size=' . ini_get('post_max_size') . ', memory_limit=' . ini_get('memory_limit'));
             error_log('POST data: title=' . ($_POST['title'] ?? 'MISSING') . ', desc=' . (strlen($_POST['description'] ?? '') > 0 ? 'OK' : 'MISSING') . ', FILES count=' . count($_FILES));
             error_log('GD library available: ' . (extension_loaded('gd') ? 'YES' : 'NO'));
             error_log('imagewebp function: ' . (function_exists('imagewebp') ? 'YES' : 'NO'));
+            
+            // Log file upload errors explicitly
+            if(!empty($_FILES['image'])){
+                if(is_array($_FILES['image']['error'])){
+                    foreach($_FILES['image']['error'] as $idx => $err){
+                        if($err !== UPLOAD_ERR_OK){
+                            error_log('File upload error at index ' . $idx . ': ' . getUploadErrorMessage($err));
+                        }
+                    }
+                } elseif($_FILES['image']['error'] !== UPLOAD_ERR_OK){
+                    error_log('File upload error: ' . getUploadErrorMessage($_FILES['image']['error']) . ' (size=' . ($_FILES['image']['size'] ?? 0) . ' bytes)');
+                }
+            }
             error_log('FILES[image]: ' . json_encode($_FILES['image'] ?? 'NOT SET'));
         
         $title = trim($_POST['title'] ?? '');
