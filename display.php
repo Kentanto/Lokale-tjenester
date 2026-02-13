@@ -134,6 +134,22 @@ $conn->query("CREATE TABLE IF NOT EXISTS remember_tokens (
     KEY (expires_at)
 )");
 
+// Create posts table if it doesn't exist
+$conn->query("CREATE TABLE IF NOT EXISTS posts (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description LONGTEXT NOT NULL,
+    category VARCHAR(100),
+    budget INT DEFAULT 0,
+    location VARCHAR(255),
+    user_id INT UNSIGNED,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    KEY (user_id),
+    KEY (category),
+    KEY (created_at)
+)");
+
 // Check if user has a valid remember token in cookie
 if(!$is_logged_in && isset($_COOKIE['remember_token'])){
     $token = $_COOKIE['remember_token'];
@@ -463,17 +479,41 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         $budget = intval($_POST['budget'] ?? 0);
         $location = trim($_POST['location'] ?? '');
 
-        if(!$title || !$desc){ echo json_encode(['status'=>'error','message'=>'Title and description required']); exit; }
-
-        $stmt = safe_prepare($conn, "INSERT INTO posts (title, description, category, budget, location, user_id, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())");
-        if($stmt){
-            $uid = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : null;
-            $stmt->bind_param('sssisi', $title, $desc, $category, $budget, $location, $uid);
-            if(!$stmt->execute()){ echo json_encode(['status'=>'error','message'=>'Failed to create job']); exit; }
-            echo json_encode(['status'=>'success','message'=>'Job created']); exit;
-        } else {
-            echo json_encode(['status'=>'error','message'=>'Database error creating job']); exit;
+        // Validate inputs
+        if(!$title || !$desc){ 
+            echo json_encode(['status'=>'error','message'=>'Title and description required']); 
+            exit; 
         }
+
+        // Check user is logged in
+        if(empty($_SESSION['user_id'])){
+            echo json_encode(['status'=>'error','message'=>'You must be logged in to create a job']);
+            exit;
+        }
+
+        $uid = intval($_SESSION['user_id']);
+
+        // Prepare and execute statement
+        $stmt = safe_prepare($conn, "INSERT INTO posts (title, description, category, budget, location, user_id, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())");
+        if(!$stmt){
+            error_log('create_post: safe_prepare failed - ' . ($conn ? $conn->error : 'No connection'));
+            echo json_encode(['status'=>'error','message'=>'Database connection error']); 
+            exit;
+        }
+
+        // Bind parameters - note the type string must match exactly
+        $stmt->bind_param('sssisi', $title, $desc, $category, $budget, $location, $uid);
+        
+        // Execute and check for errors
+        if(!$stmt->execute()){
+            error_log('create_post: execute failed - ' . $stmt->error);
+            echo json_encode(['status'=>'error','message'=>'Failed to create job: ' . $stmt->error]); 
+            exit;
+        }
+
+        $stmt->close();
+        echo json_encode(['status'=>'success','message'=>'Job created successfully']); 
+        exit;
     }
 
     if($action === 'list_jobs'){
@@ -485,7 +525,7 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         $max = isset($_POST['max_budget']) ? intval($_POST['max_budget']) : null;
         $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 50;
 
-        $sql = "SELECT p.id, p.title, p.description, p.category, p.budget, p.location, p.created_at, COALESCE(u.username,'Guest') AS username FROM posts p LEFT JOIN users u ON p.user_id = u.id";
+        $sql = "SELECT p.id, p.title, p.description, p.category, p.budget, p.location, p.created_at, COALESCE(u.username,'Guest') AS username, IF(p.image, CONCAT('data:image/', COALESCE(p.image_type, 'jpeg'), ';base64,', TO_BASE64(p.image)), NULL) AS image FROM posts p LEFT JOIN users u ON p.user_id = u.id";
         $where = [];
         $types = '';
         $params = [];
@@ -500,7 +540,12 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         $sql .= ' ORDER BY p.created_at DESC LIMIT ' . intval($limit);
 
         $stmt = safe_prepare($conn, $sql);
-        if(!$stmt){ echo json_encode(['status'=>'error','message'=>'DB error preparing list']); exit; }
+        if(!$stmt){ 
+            error_log('list_jobs: safe_prepare failed - ' . ($conn ? $conn->error : 'No connection'));
+            echo json_encode(['status'=>'error','message'=>'Database error preparing list']); 
+            exit; 
+        }
+
         if($types !== ''){
             // bind dynamically
             $bindNames = [];
@@ -508,7 +553,13 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             foreach($params as $i => $v) $bindNames[] = &$params[$i];
             call_user_func_array([$stmt, 'bind_param'], $bindNames);
         }
-        $stmt->execute();
+
+        if(!$stmt->execute()){
+            error_log('list_jobs: execute failed - ' . $stmt->error);
+            echo json_encode(['status'=>'error','message'=>'Database error executing query']); 
+            exit;
+        }
+
         $rows = [];
         // Prefer get_result() when available (requires mysqlnd). Fall back to bind_result() otherwise.
         if(method_exists($stmt, 'get_result')){
@@ -539,7 +590,53 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
                 }
             }
         }
-        echo json_encode(['status'=>'success','jobs'=>$rows]); exit;
+
+        $stmt->close();
+        echo json_encode(['status'=>'success','jobs'=>$rows]); 
+        exit;
+    }
+
+    if($action === 'get_post_detail'){
+        // fetch full details of a single job post
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        if($post_id <= 0){ echo json_encode(['status'=>'error','message'=>'Invalid post ID']); exit; }
+        
+        $sql = "SELECT p.id, p.title, p.description, p.category, p.budget, p.location, p.created_at, COALESCE(u.username,'Guest') AS username, IF(p.image, CONCAT('data:image/', COALESCE(p.image_type, 'jpeg'), ';base64,', TO_BASE64(p.image)), NULL) AS image FROM posts p LEFT JOIN users u ON p.user_id = u.id WHERE p.id = ? LIMIT 1";
+        
+        $stmt = safe_prepare($conn, $sql);
+        if(!$stmt){ echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
+        
+        $stmt->bind_param('i', $post_id);
+        if(!$stmt->execute()){ echo json_encode(['status'=>'error','message'=>'Query failed']); exit; }
+        
+        $row = null;
+        if(method_exists($stmt, 'get_result')){
+            $res = $stmt->get_result();
+            $row = $res->fetch_assoc();
+        } else {
+            $stmt->store_result();
+            if($stmt->num_rows > 0){
+                $meta = $stmt->result_metadata();
+                if($meta){
+                    $fields = [];
+                    while($f = $meta->fetch_field()) $fields[] = $f->name;
+                    $meta->free();
+                    
+                    $bindVars = [];
+                    $row = [];
+                    foreach($fields as $fld){ $row[$fld] = null; $bindVars[] = & $row[$fld]; }
+                    if(count($bindVars)){
+                        call_user_func_array([$stmt, 'bind_result'], $bindVars);
+                        if($stmt->fetch()){ $out = []; foreach($row as $k => $v) $out[$k] = $v; $row = $out; }
+                    }
+                }
+            }
+        }
+        $stmt->close();
+        
+        if(!$row){ echo json_encode(['status'=>'error','message'=>'Post not found']); exit; }
+        echo json_encode(['status'=>'success','post'=>$row]);
+        exit;
     }
 
     if($action === 'logout'){

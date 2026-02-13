@@ -129,64 +129,78 @@ switch ($page) {
         break;
 
     case 'create_job':
-            render_header('Create Job');
+            render_header('Lag en jobbannonse');
             ?>
             <section class="lead">
                 <p>Opprett en jobbannonse. Fyll inn detaljene nedenfor.</p>
             </section>
 
-            <section class="services-grid">
-                <div class="grid" style="grid-template-columns: 1fr 340px; gap:18px; align-items:start;">
-                    <div>
-                        <form id="createPostForm" class="contact-form" method="post" action="#">
+            <section class="create-job-section">
+                <div class="create-job-container">
+                    <main class="create-job-form-wrapper">
+                        <form id="createPostForm" class="contact-form" method="post" action="#" enctype="multipart/form-data">
                             <input type="hidden" name="action" value="create_post">
                             <div class="form-message" aria-live="polite"></div>
-                            <div class="form-group">
-                                <label for="job-title">Tittel</label>
-                                <input id="job-title" name="title" type="text" required placeholder="Fiks en lekkende kran">
-                            </div>
-                            <div class="form-group">
-                                <label for="job-desc">Beskrivelse</label>
-                                <textarea id="job-desc" name="description" rows="6" required placeholder="Beskriv arbeidet, eventuelle tilgangsdetaljer og ønsket tidspunkt."></textarea>
-                            </div>
-                            <div class="form-group" style="display:flex;gap:12px;flex-wrap:wrap">
-                                <div style="flex:1;min-width:180px">
-                                    <label for="job-category">Kategori</label>
-                                    <input id="job-category" name="category" type="text" placeholder="f.eks. rørlegger">
+                            
+                            <fieldset class="form-fieldset">
+                                <legend class="sr-only">Jobbannonse detaljer</legend>
+                                <div class="form-group">
+                                    <label for="job-title">Tittel</label>
+                                    <input id="job-title" name="title" type="text" required placeholder="Fiks en lekkende kran">
                                 </div>
-                                <div style="width:140px">
-                                    <label for="job-budget">Budsjett</label>
-                                    <input id="job-budget" name="budget" type="number" min="0" step="1" placeholder="NOK">
+                                <div class="form-group">
+                                    <label for="job-desc">Beskrivelse</label>
+                                    <textarea id="job-desc" name="description" rows="6" required placeholder="Beskriv arbeidet, eventuelle tilgangsdetaljer og ønsket tidspunkt."></textarea>
                                 </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="job-location">Sted</label>
-                                <input id="job-location" name="location" type="text" placeholder="By eller postnummer">
-                            </div>
-                            <button class="btn btn-primary" type="submit">Opprett jobb</button>
+                                <div class="form-row form-row-two-cols">
+                                    <div class="form-col">
+                                        <div class="form-group">
+                                            <label for="job-category">Kategori</label>
+                                            <input id="job-category" name="category" type="text" placeholder="f.eks. renhold">
+                                        </div>
+                                    </div>
+                                    <div class="form-col form-col-narrow">
+                                        <div class="form-group">
+                                            <label for="job-budget">Budsjett</label>
+                                            <input id="job-budget" name="budget" type="number" min="0" step="1" placeholder="NOK">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="job-location">Sted</label>
+                                    <input id="job-location" name="location" type="text" placeholder="By eller postnummer">
+                                </div>
+                                <div class="form-group">
+                                    <label for="job-image">Bilde (valgfritt)</label>
+                                    <input id="job-image" name="image" type="file" accept="image/*" aria-describedby="image-help">
+                                    <small id="image-help">Tillatte format: JPEG, PNG, GIF, WebP. Maks 5 MB. Bildet vil bli komprimert automatisk.</small>
+                                </div>
+                            </fieldset>
+                            
+                            <button class="btn btn-primary btn-large" type="submit">Opprett jobb</button>
                         </form>
-                    </div>
+                    </main>
 
-                    <aside class="service-card" style="position:relative">
-                        <div style="margin-bottom:12px">
-                            <div class="column-image" style="width:100%;height:160px;">
-                                <img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=800&q=60" alt="Jobbhjelp">
+                    <aside class="create-job-tips">
+                        <div class="tips-card">
+                            <div class="tips-image">
+                                <img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=800&q=60" alt="Jobbhjelp illustrasjon">
                             </div>
-                        </div>
-                        <h3 style="margin-top:8px">Tips for gode jobbannonser</h3>
-                        <ul class="page-list">
-                            <li>Gi en tydelig tittel og en kortfattet beskrivelse.</li>
-                            <li>Inkluder et realistisk budsjett eller merk som forhandlingsbart.</li>
-                            <li>Nevn tilgang, parkering eller nødvendige verktøy.</li>
-                        </ul>
-                        <div style="margin-top:12px">
-                            <h4 style="margin:6px 0">Eksempelbudsjetter</h4>
-                            <div class="small-muted">Rask referanse for vanlige oppdrag</div>
-                            <ul style="margin-top:8px">
-                                <li>Liten reparasjon: 200–500 NOK</li>
-                                <li>Halvdagsjobb: 800–1500 NOK</li>
-                                <li>Heldagsjobb: 1500+ NOK</li>
+                            <h3>Tips for gode jobbannonser</h3>
+                            <ul class="tips-list">
+                                <li>Gi en tydelig tittel og en kortfattet beskrivelse.</li>
+                                <li>Inkluder et realistisk budsjett eller merk som forhandlingsbart.</li>
+                                <li>Nevn tilgang, parkering eller nødvendige verktøy.</li>
                             </ul>
+                            <div class="tips-budget-section">
+                                <h4>Eksempelbudsjetter</h4>
+                                <div class="tips-subtext">Rask referanse for vanlige oppdrag</div>
+                                <ul class="budget-list">
+                                    <li><strong>Liten reparasjon:</strong> 200–500 NOK</li>
+                                    <li><strong>Halvdagsjobb:</strong> 800–1500 NOK</li>
+                                    <li><strong>Heldagsjobb:</strong> 1500+ NOK</li>
+                                </ul>
+                            </div>
                         </div>
                     </aside>
                 </div>
@@ -202,54 +216,81 @@ switch ($page) {
         <section class="lead">
             <p>Bla gjennom tilgjengelige jobber i nærheten. Bruk søk og filtre for å avgrense resultatene.</p>
         </section>
-        <section class="services-grid">
-            <div class="grid" style="grid-template-columns: 320px 1fr; gap:18px; align-items:start;">
-                <aside class="service-card">
-                    <h3>Søk og filtre</h3>
-                    <form id="jobsSearchForm" class="auth-form" method="post" action="#">
-                        <input type="hidden" name="action" value="list_jobs">
-                        <div class="form-group">
-                            <label for="search-q">Søkeord</label>
-                            <input name="q" id="search-q" type="search" placeholder="Søk i tittel eller beskrivelse">
-                        </div>
-                        <div class="form-group">
-                            <label for="search-category">Kategori</label>
-                            <input name="category" id="search-category" type="text" placeholder="f.eks. renhold">
-                        </div>
-                        <div class="form-group">
-                            <label for="search-location">Sted</label>
-                            <input name="location" id="search-location" type="text" placeholder="By eller postnummer">
-                        </div>
-                        <div style="display:flex;gap:8px">
-                            <div style="flex:1">
-                                <label for="search-min">Min</label>
-                                <input name="min_budget" id="search-min" type="number" placeholder="Min">
+        
+        <section class="find-jobs-section">
+            <div class="find-jobs-container">
+                <aside class="find-jobs-sidebar">
+                    <div class="filter-card">
+                        <h3>Søk og filtre</h3>
+                        <form id="jobsSearchForm" class="search-form" method="post" action="#">
+                            <input type="hidden" name="action" value="list_jobs">
+                            
+                            <fieldset class="form-fieldset">
+                                <legend class="sr-only">Jobbsøk filtre</legend>
+                                
+                                <div class="form-group">
+                                    <label for="search-q">Søkeord</label>
+                                    <input name="q" id="search-q" type="search" placeholder="Søk i tittel eller beskrivelse">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="search-category">Kategori</label>
+                                    <input name="category" id="search-category" type="text" placeholder="f.eks. renhold">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="search-location">Sted</label>
+                                    <input name="location" id="search-location" type="text" placeholder="By eller postnummer">
+                                </div>
+                                
+                                <div class="form-row form-row-budget">
+                                    <div class="form-col">
+                                        <div class="form-group">
+                                            <label for="search-min">Min budsjett</label>
+                                            <input name="min_budget" id="search-min" type="number" placeholder="Min">
+                                        </div>
+                                    </div>
+                                    <div class="form-col">
+                                        <div class="form-group">
+                                            <label for="search-max">Maks budsjett</label>
+                                            <input name="max_budget" id="search-max" type="number" placeholder="Maks">
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            
+                            <div class="filter-actions">
+                                <button id="jobsSearchBtn" class="btn btn-primary btn-block" type="submit">Søk</button>
+                                <button id="jobsResetBtn" type="button" class="btn btn-secondary btn-block">Nullstill</button>
                             </div>
-                            <div style="flex:1">
-                                <label for="search-max">Maks</label>
-                                <input name="max_budget" id="search-max" type="number" placeholder="Maks">
-                            </div>
-                        </div>
-                        <div style="margin-top:12px;display:flex;gap:8px">
-                            <button id="jobsSearchBtn" class="btn btn-primary" type="submit">Søk</button>
-                            <button id="jobsResetBtn" type="button" class="btn btn-secondary">Nullstill</button>
-                        </div>
-                    </form>
-                    <div style="margin-top:14px" class="small-muted">Tips: la filtrene stå tomme for å vise de nyeste jobbene.</div>
+                        </form>
+                        <p class="filter-tip">Tips: la filtrene stå tomme for å vise de nyeste jobbene.</p>
+                    </div>
                 </aside>
 
-                <div>
-                    <div id="jobsList"></div>
-                </div>
+                <main class="find-jobs-main">
+                    <div id="jobsList" class="jobs-list-container"></div>
+                </main>
             </div>
         </section>
+
+        <!-- Job Detail Modal -->
+        <div id="jobDetailModal" class="job-detail-modal" style="display: none;">
+            <div class="job-detail-overlay"></div>
+            <div class="job-detail-box">
+                <button class="job-detail-close" onclick="document.getElementById('jobDetailModal').style.display = 'none';">&times;</button>
+                <div class="job-detail-content" id="jobDetailContent">
+                    <p>Loading...</p>
+                </div>
+            </div>
+        </div>
         <?php
         render_footer();
         break;
 
 
     case 'contact':
-            render_header('Contact');
+            render_header('Kontakt oss');
             ?>
             <section class="contact-section">
                 <p>Hvis du har et spørsmål eller trenger hjelp med å finne en leverandør, send oss en melding, så svarer vi så snart som mulig.</p>
