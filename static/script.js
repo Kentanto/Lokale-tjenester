@@ -123,10 +123,17 @@ async function openJobDetail(postId){
         if(data.status === 'success'){
             const p = data.post;
             let imageHtml = '';
-            if(p.image){
+            if(p.images && Array.isArray(p.images) && p.images.length){
+                const main = p.images[0];
+                const thumbs = p.images.map((src, idx) => `<button class="job-thumb" data-idx="${idx}" style="width:72px;height:72px;background-size:cover;background-position:center;border-radius:6px;border:1px solid #eee;" aria-label="Image ${idx+1}" data-src="${src}"></button>`).join('');
+                imageHtml = `<div class="job-detail-gallery" style="margin-bottom:16px;">
+                    <div class="job-detail-main" style="margin-bottom:8px;"><img src="${main}" alt="${escapeHtml(p.title)}" style="width:100%;height:auto;max-height:400px;object-fit:cover;border-radius:8px;"></div>
+                    <div class="job-detail-thumbs" style="display:flex;gap:8px;flex-wrap:wrap;">${thumbs}</div>
+                </div>`;
+            } else if(p.image){
                 imageHtml = `<img src="${p.image}" alt="${escapeHtml(p.title)}" style="width:100%;max-height:400px;object-fit:cover;border-radius:8px;margin-bottom:16px;">`;
             }
-            
+
             detailContent.innerHTML = `
                 ${imageHtml}
                 <h2>${escapeHtml(p.title)}</h2>
@@ -141,6 +148,18 @@ async function openJobDetail(postId){
                 <h3 style="margin-top:0;">Description</h3>
                 <p style="line-height:1.6;white-space:pre-wrap;">${escapeHtml(p.description)}</p>
             `;
+
+            // Wire thumbnail clicks to swap main image
+            const thumbContainer = detailContent.querySelector('.job-detail-thumbs');
+            if(thumbContainer){
+                const mainImg = detailContent.querySelector('.job-detail-main img');
+                thumbContainer.addEventListener('click', function(ev){
+                    const btn = ev.target.closest('.job-thumb');
+                    if(!btn) return;
+                    const src = btn.getAttribute('data-src');
+                    if(mainImg && src) mainImg.src = src;
+                });
+            }
         } else {
             detailContent.innerHTML = `<p style="color:red;">Error: ${escapeHtml(data.message)}</p>`;
         }
@@ -251,27 +270,8 @@ document.addEventListener('DOMContentLoaded',function(){
         let data = await parseJsonResponse(res);
         showFormMessage(form, data.message, data.status);
         disableForm(form, false);
-        if(data.status==='success'){
-            // On login success, silently reload the current page (no popup)
+        if(data.status === 'success'){
             location.reload();
-        }
-    });
-
-    document.getElementById("createPostForm")?.addEventListener("submit",async e=>{
-        e.preventDefault();
-        let fd=new FormData(e.target);
-        fd.append('action','create_post');
-        let form = e.target;
-        disableForm(form, true);
-        let res;
-        try{ res = await fetch('/display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
-        catch(err){ showFormMessage(form,'Network error','error'); disableForm(form,false); return; }
-        let data = await parseJsonResponse(res);
-        showFormMessage(form, data.message, data.status);
-        disableForm(form, false);
-        if(data.status==='success'){
-            // redirect to job listings after successful creation
-            showConfirmation('Job created','Your job was posted.', 'pages.php?page=jobs', 900);
         }
     });
 
@@ -376,29 +376,6 @@ document.addEventListener('DOMContentLoaded',function(){
             location.reload();
         }
     });
-
-    // Helper: display inline message for a form
-    function showFormMessage(form, message, status){
-        let container = form.querySelector('.form-message');
-        if(!container){
-            // fallback to alert
-            alert(message);
-            return;
-        }
-        container.textContent = message || '';
-        container.classList.remove('success','error');
-        if(status === 'success') container.classList.add('success');
-        else container.classList.add('error');
-    }
-
-    // Helper: disable/enable form (buttons and inputs)
-    function disableForm(form, disabled){
-        [...form.querySelectorAll('input,button,textarea')].forEach(el=>{
-            if(el.type === 'hidden') return;
-            el.disabled = disabled;
-            if(el.tagName === 'BUTTON') el.setAttribute('aria-disabled', disabled);
-        });
-    }
 
     document.getElementById("logoutBtn")?.addEventListener("click",async ()=>{
         let fd=new FormData();

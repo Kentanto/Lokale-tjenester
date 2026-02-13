@@ -143,11 +143,26 @@ $conn->query("CREATE TABLE IF NOT EXISTS posts (
     budget INT DEFAULT 0,
     location VARCHAR(255),
     user_id INT UNSIGNED,
+    image MEDIUMBLOB DEFAULT NULL,
+    image_type VARCHAR(50) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     KEY (user_id),
     KEY (category),
     KEY (created_at)
+)");
+
+// Create post_images table for multiple images per post
+$conn->query("CREATE TABLE IF NOT EXISTS post_images (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    post_id INT UNSIGNED NOT NULL,
+    image MEDIUMBLOB NOT NULL,
+    image_type VARCHAR(50) DEFAULT NULL,
+    sort_order INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    KEY (post_id),
+    KEY (sort_order)
 )");
 
 // Check if user has a valid remember token in cookie
@@ -472,47 +487,102 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
     }
 
     if($action === 'create_post'){
-        // create a job/post
+        // create a job/post supporting multiple images; convert uploads to web-friendly format (webp/jpeg)
         $title = trim($_POST['title'] ?? '');
         $desc = trim($_POST['description'] ?? '');
         $category = trim($_POST['category'] ?? '');
         $budget = intval($_POST['budget'] ?? 0);
         $location = trim($_POST['location'] ?? '');
 
-        // Validate inputs
-        if(!$title || !$desc){ 
-            echo json_encode(['status'=>'error','message'=>'Title and description required']); 
-            exit; 
-        }
-
-        // Check user is logged in
-        if(empty($_SESSION['user_id'])){
-            echo json_encode(['status'=>'error','message'=>'You must be logged in to create a job']);
-            exit;
-        }
-
+        if(!$title || !$desc){ echo json_encode(['status'=>'error','message'=>'Title and description required']); exit; }
+        if(empty($_SESSION['user_id'])){ echo json_encode(['status'=>'error','message'=>'You must be logged in to create a job']); exit; }
         $uid = intval($_SESSION['user_id']);
 
-        // Prepare and execute statement
+        // Insert post record first (no image columns relied on here)
         $stmt = safe_prepare($conn, "INSERT INTO posts (title, description, category, budget, location, user_id, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())");
-        if(!$stmt){
-            error_log('create_post: safe_prepare failed - ' . ($conn ? $conn->error : 'No connection'));
-            echo json_encode(['status'=>'error','message'=>'Database connection error']); 
-            exit;
-        }
-
-        // Bind parameters - note the type string must match exactly
+        if(!$stmt){ error_log('create_post: safe_prepare posts insert failed - ' . ($conn ? $conn->error : 'No connection')); echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
         $stmt->bind_param('sssisi', $title, $desc, $category, $budget, $location, $uid);
-        
-        // Execute and check for errors
-        if(!$stmt->execute()){
-            error_log('create_post: execute failed - ' . $stmt->error);
-            echo json_encode(['status'=>'error','message'=>'Failed to create job: ' . $stmt->error]); 
-            exit;
+        if(!$stmt->execute()){ error_log('create_post: execute posts insert failed - ' . $stmt->error); echo json_encode(['status'=>'error','message'=>'Failed to create job']); exit; }
+        $post_id = $conn->insert_id;
+        $stmt->close();
+
+        // Normalize uploaded files (support single or multiple inputs)
+        $files = [];
+        if(isset($_FILES['image'])){
+            if(is_array($_FILES['image']['name'])){
+                for($i=0;$i<count($_FILES['image']['name']);$i++){
+                    $files[] = [
+                        'name' => $_FILES['image']['name'][$i] ?? '',
+                        'tmp_name' => $_FILES['image']['tmp_name'][$i] ?? '',
+                        'size' => $_FILES['image']['size'][$i] ?? 0,
+                        'error' => $_FILES['image']['error'][$i] ?? UPLOAD_ERR_NO_FILE,
+                    ];
+                }
+            } else {
+                $files[] = [ 'name'=>$_FILES['image']['name'],'tmp_name'=>$_FILES['image']['tmp_name'],'size'=>$_FILES['image']['size'],'error'=>$_FILES['image']['error'] ];
+            }
         }
 
-        $stmt->close();
-        echo json_encode(['status'=>'success','message'=>'Job created successfully']); 
+        // Helper: convert an uploaded file to webp (if available) or jpeg and return [data, type] or false
+        $convertImage = function(string $tmpPath){
+            $raw = @file_get_contents($tmpPath);
+            if($raw === false) return false;
+            $img = @imagecreatefromstring($raw);
+            if(!$img) return false;
+            ob_start();
+            if(function_exists('imagewebp')){
+                // WebP at quality 80
+                imagewebp($img, NULL, 80);
+                $data = ob_get_clean();
+                $type = 'webp';
+            } else {
+                // Fallback to JPEG
+                imagejpeg($img, NULL, 85);
+                $data = ob_get_clean();
+                $type = 'jpeg';
+            }
+            imagedestroy($img);
+            return [$data, $type];
+        };
+
+        // Insert images into post_images (if any)
+        if(count($files) > 0){
+            $imgStmt = safe_prepare($conn, "INSERT INTO post_images (post_id, image, image_type, sort_order, created_at) VALUES (?, ?, ?, ?, NOW())");
+            if(!$imgStmt){ error_log('create_post: safe_prepare post_images failed - ' . ($conn ? $conn->error : 'No connection')); }
+            $sort = 0;
+            $firstImage = null;
+            foreach($files as $f){
+                if(empty($f['tmp_name']) || $f['error'] !== UPLOAD_ERR_OK) continue;
+                if($f['size'] > 5 * 1024 * 1024) continue; // skip too large
+                $conv = $convertImage($f['tmp_name']);
+                if(!$conv) continue;
+                list($bin, $itype) = $conv;
+                if(!$imgStmt) continue;
+                $null = null;
+                $imgStmt->bind_param('ibsi', $post_id, $null, $itype, $sort);
+                $imgStmt->send_long_data(1, $bin);
+                if(!$imgStmt->execute()){ error_log('create_post: post_images execute failed - ' . $imgStmt->error); }
+                else {
+                    if($firstImage === null){ $firstImage = ['data'=>$bin,'type'=>$itype]; }
+                    $sort++;
+                }
+            }
+            if($imgStmt) $imgStmt->close();
+
+            // Update posts.image and posts.image_type for backward compatibility (if columns exist)
+            if($firstImage !== null){
+                $upd = safe_prepare($conn, "UPDATE posts SET image = ?, image_type = ? WHERE id = ?");
+                if($upd){
+                    $null = null;
+                    $upd->bind_param('bsi', $null, $firstImage['type'], $post_id);
+                    $upd->send_long_data(0, $firstImage['data']);
+                    if(!$upd->execute()){ error_log('create_post: update posts.image failed - ' . $upd->error); }
+                    $upd->close();
+                }
+            }
+        }
+
+        echo json_encode(['status'=>'success','message'=>'Job created successfully']);
         exit;
     }
 
@@ -592,6 +662,28 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         }
 
         $stmt->close();
+
+        // Attach first image (from post_images) to each row when available (prefer post_images over posts.image)
+        $imgStmt = $conn->prepare("SELECT image, image_type FROM post_images WHERE post_id = ? ORDER BY sort_order ASC LIMIT 1");
+        if($imgStmt){
+            foreach($rows as $i => $r){
+                $pid = intval($r['id']);
+                $imgStmt->bind_param('i', $pid);
+                if($imgStmt->execute()){
+                    $imgStmt->store_result();
+                    if($imgStmt->num_rows > 0){
+                        $imgStmt->bind_result($idata, $itype);
+                        if($imgStmt->fetch()){
+                            if($idata !== null){
+                                $rows[$i]['image'] = 'data:image/' . ($itype ?: 'jpeg') . ';base64,' . base64_encode($idata);
+                            }
+                        }
+                    }
+                }
+            }
+            $imgStmt->close();
+        }
+
         echo json_encode(['status'=>'success','jobs'=>$rows]); 
         exit;
     }
@@ -633,8 +725,31 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             }
         }
         $stmt->close();
-        
+
         if(!$row){ echo json_encode(['status'=>'error','message'=>'Post not found']); exit; }
+
+        // Fetch all images for this post
+        $images = [];
+        $imgQ = $conn->prepare("SELECT image, image_type FROM post_images WHERE post_id = ? ORDER BY sort_order ASC");
+        if($imgQ){
+            $imgQ->bind_param('i', $post_id);
+            if($imgQ->execute()){
+                $res = $imgQ->get_result();
+                if($res){
+                    while($rowImg = $res->fetch_assoc()){
+                        if($rowImg['image'] !== null){
+                            $images[] = 'data:image/' . ($rowImg['image_type'] ?: 'jpeg') . ';base64,' . base64_encode($rowImg['image']);
+                        }
+                    }
+                }
+            }
+            $imgQ->close();
+        }
+
+        // Provide images array and keep legacy `image` field if present
+        $row['images'] = $images;
+        if(empty($row['image']) && count($images) > 0) $row['image'] = $images[0];
+
         echo json_encode(['status'=>'success','post'=>$row]);
         exit;
     }
