@@ -133,12 +133,25 @@ switch ($page) {
             ?>
             <section class="lead">
                 <p>Opprett en jobbannonse. Fyll inn detaljene nedenfor.</p>
+                <?php
+                    if($is_logged_in && !empty($user_id)) {
+                        $remaining = get_user_remaining_posts($conn, $user_id);
+                        if($remaining <= 0) {
+                            echo '<div style="background: #ffebee; border-left: 4px solid #f44336; padding: 10px; margin-bottom: 15px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">';
+                            echo '<div><strong>Daglig grense nådd:</strong> Du har postet 3 ganger i dag. Prøv igjen i morgen!</div>';
+                            if(!empty($is_admin)) {
+                                echo '<button id="resetLimitBtn" style="padding: 6px 12px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Reset (admin)</button>';
+                            }
+                            echo '</div>';
+                        }
+                    }
+                ?>
             </section>
 
             <section class="create-job-section">
                 <div class="create-job-container">
                     <main class="create-job-form-wrapper">
-                        <form id="createPostForm" class="contact-form" method="post" action="#" enctype="multipart/form-data">
+                        <form id="createPostForm" class="contact-form" method="post" action="#" enctype="multipart/form-data" data-remaining-posts="<?php echo ($is_logged_in && !empty($user_id)) ? htmlspecialchars(get_user_remaining_posts($conn, $user_id)) : '3'; ?>">
                             <input type="hidden" name="action" value="create_post">
                             <div class="form-message" aria-live="polite"></div>
                             
