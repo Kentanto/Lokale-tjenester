@@ -22,7 +22,7 @@ if (!in_array($page, $allowed)) {
 // $pageClass: optional additional class for the header (e.g. 'settings')
 function render_header($title, $pageClass = '') {
     // make session/user vars available inside this function
-    global $user_name, $is_logged_in, $is_admin;
+    global $user_name, $is_logged_in, $is_admin, $conn, $user_id;
     ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -396,16 +396,30 @@ switch ($page) {
             <div class="profile-section">
                 <!-- Welcome Card -->
                 <div class="profile-welcome-card">
-                    <h2>Velkommen tilbake, <?php echo htmlspecialchars($user_name); ?></h2>
-                    <p>Her administrerer du kontoen din og innstillingene.</p>
-                    <div class="profile-info">
-                        <div class="profile-info-item">
-                            <strong>E-post</strong>
-                            <span><?php echo htmlspecialchars($user_email ?? ''); ?></span>
+                    <div style="display: flex; gap: 20px; align-items: flex-start;">
+                        <div>
+                            <?php
+                                $profilePicUrl = get_profile_picture_url($conn, $user_id);
+                                if($profilePicUrl) {
+                                    echo '<img src="' . htmlspecialchars($profilePicUrl) . '" alt="Profile" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #ddd;">';
+                                } else {
+                                    echo '<div style="width: 100px; height: 100px; border-radius: 50%; background: #e0e0e0; display: flex; align-items: center; justify-content: center; font-size: 40px;">👤</div>';
+                                }
+                            ?>
                         </div>
-                        <div class="profile-info-item">
-                            <strong>Medlem siden</strong>
-                            <span><?php echo htmlspecialchars($user_created ? date('d. M Y', strtotime($user_created)) : '—'); ?></span>
+                        <div style="flex: 1;">
+                            <h2>Velkommen tilbake, <?php echo htmlspecialchars($user_name); ?></h2>
+                            <p>Her administrerer du kontoen din og innstillingene.</p>
+                            <div class="profile-info">
+                                <div class="profile-info-item">
+                                    <strong>E-post</strong>
+                                    <span><?php echo htmlspecialchars($user_email ?? ''); ?></span>
+                                </div>
+                                <div class="profile-info-item">
+                                    <strong>Medlem siden</strong>
+                                    <span><?php echo htmlspecialchars($user_created ? date('d. M Y', strtotime($user_created)) : '—'); ?></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="profile-actions">
@@ -416,6 +430,20 @@ switch ($page) {
 
                 <!-- Action Cards Grid -->
                 <div class="profile-cards-grid">
+                    <!-- Upload Profile Picture Card -->
+                    <div class="profile-card">
+                        <h3><span class="profile-card-icon">📷</span> Profilbilde</h3>
+                        <form id="profilePictureForm" class="settings-form" enctype="multipart/form-data">
+                            <input type="hidden" name="action" value="upload_profile_picture">
+                            <div class="form-message" aria-live="polite"></div>
+                            <div class="form-group">
+                                <label for="profile-picture-input">Velg bilde</label>
+                                <input id="profile-picture-input" name="profile_picture" type="file" accept="image/*" required>
+                                <small>Maks 5 MB. Vil bli konvertert til 200x200 px.</small>
+                            </div>
+                            <button class="btn btn-primary" type="submit">Last opp bilde</button>
+                        </form>
+                    </div>
                     <!-- Edit Profile Card -->
                     <div class="profile-card">
                         <h3><span class="profile-card-icon">👤</span> Rediger profil</h3>

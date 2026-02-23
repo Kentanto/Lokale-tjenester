@@ -11,7 +11,20 @@
     <div class="nav-center"><a>Trygg hjelp med lokale hender</a></div>
     <div class="user-profile">
         <button class="user-btn">
-            <div class="user-avatar"><?php echo htmlspecialchars(substr($user_name,0,1)); ?></div>
+            <div class="user-avatar">
+                <?php 
+                    if($is_logged_in && !empty($user_id)) {
+                        $profilePicUrl = get_profile_picture_url($conn, $user_id);
+                        if($profilePicUrl) {
+                            echo '<img src="' . htmlspecialchars($profilePicUrl) . '" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">';
+                        } else {
+                            echo htmlspecialchars(substr($user_name,0,1));
+                        }
+                    } else {
+                        echo '⋮';
+                    }
+                ?>
+            </div>
             <span><?php echo $is_logged_in ? htmlspecialchars($user_name) : 'Menu'; ?></span>
             <span>▼</span>
         </button>

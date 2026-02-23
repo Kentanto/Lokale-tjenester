@@ -318,6 +318,22 @@ function send_verification_email(mysqli $conn, string $email, int $user_id): boo
 }
 
 
+function get_profile_picture_url(mysqli $conn, int $user_id): string {
+    $stmt = safe_prepare($conn, "SELECT profile_picture, profile_picture_type FROM users WHERE id = ?");
+    if(!$stmt) return ''; 
+    
+    $stmt->bind_param('i', $user_id);
+    $stmt->execute();
+    $stmt->bind_result($imgData, $imgType);
+    $stmt->fetch();
+    $stmt->close();
+    
+    if(!$imgData || !$imgType) return '';
+    
+    $base64 = base64_encode($imgData);
+    return "data:{$imgType};base64,{$base64}";
+}
+
 function get_user_remaining_posts(mysqli $conn, int $user_id): int {
     $stmt = safe_prepare($conn, "SELECT posts_today, last_reset_date FROM user_posts_daily WHERE user_id = ?");
     if(!$stmt) return 3; // Default to 3 if error
@@ -1055,6 +1071,80 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             if(!$stmt->execute()){ echo json_encode(['status'=>'error','message'=>'Failed to update settings']); exit; }
             echo json_encode(['status'=>'success','message'=>'Settings updated']); exit;
         } else { echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
+    }
+
+    if($action === 'upload_profile_picture'){
+        // Handle profile picture upload
+        if(empty($_SESSION['user_id'])){ echo json_encode(['status'=>'error','message'=>'Not authenticated']); exit; }
+        
+        if(empty($_FILES['profile_picture'])){ echo json_encode(['status'=>'error','message'=>'No file uploaded']); exit; }
+        
+        $file = $_FILES['profile_picture'];
+        $uid = intval($_SESSION['user_id']);
+        
+        // Validate file
+        if($file['error'] !== UPLOAD_ERR_OK){ 
+            echo json_encode(['status'=>'error','message'=>'Upload error: ' . getUploadErrorMessage($file['error'])]); 
+            exit; 
+        }
+        
+        if($file['size'] > 5 * 1024 * 1024){ 
+            echo json_encode(['status'=>'error','message'=>'File too large (max 5MB)']); 
+            exit; 
+        }
+        
+        // Check if GD library is available for image processing
+        if(!extension_loaded('gd')){ 
+            echo json_encode(['status'=>'error','message'=>'Image processing not available']); 
+            exit; 
+        }
+        
+        // Load and validate image
+        $img = @imagecreatefromstring(file_get_contents($file['tmp_name']));
+        if(!$img){ 
+            echo json_encode(['status'=>'error','message'=>'Invalid image file']); 
+            exit; 
+        }
+        
+        // Resize to 200x200 (square profile pic)
+        $size = 200;
+        $thumb = imagecreatetruecolor($size, $size);
+        $srcW = imagesx($img);
+        $srcH = imagesy($img);
+        $minDim = min($srcW, $srcH);
+        $srcX = ($srcW - $minDim) / 2;
+        $srcY = ($srcH - $minDim) / 2;
+        
+        imagecopyresampled($thumb, $img, 0, 0, $srcX, $srcY, $size, $size, $minDim, $minDim);
+        imagedestroy($img);
+        
+        // Convert to WEBP
+        ob_start();
+        imagewebp($thumb, null, 80);
+        $imgData = ob_get_clean();
+        imagedestroy($thumb);
+        
+        if(!$imgData || strlen($imgData) === 0){ 
+            echo json_encode(['status'=>'error','message'=>'Failed to process image']); 
+            exit; 
+        }
+        
+        // Save to database
+        $stmt = safe_prepare($conn, "UPDATE users SET profile_picture=?, profile_picture_type='image/webp' WHERE id=?");
+        if(!$stmt){ 
+            echo json_encode(['status'=>'error','message'=>'Database error']); 
+            exit; 
+        }
+        
+        $stmt->bind_param('si', $imgData, $uid);
+        if(!$stmt->execute()){ 
+            echo json_encode(['status'=>'error','message'=>'Failed to save profile picture']); 
+            exit; 
+        }
+        
+        echo json_encode(['status'=>'success','message'=>'Profile picture updated']);
+        $stmt->close();
+        exit;
     }
 
     if($action === 'contact'){

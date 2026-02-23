@@ -496,6 +496,24 @@ document.addEventListener('DOMContentLoaded',function(){
         }
     });
 
+    // Profile picture upload form
+    document.getElementById('profilePictureForm')?.addEventListener('submit', async e=>{
+        e.preventDefault();
+        let form = e.target;
+        let fd = new FormData(form);
+        disableForm(form, true);
+        let res;
+        try{ res = await fetch('/display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
+        catch(err){ showFormMessage(form,'Network error','error'); disableForm(form,false); return; }
+        let data = await parseJsonResponse(res);
+        showFormMessage(form, data.message, data.status);
+        disableForm(form, false);
+        if(data.status === 'success'){
+            // refresh to show new profile picture
+            setTimeout(()=> location.reload(), 700);
+        }
+    });
+
     // Contact form (AJAX)
     document.getElementById('contactForm')?.addEventListener('submit', async e=>{
         e.preventDefault();
