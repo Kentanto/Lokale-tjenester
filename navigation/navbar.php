@@ -19,11 +19,11 @@
         <div class="dropdown-menu" id="dropdownMenu">
             <?php if ($is_logged_in): ?>
                 <?php if (!empty($is_admin)): ?>
-                    <a href="admin.php">Admin Panel</a>
+                    <a href="/admin.php">Admin Panel</a>
                 <?php endif; ?>
-                <a href="pages.php?page=profile">Profil</a>
-                <a href="pages.php?page=settings">Innstillinger</a>
-                <a href="pages.php?page=dashboard">Dashboard</a>
+                <a href="/pages.php?page=profile">Profil</a>
+                <a href="/pages.php?page=settings">Innstillinger</a>
+                <a href="/pages.php?page=dashboard">Dashboard</a>
                 <div class="dropdown-divider"></div>
                 <button id="logoutBtn">Logg ut</button>
             <?php else: ?>

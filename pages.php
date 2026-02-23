@@ -22,7 +22,7 @@ if (!in_array($page, $allowed)) {
 // $pageClass: optional additional class for the header (e.g. 'settings')
 function render_header($title, $pageClass = '') {
     // make session/user vars available inside this function
-    global $user_name, $is_logged_in;
+    global $user_name, $is_logged_in, $is_admin;
     ?>
 <!DOCTYPE html>
 <html lang="en">
