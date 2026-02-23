@@ -249,6 +249,42 @@ document.addEventListener('DOMContentLoaded',function(){
         stayBtn.onclick = ()=>{ cancelled = true; clearTimeout(timeout); clearInterval(interval); overlay.classList.remove('active'); };
     }
 
+    // Handle reset limit button (for admins) - use event delegation
+    document.addEventListener("click", async e => {
+        if(e.target.id !== "resetLimitBtn") return;
+        
+        e.preventDefault();
+        let fd = new FormData();
+        fd.append('action', 'reset_post_limit');
+        
+        try {
+            let res = await fetch('/display.php', {method: 'POST', body: fd, credentials: 'same-origin'});
+            let data = await parseJsonResponse(res);
+            
+            if(data.status === 'success') {
+                location.reload();
+            } else {
+                alert('Reset failed: ' + data.message);
+            }
+        } catch(err) {
+            alert('Error: ' + err.message);
+        }
+    });
+
+    // Initialize create job form with rate limit check
+    let createPostForm = document.getElementById("createPostForm");
+    if(createPostForm) {
+        let remainingPosts = parseInt(createPostForm.dataset.remainingPosts || '3');
+        let submitBtn = createPostForm.querySelector('button[type="submit"]');
+        
+        if(remainingPosts <= 0 && submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.title = 'Daglig grense nådd. Prøv igjen i morgen!';
+            submitBtn.style.opacity = '0.6';
+            submitBtn.style.cursor = 'not-allowed';
+        }
+    }
+
     // Create job/post form handler
     document.getElementById("createPostForm")?.addEventListener("submit",async e=>{
         e.preventDefault();

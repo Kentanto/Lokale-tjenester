@@ -318,6 +318,37 @@ function send_verification_email(mysqli $conn, string $email, int $user_id): boo
 }
 
 
+function get_user_remaining_posts(mysqli $conn, int $user_id): int {
+    $stmt = safe_prepare($conn, "SELECT posts_today, last_reset_date FROM user_posts_daily WHERE user_id = ?");
+    if(!$stmt) return 3; // Default to 3 if error
+    
+    $stmt->bind_param('i', $user_id);
+    $stmt->execute();
+    $stmt->bind_result($postsToday, $lastResetDate);
+    $stmt->fetch();
+    $stmt->close();
+    
+    $today = date('Y-m-d');
+    $postsToday = intval($postsToday ?? 0);
+    $lastResetDate = $lastResetDate ?? '1970-01-01';
+    
+    // Reset counter if it's a new day AND update database
+    if($lastResetDate !== $today) {
+        $postsToday = 0;
+        // Update or create database row to reflect the reset
+        $resetStmt = safe_prepare($conn, "INSERT INTO user_posts_daily (user_id, posts_today, last_reset_date) VALUES (?, 0, ?) ON DUPLICATE KEY UPDATE posts_today = 0, last_reset_date = ?");
+        if($resetStmt) {
+            $resetStmt->bind_param('iss', $user_id, $today, $today);
+            $resetStmt->execute();
+            $resetStmt->close();
+        }
+    }
+    
+    $POST_LIMIT = 3;
+    return max(0, $POST_LIMIT - $postsToday);
+}
+
+
 
 // AJAX POST handlers for login/signup (mirrors the backup behavior)
 // Only handle AJAX-style POST actions when this file is the requested endpoint
@@ -507,6 +538,55 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         } else { echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
     }
 
+    if($action === 'reset_post_limit'){
+        // Admin-only endpoint to reset daily post limit for current user (for testing)
+        if(empty($_SESSION['user_id'])){ 
+            echo json_encode(['status'=>'error','message'=>'Not logged in']); 
+            exit; 
+        }
+        
+        // Verify admin status by checking database
+        $uid = intval($_SESSION['user_id']);
+        $adminCheckStmt = safe_prepare($conn, "SELECT COALESCE(is_admin,0) AS is_admin FROM users WHERE id = ? LIMIT 1");
+        $is_admin_user = false;
+        if($adminCheckStmt) {
+            $adminCheckStmt->bind_param('i', $uid);
+            $adminCheckStmt->execute();
+            $adminCheckStmt->bind_result($admin_flag);
+            $adminCheckStmt->fetch();
+            $adminCheckStmt->close();
+            $is_admin_user = !empty($admin_flag) ? true : false;
+        }
+        
+        // Also check protected runtime admins
+        $user_name = $_SESSION['user_name'] ?? '';
+        $protected_runtime_admins = array('pyxis', 'adminpyx', 'kentanto65', 'lokale-tjenester');
+        if(!$is_admin_user && in_array($user_name, $protected_runtime_admins, true)){
+            $is_admin_user = true;
+        }
+        
+        if(!$is_admin_user) {
+            echo json_encode(['status'=>'error','message'=>'Admin access required']); 
+            exit; 
+        }
+        
+        $today = date('Y-m-d');
+        
+        $resetStmt = safe_prepare($conn, "INSERT INTO user_posts_daily (user_id, posts_today, last_reset_date) VALUES (?, 0, ?) ON DUPLICATE KEY UPDATE posts_today = 0, last_reset_date = ?");
+        if($resetStmt) {
+            $resetStmt->bind_param('iss', $uid, $today, $today);
+            if($resetStmt->execute()) {
+                echo json_encode(['status'=>'success','message'=>'Daily post limit reset']);
+            } else {
+                echo json_encode(['status'=>'error','message'=>'Failed to reset: ' . $resetStmt->error]);
+            }
+            $resetStmt->close();
+        } else {
+            echo json_encode(['status'=>'error','message'=>'Database error']);
+        }
+        exit;
+    }
+
     if($action === 'create_post'){
         try {
             // create a job/post supporting multiple images; convert uploads to web-friendly format (webp/jpeg)
@@ -540,6 +620,36 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             if(empty($_SESSION['user_id'])){ error_log('create_post: No user_id in session'); echo json_encode(['status'=>'error','message'=>'You must be logged in to create a job']); exit; }
             $uid = intval($_SESSION['user_id']);
 
+            // Check rate limit: 3 posts per day (resets at midnight)
+            $postsToday = 0;
+            $lastResetDate = date('Y-m-d');
+            $rateCheckStmt = safe_prepare($conn, "SELECT posts_today, last_reset_date FROM user_posts_daily WHERE user_id = ?");
+            if($rateCheckStmt) {
+                $rateCheckStmt->bind_param('i', $uid);
+                if($rateCheckStmt->execute()) {
+                    $rateCheckStmt->bind_result($postsToday, $lastResetDate);
+                    $rateCheckStmt->fetch();
+                }
+                $rateCheckStmt->close();
+            }
+
+            $today = date('Y-m-d');
+            $postsToday = intval($postsToday ?? 0);
+            $lastResetDate = $lastResetDate ?? '1970-01-01';
+
+            // Reset counter if it's a new day
+            if($lastResetDate !== $today){
+                $postsToday = 0;
+            }
+
+            // Enforce 3 posts per day limit
+            $POST_LIMIT = 3;
+            if($postsToday >= $POST_LIMIT){
+                error_log('create_post: User ' . $uid . ' exceeded daily post limit (' . $postsToday . '/' . $POST_LIMIT . ')');
+                echo json_encode(['status'=>'error','message'=>'Du har nådd maksimalt antall poster (3) per dag. Prøv igjen i morgen!', 'remaining' => 0]);
+                exit;
+            }
+
             // Insert post record first (no image columns relied on here)
             $stmt = safe_prepare($conn, "INSERT INTO posts (title, description, category, budget, location, user_id, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())");
             if(!$stmt){ error_log('create_post: safe_prepare posts insert failed - ' . ($conn ? $conn->error : 'No connection')); echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
@@ -548,6 +658,16 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             $post_id = $conn->insert_id;
             error_log('create_post: Successfully created post with id=' . $post_id);
             $stmt->close();
+
+            // Update daily post count for this user
+            $newCount = $postsToday + 1;
+            $updateCountStmt = safe_prepare($conn, "INSERT INTO user_posts_daily (user_id, posts_today, last_reset_date) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE posts_today = ?, last_reset_date = ?");
+            if(!$updateCountStmt){ error_log('create_post: safe_prepare update post count failed'); }
+            else {
+                $updateCountStmt->bind_param('iisis', $uid, $newCount, $today, $newCount, $today);
+                if(!$updateCountStmt->execute()){ error_log('create_post: execute update post count failed - ' . $updateCountStmt->error); }
+                $updateCountStmt->close();
+            }
 
             // Normalize uploaded files (support single or multiple inputs)
             $files = [];
