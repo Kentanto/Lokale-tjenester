@@ -28,6 +28,7 @@ function render_header($title, $pageClass = '') {
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <link rel="icon" type="image/png" href="assets/Lokale_Tjenester_only_logo.png">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <link rel="stylesheet" href="static/style.css">
     <title><?php echo htmlspecialchars($title); ?> - Lokale Tjenester</title>

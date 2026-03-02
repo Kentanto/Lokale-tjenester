@@ -1,17 +1,20 @@
 <?php
-    require_once 'display.php';
-    $user_id = $_SESSION['user_id'] ?? null;
+require_once 'display.php';
+$GLOBALS['user_id'] = $_SESSION['user_id'] ?? null;
 ?>
 <!DOCTYPE html>
 <html lang="no">
 <head>
     <meta charset="utf-8">
+    <link rel="icon" type="image/png" href="assets/Lokale_Tjenester_only_logo.png">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="static/style.css">
     <title>Kommer Snart - Lokale Tjenester</title>
 </head>
 <body>
-    <?php require_once 'navigation/navbar.php'; ?>
+    <?php 
+    require_once 'navigation/navbar.php'; 
+    ?>
 
     <div class="coming-soon-container">
         <div class="coming-soon-content">
