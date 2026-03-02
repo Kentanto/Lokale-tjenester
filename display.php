@@ -166,24 +166,12 @@ $conn->query("CREATE TABLE IF NOT EXISTS posts (
     user_id INT UNSIGNED,
     image MEDIUMBLOB DEFAULT NULL,
     image_type VARCHAR(50) DEFAULT NULL,
-    status VARCHAR(20) DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     KEY (user_id),
     KEY (category),
-    KEY (created_at),
-    KEY (status)
+    KEY (created_at)
 )");
-
-// Add status column if it doesn't exist (migrate existing posts)
-try {
-    $res = $conn->query("SHOW COLUMNS FROM posts LIKE 'status'");
-    if($res && $res->num_rows === 0){
-        $conn->query("ALTER TABLE posts ADD COLUMN status VARCHAR(20) DEFAULT 'pending' AFTER image_type");
-    }
-} catch (Exception $e) {
-    // column already exists
-}
 
 // Create post_images table for multiple images per post
 $conn->query("CREATE TABLE IF NOT EXISTS post_images (
@@ -230,7 +218,7 @@ if(isset($_GET['action']) && $_GET['action'] === 'logout'){
         echo json_encode(['status'=>'success','message'=>'Logged out']);
         exit;
     }
-    header('Location: index.php');
+    header('Location: index2.php');
     exit;
 }
 session_start();
@@ -648,17 +636,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             if(empty($_SESSION['user_id'])){ error_log('create_post: No user_id in session'); echo json_encode(['status'=>'error','message'=>'You must be logged in to create a job']); exit; }
             $uid = intval($_SESSION['user_id']);
 
-            // Check if user's email is verified
-            $verifyStmt = safe_prepare($conn, "SELECT email_verified FROM users WHERE id = ?");
-            if(!$verifyStmt){ error_log('create_post: safe_prepare verify check failed'); echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
-            $verifyStmt->bind_param('i', $uid);
-            $verifyStmt->execute();
-            $verifyStmt->bind_result($email_verified);
-            $verifyStmt->fetch();
-            $verifyStmt->close();
-            
-            if(empty($email_verified)){ error_log('create_post: User ' . $uid . ' email not verified'); echo json_encode(['status'=>'error','message'=>'Your email must be verified before posting a job. Check your email for the verification link.']); exit; }
-
             // Check rate limit: 3 posts per day (resets at midnight)
             $postsToday = 0;
             $lastResetDate = date('Y-m-d');
@@ -690,7 +667,7 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             }
 
             // Insert post record first (no image columns relied on here)
-            $stmt = safe_prepare($conn, "INSERT INTO posts (title, description, category, budget, location, user_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, 'pending', NOW())");
+            $stmt = safe_prepare($conn, "INSERT INTO posts (title, description, category, budget, location, user_id, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())");
             if(!$stmt){ error_log('create_post: safe_prepare posts insert failed - ' . ($conn ? $conn->error : 'No connection')); echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
             $stmt->bind_param('sssisi', $title, $desc, $category, $budget, $location, $uid);
             if(!$stmt->execute()){ error_log('create_post: execute posts insert failed - ' . $stmt->error); echo json_encode(['status'=>'error','message'=>'Failed to create job']); exit; }
@@ -901,9 +878,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         $types = '';
         $params = [];
 
-        // Always filter to show only approved jobs
-        $where[] = "p.status = 'approved'";
-        
         if($q !== ''){ $where[] = "(p.title LIKE ? OR p.description LIKE ? )"; $params[] = "%$q%"; $params[] = "%$q%"; $types .= 'ss'; }
         if($category !== ''){ $where[] = "p.category = ?"; $params[] = $category; $types .= 's'; }
         if($location !== ''){ $where[] = "p.location = ?"; $params[] = $location; $types .= 's'; }
@@ -997,14 +971,12 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
         if($post_id <= 0){ echo json_encode(['status'=>'error','message'=>'Invalid post ID']); exit; }
         
-        // Only allow viewing approved posts, or the post creator viewing their own post
-        $current_uid = $_SESSION['user_id'] ?? null;
-        $sql = "SELECT p.id, p.title, p.description, p.category, p.budget, p.location, p.created_at, COALESCE(u.username,'Guest') AS username, IF(p.image, CONCAT('data:image/', COALESCE(p.image_type, 'jpeg'), ';base64,', TO_BASE64(p.image)), NULL) AS image FROM posts p LEFT JOIN users u ON p.user_id = u.id WHERE p.id = ? AND (p.status = 'approved' OR p.user_id = ?) LIMIT 1";
+        $sql = "SELECT p.id, p.title, p.description, p.category, p.budget, p.location, p.created_at, COALESCE(u.username,'Guest') AS username, IF(p.image, CONCAT('data:image/', COALESCE(p.image_type, 'jpeg'), ';base64,', TO_BASE64(p.image)), NULL) AS image FROM posts p LEFT JOIN users u ON p.user_id = u.id WHERE p.id = ? LIMIT 1";
         
         $stmt = safe_prepare($conn, $sql);
         if(!$stmt){ echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
         
-        $stmt->bind_param('ii', $post_id, $current_uid);
+        $stmt->bind_param('i', $post_id);
         if(!$stmt->execute()){ echo json_encode(['status'=>'error','message'=>'Query failed']); exit; }
         
         $row = null;
@@ -1057,148 +1029,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         if(empty($row['image']) && count($images) > 0) $row['image'] = $images[0];
 
         echo json_encode(['status'=>'success','post'=>$row]);
-        exit;
-    }
-
-    if($action === 'list_pending_posts'){
-        // Admin action to list pending posts
-        if(empty($_SESSION['user_id'])){ echo json_encode(['status'=>'error','message'=>'Not authenticated']); exit; }
-        
-        // Check if user is admin
-        $uid = intval($_SESSION['user_id']);
-        $is_admin_user = false;
-        
-        $adminCheckStmt = safe_prepare($conn, "SELECT COALESCE(is_admin,0) AS is_admin FROM users WHERE id = ? LIMIT 1");
-        if($adminCheckStmt) {
-            $adminCheckStmt->bind_param('i', $uid);
-            $adminCheckStmt->execute();
-            $adminCheckStmt->bind_result($admin_flag);
-            $adminCheckStmt->fetch();
-            $adminCheckStmt->close();
-            $is_admin_user = !empty($admin_flag) ? true : false;
-        }
-        
-        // Also check protected runtime admins
-        $user_name = $_SESSION['user_name'] ?? '';
-        $protected_runtime_admins = array('pyxis', 'adminpyx', 'kentanto65', 'lokale-tjenester');
-        if(!$is_admin_user && in_array($user_name, $protected_runtime_admins, true)){
-            $is_admin_user = true;
-        }
-        
-        if(!$is_admin_user) {
-            echo json_encode(['status'=>'error','message'=>'Admin access required']);
-            exit;
-        }
-        
-        // Fetch all pending posts
-        $stmt = safe_prepare($conn, "SELECT p.id, p.title, p.description, p.category, p.budget, p.location, p.created_at, COALESCE(u.id, 0) AS user_id, COALESCE(u.username,'Guest') AS username, u.email FROM posts p LEFT JOIN users u ON p.user_id = u.id WHERE p.status = 'pending' ORDER BY p.created_at ASC");
-        if(!$stmt){ echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
-        
-        if(!$stmt->execute()){ echo json_encode(['status'=>'error','message'=>'Query failed']); exit; }
-        
-        $posts = [];
-        if(method_exists($stmt, 'get_result')){
-            $res = $stmt->get_result();
-            while($r = $res->fetch_assoc()) $posts[] = $r;
-        } else {
-            $stmt->store_result();
-            $stmt->bind_result($id, $title, $desc, $cat, $budget, $location, $created_at, $user_id, $username, $email);
-            while($stmt->fetch()){
-                $posts[] = ['id'=>$id, 'title'=>$title, 'description'=>$desc, 'category'=>$cat, 'budget'=>$budget, 'location'=>$location, 'created_at'=>$created_at, 'user_id'=>$user_id, 'username'=>$username, 'email'=>$email];
-            }
-        }
-        $stmt->close();
-        
-        echo json_encode(['status'=>'success','posts'=>$posts]);
-        exit;
-    }
-
-    if($action === 'approve_post'){
-        // Admin action to approve a post
-        if(empty($_SESSION['user_id'])){ echo json_encode(['status'=>'error','message'=>'Not authenticated']); exit; }
-        
-        // Check if user is admin (either in DB or in runtime list)
-        $uid = intval($_SESSION['user_id']);
-        $is_admin_user = false;
-        
-        $adminCheckStmt = safe_prepare($conn, "SELECT COALESCE(is_admin,0) AS is_admin FROM users WHERE id = ? LIMIT 1");
-        if($adminCheckStmt) {
-            $adminCheckStmt->bind_param('i', $uid);
-            $adminCheckStmt->execute();
-            $adminCheckStmt->bind_result($admin_flag);
-            $adminCheckStmt->fetch();
-            $adminCheckStmt->close();
-            $is_admin_user = !empty($admin_flag) ? true : false;
-        }
-        
-        // Also check protected runtime admins
-        $user_name = $_SESSION['user_name'] ?? '';
-        $protected_runtime_admins = array('pyxis', 'adminpyx', 'kentanto65', 'lokale-tjenester');
-        if(!$is_admin_user && in_array($user_name, $protected_runtime_admins, true)){
-            $is_admin_user = true;
-        }
-        
-        if(!$is_admin_user) {
-            echo json_encode(['status'=>'error','message'=>'Admin access required']);
-            exit;
-        }
-        
-        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
-        if($post_id <= 0){ echo json_encode(['status'=>'error','message'=>'Invalid post ID']); exit; }
-        
-        $stmt = safe_prepare($conn, "UPDATE posts SET status = 'approved' WHERE id = ?");
-        if(!$stmt){ echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
-        
-        $stmt->bind_param('i', $post_id);
-        if(!$stmt->execute()){ echo json_encode(['status'=>'error','message'=>'Failed to approve post']); exit; }
-        
-        $stmt->close();
-        echo json_encode(['status'=>'success','message'=>'Post approved']);
-        exit;
-    }
-
-    if($action === 'reject_post'){
-        // Admin action to reject/delete a post
-        if(empty($_SESSION['user_id'])){ echo json_encode(['status'=>'error','message'=>'Not authenticated']); exit; }
-        
-        // Check if user is admin
-        $uid = intval($_SESSION['user_id']);
-        $is_admin_user = false;
-        
-        $adminCheckStmt = safe_prepare($conn, "SELECT COALESCE(is_admin,0) AS is_admin FROM users WHERE id = ? LIMIT 1");
-        if($adminCheckStmt) {
-            $adminCheckStmt->bind_param('i', $uid);
-            $adminCheckStmt->execute();
-            $adminCheckStmt->bind_result($admin_flag);
-            $adminCheckStmt->fetch();
-            $adminCheckStmt->close();
-            $is_admin_user = !empty($admin_flag) ? true : false;
-        }
-        
-        // Also check protected runtime admins
-        $user_name = $_SESSION['user_name'] ?? '';
-        $protected_runtime_admins = array('pyxis', 'adminpyx', 'kentanto65', 'lokale-tjenester');
-        if(!$is_admin_user && in_array($user_name, $protected_runtime_admins, true)){
-            $is_admin_user = true;
-        }
-        
-        if(!$is_admin_user) {
-            echo json_encode(['status'=>'error','message'=>'Admin access required']);
-            exit;
-        }
-        
-        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
-        if($post_id <= 0){ echo json_encode(['status'=>'error','message'=>'Invalid post ID']); exit; }
-        
-        // Delete the post
-        $stmt = safe_prepare($conn, "DELETE FROM posts WHERE id = ?");
-        if(!$stmt){ echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
-        
-        $stmt->bind_param('i', $post_id);
-        if(!$stmt->execute()){ echo json_encode(['status'=>'error','message'=>'Failed to delete post']); exit; }
-        
-        $stmt->close();
-        echo json_encode(['status'=>'success','message'=>'Post rejected and deleted']);
         exit;
     }
 
@@ -1426,7 +1256,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])){
         <html lang="en">
         <head>
             <meta charset="utf-8">
-            <link rel="icon" type="image/png" href="assets/Lokale_Tjenester_only_logo.png">
             <meta name="viewport" content="width=device-width,initial-scale=1">
             <link rel="stylesheet" href="static/style.css">
             <title><?php echo ($act==='login') ? 'Login' : 'Sign Up'; ?> — Lokale Tjenester</title>
@@ -1452,7 +1281,7 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])){
                     <button type="submit">Sign Up</button>
                 </form>
                 <?php endif; ?>
-                <p style="margin-top:12px"><a href="index.php">Return to home</a></p>
+                <p style="margin-top:12px"><a href="index2.php">Return to home</a></p>
             </div>
           </div>
         <script>
@@ -1463,7 +1292,7 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])){
                 fetch('display.php', {method:'POST', body: data, credentials: 'same-origin'})
                 .then(r=>r.json()).then(function(resp){
                     if(resp.status === 'success'){
-                        window.location = 'index.php';
+                        window.location = 'index2.php';
                     } else {
                         var msgEl = document.getElementById(action === 'login' ? 'loginMsg' : 'signupMsg');
                         if(msgEl) msgEl.textContent = resp.message || 'Error';

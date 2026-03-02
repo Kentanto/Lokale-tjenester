@@ -135,7 +135,7 @@ switch ($page) {
             <section class="lead">
                 <p>Opprett en jobbannonse. Fyll inn detaljene nedenfor.</p>
                 <?php
-                    if($is_logged_in && !empty($user_id)) {
+.                    if($is_logged_in && !empty($user_id)) {
                         $remaining = get_user_remaining_posts($conn, $user_id);
                         if($remaining <= 0) {
                             echo '<div style="background: #ffebee; border-left: 4px solid #f44336; padding: 10px; margin-bottom: 15px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">';
