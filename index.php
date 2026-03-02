@@ -55,7 +55,7 @@
                 <div class="footer-right">
                     <span>&copy; <?php echo date('Y'); ?> Lokale Tjenester</span>
                     <span class="footer-sep">|</span>
-                    <a href="LICENSE" class="license-link">Basic Fair Use (US)</a>
+                    <a href="LICENSE" class="license-link">Basic Fair Use (NOR)</a>
                 </div>
             </div>
     </footer>
