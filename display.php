@@ -1379,6 +1379,59 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         } else { echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
     }
 
+    if($action === 'change_password'){
+        // CSRF validation
+        if (!validate_csrf_token()) {
+            echo json_encode(['status'=>'error','message'=>'Invalid request token']); exit;
+        }
+        
+        // Check authentication
+        if(empty($_SESSION['user_id'])){ echo json_encode(['status'=>'error','message'=>'Not authenticated']); exit; }
+        $uid = intval($_SESSION['user_id']);
+        
+        $current_password = $_POST['current_password'] ?? '';
+        $new_password = $_POST['new_password'] ?? '';
+        $confirm_password = $_POST['confirm_password'] ?? '';
+        
+        // Validate inputs
+        if(!$current_password){ echo json_encode(['status'=>'error','message'=>'Current password is required']); exit; }
+        if(!$new_password){ echo json_encode(['status'=>'error','message'=>'New password is required']); exit; }
+        if($new_password !== $confirm_password){ echo json_encode(['status'=>'error','message'=>'Passwords do not match']); exit; }
+        if(strlen($new_password) < 6){ echo json_encode(['status'=>'error','message'=>'Password must be at least 6 characters']); exit; }
+        
+        // Get current password hash
+        $stmt = safe_prepare($conn, "SELECT password_hash FROM users WHERE id=? LIMIT 1");
+        if(!$stmt){ echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
+        $stmt->bind_param('i', $uid);
+        $stmt->execute();
+        $stmt->bind_result($password_hash);
+        if(!$stmt->fetch()) { 
+            $stmt->close();
+            echo json_encode(['status'=>'error','message'=>'User not found']); exit; 
+        }
+        $stmt->close();
+        
+        // Verify current password
+        if(!password_verify($current_password, $password_hash)) {
+            echo json_encode(['status'=>'error','message'=>'Current password is incorrect']); exit;
+        }
+        
+        // Hash new password
+        $new_hash = password_hash($new_password, PASSWORD_BCRYPT);
+        
+        // Update password
+        $stmt = safe_prepare($conn, "UPDATE users SET password_hash=? WHERE id=?");
+        if(!$stmt){ echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
+        $stmt->bind_param('si', $new_hash, $uid);
+        if(!$stmt->execute()){ 
+            echo json_encode(['status'=>'error','message'=>'Failed to update password']); exit; 
+        }
+        $stmt->close();
+        
+        echo json_encode(['status'=>'success','message'=>'Password updated successfully']); 
+        exit;
+    }
+
     if($action === 'upload_profile_picture'){
         // CSRF validation
         if (!validate_csrf_token()) {

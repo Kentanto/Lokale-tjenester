@@ -476,6 +476,7 @@ switch ($page) {
                         <h3><span class="profile-card-icon">🔒</span> Endre passord</h3>
                         <form id="passwordForm" class="settings-form">
                             <input type="hidden" name="action" value="change_password">
+                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
                             <div class="form-message" aria-live="polite"></div>
                             <div class="form-group">
                                 <label for="current-password">Nåværende passord</label>
@@ -548,6 +549,7 @@ switch ($page) {
                 <h2>Kontoinnstillinger</h2>
                 <form class="settings-form" method="post" action="#">
                     <input type="hidden" name="action" value="update_settings">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
                     <div class="form-group">
                         <label for="display-name">Visningsnavn</label>
                         <input id="display-name" name="username" type="text" value="<?php echo htmlspecialchars($user_name); ?>">
@@ -559,20 +561,13 @@ switch ($page) {
                 </form>
             </div>
 
-            <div class="settings-section">
-                <h2>Tema</h2>
-                <div class="theme-toggle-box">
-                    <label for="darkModeToggle" class="theme-label">Mørk modus</label>
-                    <label class="switch">
-                        <input type="checkbox" id="darkModeToggle">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-            </div>
+
 
             <div class="settings-section">
                 <h2>Endre passord</h2>
                 <form id="passwordForm" class="settings-form">
+                    <input type="hidden" name="action" value="change_password">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
                     <div class="form-message" aria-live="polite"></div>
                     <div class="form-group">
                         <label for="current-password">Nåværende passord</label>
