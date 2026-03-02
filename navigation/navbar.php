@@ -1,10 +1,11 @@
 <?php
 // Shared navbar component — used on all pages (index.php, pages.php, admin.php, etc.)
 // Assumes $is_logged_in, $user_name, $is_admin are defined in display.php
+global $conn, $user_id;
 ?>
 <nav>
     <div class="logo">
-        <a href="index2.php">
+        <a href="index.php">
             <img src="assets/Lokale_Tjenester.png" alt="Lokale Tjenester">
         </a>
     </div>
@@ -13,11 +14,22 @@
         <button class="user-btn">
             <div class="user-avatar">
                 <?php 
-                    if($is_logged_in && !empty($user_id)) {
-                        $profilePicUrl = get_profile_picture_url($conn, $user_id);
-                        if($profilePicUrl) {
-                            echo '<img src="' . htmlspecialchars($profilePicUrl) . '" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">';
+                    $debug = true; // Set to true to see debug info
+                    
+                    if($debug) {
+                        error_log("navbar: is_logged_in=" . ($is_logged_in ? 'true' : 'false') . ", user_id=" . ($user_id ?? 'null') . ", conn=" . (isset($conn) ? 'set' : 'not set') . ", func=" . (function_exists('get_profile_picture_url') ? 'exists' : 'not exists'));
+                    }
+                    
+                    if($is_logged_in) {
+                        if(!empty($user_id) && isset($conn) && function_exists('get_profile_picture_url')) {
+                            @$profilePicUrl = get_profile_picture_url($conn, $user_id);
+                            if($profilePicUrl) {
+                                echo '<img src="' . htmlspecialchars($profilePicUrl) . '" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">';
+                            } else {
+                                echo htmlspecialchars(substr($user_name,0,1));
+                            }
                         } else {
+                            // user_id not available or conn not available, fallback to first letter
                             echo htmlspecialchars(substr($user_name,0,1));
                         }
                     } else {

@@ -28,6 +28,7 @@ function render_header($title, $pageClass = '') {
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <link rel="icon" type="image/png" href="assets/Lokale_Tjenester_only_logo.png">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <link rel="stylesheet" href="static/style.css">
     <title><?php echo htmlspecialchars($title); ?> - Lokale Tjenester</title>
@@ -52,7 +53,7 @@ function render_footer() {
     <footer class="site-footer">
         <div class="footer-inner">
             <div class="footer-links">
-                <a href="index2.php">Hjem</a>
+                <a href="index.php">Hjem</a>
                 <a href="pages.php?page=about">Om</a>
                 <a href="pages.php?page=services">Tjenester</a>
                 <a href="pages.php?page=contact">Kontakt</a>
