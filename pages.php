@@ -154,6 +154,7 @@ switch ($page) {
                     <main class="create-job-form-wrapper">
                         <form id="createPostForm" class="contact-form" method="post" action="#" enctype="multipart/form-data" data-remaining-posts="<?php echo ($is_logged_in && !empty($user_id)) ? htmlspecialchars(get_user_remaining_posts($conn, $user_id)) : '3'; ?>">
                             <input type="hidden" name="action" value="create_post">
+                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
                             <div class="form-message" aria-live="polite"></div>
                             
                             <fieldset class="form-fieldset">
@@ -238,6 +239,7 @@ switch ($page) {
                         <h3>Søk og filtre</h3>
                         <form id="jobsSearchForm" class="search-form" method="post" action="#">
                             <input type="hidden" name="action" value="list_jobs">
+                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
                             
                             <fieldset class="form-fieldset">
                                 <legend class="sr-only">Jobbsøk filtre</legend>
@@ -310,6 +312,8 @@ switch ($page) {
                 <p>Hvis du har et spørsmål eller trenger hjelp med å finne en leverandør, send oss en melding, så svarer vi så snart som mulig.</p>
 
                 <form id="contactForm" class="contact-form" method="POST" action="#">
+                    <input type="hidden" name="action" value="contact">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
                     <div class="form-group">
                         <label for="name">Navn</label>
                         <input id="name" name="name" type="text" required>
@@ -436,6 +440,7 @@ switch ($page) {
                         <h3><span class="profile-card-icon">📷</span> Profilbilde</h3>
                         <form id="profilePictureForm" class="settings-form" enctype="multipart/form-data">
                             <input type="hidden" name="action" value="upload_profile_picture">
+                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
                             <div class="form-message" aria-live="polite"></div>
                             <div class="form-group">
                                 <label for="profile-picture-input">Velg bilde</label>
@@ -450,6 +455,7 @@ switch ($page) {
                         <h3><span class="profile-card-icon">👤</span> Rediger profil</h3>
                         <form id="settingsForm" class="settings-form">
                             <input type="hidden" name="action" value="update_settings">
+                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
                             <div class="form-message" aria-live="polite"></div>
                             <div class="form-group">
                                 <label for="profile-username">Brukernavn</label>
@@ -470,6 +476,7 @@ switch ($page) {
                         <h3><span class="profile-card-icon">🔒</span> Endre passord</h3>
                         <form id="passwordForm" class="settings-form">
                             <input type="hidden" name="action" value="change_password">
+                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
                             <div class="form-message" aria-live="polite"></div>
                             <div class="form-group">
                                 <label for="current-password">Nåværende passord</label>
@@ -542,6 +549,7 @@ switch ($page) {
                 <h2>Kontoinnstillinger</h2>
                 <form class="settings-form" method="post" action="#">
                     <input type="hidden" name="action" value="update_settings">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
                     <div class="form-group">
                         <label for="display-name">Visningsnavn</label>
                         <input id="display-name" name="username" type="text" value="<?php echo htmlspecialchars($user_name); ?>">
@@ -553,20 +561,13 @@ switch ($page) {
                 </form>
             </div>
 
-            <div class="settings-section">
-                <h2>Tema</h2>
-                <div class="theme-toggle-box">
-                    <label for="darkModeToggle" class="theme-label">Mørk modus</label>
-                    <label class="switch">
-                        <input type="checkbox" id="darkModeToggle">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-            </div>
+
 
             <div class="settings-section">
                 <h2>Endre passord</h2>
                 <form id="passwordForm" class="settings-form">
+                    <input type="hidden" name="action" value="change_password">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
                     <div class="form-message" aria-live="polite"></div>
                     <div class="form-group">
                         <label for="current-password">Nåværende passord</label>
@@ -640,6 +641,7 @@ switch ($page) {
             <p>Logg inn på Lokale Tjenester-kontoen din for å administrere bestillinger, leverandører og profilinnstillinger.</p>
             <form id="loginPageForm" class="auth-form">
                 <input type="hidden" name="action" value="login">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
                 <div class="form-message" aria-live="polite"></div>
                 <div class="form-group">
                     <label for="username">Brukernavn eller e-post</label>
@@ -721,6 +723,7 @@ switch ($page) {
             <p>Opprett en konto for å begynne å bestille tjenester og administrere annonsene dine.</p>
             <form id="signupPageForm" method="post" class="auth-form">
                 <input type="hidden" name="action" value="signup">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
                 <div class="form-message" aria-live="polite"></div>
                 <div class="form-group">
                     <label for="username">Brukernavn</label>

@@ -1,22 +1,17 @@
-// Load dark mode immediately on page load (before DOM renders)
-(function(){
-    if(localStorage.getItem('darkMode') === 'true'){
-        document.documentElement.classList.add('dark-mode');
-    }
-})();
+
 
 function toggleDropdown(){
     const dropdownMenu=document.getElementById('dropdownMenu');
     if(dropdownMenu) dropdownMenu.classList.toggle('active');
 }
 
-const userBtn=document.querySelector('.user-btn');
-if(userBtn){
-    userBtn.addEventListener('click',function(e){
+// Use event delegation so the listener works even if button is replaced
+document.addEventListener('click',function(e){
+    if(e.target.closest('.user-btn')){
         e.stopPropagation();
         toggleDropdown();
-    });
-}
+    }
+});
 
 document.addEventListener('click',function(e){
     const userProfile=document.querySelector('.user-profile');
@@ -178,28 +173,6 @@ function disableForm(form, disabled){
 }
 
 document.addEventListener('DOMContentLoaded',function(){
-    // Dark mode toggle
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    if(darkModeToggle){
-        // Load dark mode preference from localStorage
-        const isDarkMode = localStorage.getItem('darkMode') === 'true';
-        if(isDarkMode){
-            document.body.classList.add('dark-mode');
-            darkModeToggle.checked = true;
-        }
-        
-        // Toggle dark mode on checkbox change
-        darkModeToggle.addEventListener('change',function(){
-            if(this.checked){
-                document.body.classList.add('dark-mode');
-                localStorage.setItem('darkMode', 'true');
-            } else {
-                document.body.classList.remove('dark-mode');
-                localStorage.setItem('darkMode', 'false');
-            }
-        });
-    }
-      
     // Confirmation modal helper
     function ensureConfirmModal(){
         if(document.getElementById('confirmOverlay')) return;

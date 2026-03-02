@@ -47,12 +47,13 @@ global $conn, $user_id;
                     <a href="/admin.php">Admin Panel</a>
                 <?php endif; ?>
                 <a href="/pages.php?page=profile">Profil</a>
-                <a href="/pages.php?page=settings">Innstillinger</a>
                 <a href="/pages.php?page=dashboard">Dashboard</a>
                 <div class="dropdown-divider"></div>
                 <button id="logoutBtn">Logg ut</button>
             <?php else: ?>
                 <form id="loginForm" class="auth-form">
+                    <input type="hidden" name="action" value="login">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
                     <div class="form-message" aria-live="polite"></div>
                     <input type="text" name="username" placeholder="Brukernavn eller e-post" required>
                     <input type="password" name="password" placeholder="Passord" required>
@@ -60,6 +61,8 @@ global $conn, $user_id;
                 </form>
                 <div class="dropdown-divider"></div>
                 <form id="signupForm" class="auth-form">
+                    <input type="hidden" name="action" value="signup">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
                     <div class="form-message" aria-live="polite"></div>
                     <input type="text" name="username" placeholder="Brukernavn" required>
                     <input type="email" name="email" placeholder="E-post" required>
