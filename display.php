@@ -58,7 +58,90 @@ if(defined('PHP_VERSION_ID') && PHP_VERSION_ID >= 70300){
 
 session_start();
 
+// ===== SECURITY HEADERS =====
+// Prevent MIME type sniffing
+header('X-Content-Type-Options: nosniff');
+// Prevent clickjacking
+header('X-Frame-Options: SAMEORIGIN');
+// Legacy XSS protection
+header('X-XSS-Protection: 1; mode=block');
+// Force HTTPS (uncomment when on production)
+// header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+// Content Security Policy
+header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:;");
 
+// ===== DEBUG MODE CONTROL =====
+define('DEBUG_MODE', getenv('DEBUG_MODE') === 'true');
+
+function debug_log($msg) {
+    if (DEBUG_MODE) {
+        @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - $msg\n", FILE_APPEND);
+    }
+}
+
+// ===== CSRF TOKEN FUNCTIONS =====
+function generate_csrf_token() {
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+function validate_csrf_token($token = null) {
+    $token = $token ?? ($_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null);
+    if (empty($token) || empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $token)) {
+        return false;
+    }
+    return true;
+}
+
+// ===== LOGIN RATE LIMITING (5 attempts in 15 min, then 1 hour lockout) =====
+function check_login_rate_limit($identifier) {
+    $key = 'login_attempts_' . md5($identifier);
+    $lockout_key = $key . '_locked_until';
+    $attempts = $_SESSION[$key] ?? 0;
+    $last_attempt = $_SESSION[$key . '_time'] ?? 0;
+    $locked_until = $_SESSION[$lockout_key] ?? 0;
+    $now = time();
+    
+    // Check if still in lockout period
+    if ($locked_until > $now) {
+        $remaining = ceil(($locked_until - $now) / 60); // Minutes remaining
+        return ['allowed' => false, 'minutes_remaining' => $remaining];
+    }
+    
+    // Lockout expired, reset everything
+    if ($locked_until > 0 && $locked_until <= $now) {
+        unset($_SESSION[$key], $_SESSION[$key . '_time'], $_SESSION[$lockout_key]);
+        return ['allowed' => true, 'minutes_remaining' => 0];
+    }
+    
+    // Reset counter if more than 15 minutes have passed since last attempt
+    if ($now - $last_attempt > 900) {
+        $_SESSION[$key] = 0;
+        $_SESSION[$key . '_time'] = $now;
+        return ['allowed' => true, 'minutes_remaining' => 0];
+    }
+    
+    // Block after 5 attempts in 15 minutes (start 1-hour lockout)
+    if ($attempts >= 5) {
+        $_SESSION[$lockout_key] = $now + 3600; // 1 hour from now
+        return ['allowed' => false, 'minutes_remaining' => 60];
+    }
+    
+    return ['allowed' => true, 'minutes_remaining' => 0];
+}
+
+function record_login_attempt($identifier) {
+    $key = 'login_attempts_' . md5($identifier);
+    $_SESSION[$key] = ($_SESSION[$key] ?? 0) + 1;
+    $_SESSION[$key . '_time'] = time();
+}
+
+function clear_login_attempts($identifier) {
+    $key = 'login_attempts_' . md5($identifier);
+    unset($_SESSION[$key], $_SESSION[$key . '_time'], $_SESSION[$key . '_locked_until']);
+}
 
 function clear_session_cookie(){
     $name = session_name();
@@ -84,22 +167,21 @@ $user_created = null;
 $email_verified = false;
 
 // Database credentials (same as other files)
-$DB_HOST = 'localhost';
-$DB_NAME = 'lokale-tjenester';
-$DB_USER = 'lokale-tjenester';
-$DB_PASS = 'pwlt01!';
+// Use environment variables for database credentials, fallback to defaults for dev
+$DB_HOST = getenv('DB_HOST') ?: 'localhost';
+$DB_NAME = getenv('DB_NAME') ?: 'lokale-tjenester';
+$DB_USER = getenv('DB_USER') ?: 'lokale-tjenester';
+$DB_PASS = getenv('DB_PASS') ?: 'pwlt01!';
 
 // Try to connect; fail quietly but log errors.
-//connect (fail quietly)
-
-if ($conn->connect_error) {
-    @file_put_contents(__DIR__ . '/debug_db.log', 'Connect error: ' . $conn->connect_error . "\n", FILE_APPEND);
-} else {
-    @file_put_contents(__DIR__ . '/debug_db.log', 'Connected successfully' . "\n", FILE_APPEND);
-}
 $conn = @new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME);
 if ($conn && $conn->connect_error) {
     error_log('display.php: DB connect error: ' . $conn->connect_error);
+    if (DEBUG_MODE) {
+        @file_put_contents(__DIR__ . '/debug_db.log', 'Connect error: ' . $conn->connect_error . "\n", FILE_APPEND);
+    }
+} else if (DEBUG_MODE) {
+    @file_put_contents(__DIR__ . '/debug_db.log', 'Connected successfully' . "\n", FILE_APPEND);
 }
 
 function safe_prepare($conn, $sql){
@@ -442,6 +524,11 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
     }
 
     if($action === 'login'){
+        // CSRF validation
+        if (!validate_csrf_token()) {
+            echo json_encode(['status'=>'error','message'=>'Invalid request token']); exit;
+        }
+        
         $username = trim($_POST['username'] ?? '');
         $password = $_POST['password'] ?? '';
         $remember = !empty($_POST['remember_me']);
@@ -450,22 +537,36 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             echo json_encode(['status'=>'error','message'=>'Username and password are required']); exit;
         }
         
+        // Rate limiting: check login attempts for this username
+        $rate_check = check_login_rate_limit($username);
+        if (!$rate_check['allowed']) {
+            $minutes = $rate_check['minutes_remaining'];
+            if ($minutes > 1) {
+                $msg = "Too many login attempts. Please try again in $minutes minutes.";
+            } else {
+                $msg = "Too many login attempts. Please try again in about 1 minute.";
+            }
+            echo json_encode(['status'=>'error','message'=>$msg]); exit;
+        }
+        
         $stmt = safe_prepare($conn, "SELECT id, username, email, password_hash FROM users WHERE username=? OR email=?");
         if($stmt){
             $stmt->bind_param('ss', $username, $username);
             $stmt->execute();
-            @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - Login: query executed for username=$username\n", FILE_APPEND);
+            debug_log("Login: query executed for username=$username");
             $stmt->bind_result($user_id, $user_name, $user_email, $password_hash);
             if($stmt->fetch()){
-                @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - Login: user found, id=$user_id, hash starts with " . substr($password_hash, 0, 10) . "\n", FILE_APPEND);
+                debug_log("Login: user found, id=$user_id");
                 if(password_verify($password, $password_hash)){
-                    @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - Login: password correct\n", FILE_APPEND);
+                    debug_log("Login: password correct");
+                    // Clear rate limit on successful login
+                    clear_login_attempts($username);
                     session_regenerate_id(true);
                     $_SESSION['user_id'] = $user_id;
                     $_SESSION['user_name'] = $user_name;
                     $_SESSION['user_email'] = $user_email;
                     
-                    // If "remember me" is checked, create a token
+                    // If "remember me" is checked, create a token with expiry
                     if($remember){
                         $token = bin2hex(random_bytes(32));
                         $expires = date('Y-m-d H:i:s', time() + (30 * 24 * 60 * 60)); // 30 days
@@ -473,8 +574,9 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
                         if($stmt2){
                             $stmt2->bind_param('iss', $user_id, $token, $expires);
                             if($stmt2->execute()){
-                                // Set cookie for 30 days
-                                setcookie('remember_token', $token, time() + (30 * 24 * 60 * 60), '/', '', false, true);
+                                // Set secure cookie for 30 days (httponly, secure in production)
+                                $isSecure = request_is_secure();
+                                setcookie('remember_token', $token, time() + (30 * 24 * 60 * 60), '/', '', $isSecure, true);
                             }
                             $stmt2->close();
                         }
@@ -482,16 +584,18 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
                     
                     echo json_encode(['status'=>'success','message'=>'Logged in successfully']);
                 } else {
-                    @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - Login: password incorrect\n", FILE_APPEND);
+                    debug_log("Login: password incorrect");
+                    record_login_attempt($username);
                     echo json_encode(['status'=>'error','message'=>'Invalid username or password']);
                 }
             } else {
-                @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - Login: user not found\n", FILE_APPEND);
+                debug_log("Login: user not found");
+                record_login_attempt($username);
                 echo json_encode(['status'=>'error','message'=>'Invalid username or password']);
             }
             $stmt->close();
         } else {
-            @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - Login: DB error preparing statement\n", FILE_APPEND);
+            debug_log("Login: DB error preparing statement");
             echo json_encode(['status'=>'error','message'=>'Database error']); exit;
         }
         exit;
@@ -605,26 +709,31 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
 
     if($action === 'create_post'){
         try {
+            // CSRF validation
+            if (!validate_csrf_token()) {
+                echo json_encode(['status'=>'error','message'=>'Invalid request token']); exit;
+            }
+            
             // create a job/post supporting multiple images; convert uploads to web-friendly format (webp/jpeg)
-            error_log('=== CREATE_POST START ===');
-            error_log('PHP limits: upload_max_filesize=' . ini_get('upload_max_filesize') . ', post_max_size=' . ini_get('post_max_size') . ', memory_limit=' . ini_get('memory_limit'));
-            error_log('POST data: title=' . ($_POST['title'] ?? 'MISSING') . ', desc=' . (strlen($_POST['description'] ?? '') > 0 ? 'OK' : 'MISSING') . ', FILES count=' . count($_FILES));
-            error_log('GD library available: ' . (extension_loaded('gd') ? 'YES' : 'NO'));
-            error_log('imagewebp function: ' . (function_exists('imagewebp') ? 'YES' : 'NO'));
+            debug_log('=== CREATE_POST START ===');
+            debug_log('PHP limits: upload_max_filesize=' . ini_get('upload_max_filesize') . ', post_max_size=' . ini_get('post_max_size') . ', memory_limit=' . ini_get('memory_limit'));
+            debug_log('POST data: title=' . ($_POST['title'] ?? 'MISSING') . ', desc=' . (strlen($_POST['description'] ?? '') > 0 ? 'OK' : 'MISSING') . ', FILES count=' . count($_FILES));
+            debug_log('GD library available: ' . (extension_loaded('gd') ? 'YES' : 'NO'));
+            debug_log('imagewebp function: ' . (function_exists('imagewebp') ? 'YES' : 'NO'));
             
             // Log file upload errors explicitly
             if(!empty($_FILES['image'])){
                 if(is_array($_FILES['image']['error'])){
                     foreach($_FILES['image']['error'] as $idx => $err){
                         if($err !== UPLOAD_ERR_OK){
-                            error_log('File upload error at index ' . $idx . ': ' . getUploadErrorMessage($err));
+                            debug_log('File upload error at index ' . $idx . ': ' . getUploadErrorMessage($err));
                         }
                     }
                 } elseif($_FILES['image']['error'] !== UPLOAD_ERR_OK){
-                    error_log('File upload error: ' . getUploadErrorMessage($_FILES['image']['error']) . ' (size=' . ($_FILES['image']['size'] ?? 0) . ' bytes)');
+                    debug_log('File upload error: ' . getUploadErrorMessage($_FILES['image']['error']) . ' (size=' . ($_FILES['image']['size'] ?? 0) . ' bytes)');
                 }
             }
-            error_log('FILES[image]: ' . json_encode($_FILES['image'] ?? 'NOT SET'));
+            debug_log('FILES[image]: ' . json_encode($_FILES['image'] ?? 'NOT SET'));
         
         $title = trim($_POST['title'] ?? '');
         $desc = trim($_POST['description'] ?? '');
@@ -632,8 +741,8 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             $budget = intval($_POST['budget'] ?? 0);
             $location = trim($_POST['location'] ?? '');
 
-            if(!$title || !$desc){ error_log('create_post: Missing title or desc'); echo json_encode(['status'=>'error','message'=>'Title and description required']); exit; }
-            if(empty($_SESSION['user_id'])){ error_log('create_post: No user_id in session'); echo json_encode(['status'=>'error','message'=>'You must be logged in to create a job']); exit; }
+            if(!$title || !$desc){ debug_log('create_post: Missing title or desc'); echo json_encode(['status'=>'error','message'=>'Title and description required']); exit; }
+            if(empty($_SESSION['user_id'])){ debug_log('create_post: No user_id in session'); echo json_encode(['status'=>'error','message'=>'You must be logged in to create a job']); exit; }
             $uid = intval($_SESSION['user_id']);
 
             // Check rate limit: 3 posts per day (resets at midnight)
@@ -661,7 +770,7 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             // Enforce 3 posts per day limit
             $POST_LIMIT = 3;
             if($postsToday >= $POST_LIMIT){
-                error_log('create_post: User ' . $uid . ' exceeded daily post limit (' . $postsToday . '/' . $POST_LIMIT . ')');
+                debug_log('create_post: User ' . $uid . ' exceeded daily post limit (' . $postsToday . '/' . $POST_LIMIT . ')');
                 echo json_encode(['status'=>'error','message'=>'Du har nådd maksimalt antall poster (3) per dag. Prøv igjen i morgen!', 'remaining' => 0]);
                 exit;
             }
@@ -687,9 +796,17 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
 
             // Normalize uploaded files (support single or multiple inputs)
             $files = [];
+            $allowed_mime_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            
             if(isset($_FILES['image'])){
                 if(is_array($_FILES['image']['name'])){
                     for($i=0;$i<count($_FILES['image']['name']);$i++){
+                        // Validate MIME type against whitelist
+                        $file_mime = mime_content_type($_FILES['image']['tmp_name'][$i] ?? '');
+                        if (!in_array($file_mime, $allowed_mime_types)) {
+                            debug_log('File upload rejected: invalid MIME type ' . $file_mime);
+                            continue; // Skip invalid files
+                        }
                         $files[] = [
                             'name' => $_FILES['image']['name'][$i] ?? '',
                             'tmp_name' => $_FILES['image']['tmp_name'][$i] ?? '',
@@ -698,34 +815,40 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
                         ];
                     }
                 } else {
-                    $files[] = [ 'name'=>$_FILES['image']['name'],'tmp_name'=>$_FILES['image']['tmp_name'],'size'=>$_FILES['image']['size'],'error'=>$_FILES['image']['error'] ];
+                    // Validate MIME type against whitelist
+                    $file_mime = mime_content_type($_FILES['image']['tmp_name'] ?? '');
+                    if (in_array($file_mime, $allowed_mime_types)) {
+                        $files[] = [ 'name'=>$_FILES['image']['name'],'tmp_name'=>$_FILES['image']['tmp_name'],'size'=>$_FILES['image']['size'],'error'=>$_FILES['image']['error'] ];
+                    } else {
+                        debug_log('File upload rejected: invalid MIME type ' . $file_mime);
+                    }
                 }
             }
 
             // Helper: convert an uploaded file to webp (if available) or jpeg and return [data, type] or false
             $convertImage = function(string $tmpPath){
-                error_log('convertImage: reading ' . $tmpPath);
+                debug_log('convertImage: reading ' . $tmpPath);
                 $raw = @file_get_contents($tmpPath);
-                if($raw === false){ error_log('convertImage: file_get_contents failed'); return false; }
-                error_log('convertImage: raw file size=' . strlen($raw) . ' bytes');
+                if($raw === false){ debug_log('convertImage: file_get_contents failed'); return false; }
+                debug_log('convertImage: raw file size=' . strlen($raw) . ' bytes');
                 
                 // Detect image type from magic bytes
                 $img = null;
                 if(strpos($raw, "\x89PNG") === 0){
-                    error_log('convertImage: detected PNG format');
+                    debug_log('convertImage: detected PNG format');
                     $tempFile = tempnam(sys_get_temp_dir(), 'img_');
                     if(file_put_contents($tempFile, $raw)){
                         $img = @imagecreatefrompng($tempFile);
-                        if(!$img) error_log('convertImage: imagecreatefrompng failed');
-                        else error_log('convertImage: imagecreatefrompng SUCCESS');
+                        if(!$img) debug_log('convertImage: imagecreatefrompng failed');
+                        else debug_log('convertImage: imagecreatefrompng SUCCESS');
                         @unlink($tempFile);
                     }
                 } elseif(strpos($raw, "\xFF\xD8\xFF") === 0){
-                    error_log('convertImage: detected JPEG format');
+                    debug_log('convertImage: detected JPEG format');
                     $tempFile = tempnam(sys_get_temp_dir(), 'img_');
                     if(file_put_contents($tempFile, $raw)){
                         $img = @imagecreatefromjpeg($tempFile);
-                        if(!$img) error_log('convertImage: imagecreatefromjpeg failed');
+                        if(!$img) debug_log('convertImage: imagecreatefromjpeg failed');
                         else error_log('convertImage: imagecreatefromjpeg SUCCESS');
                         @unlink($tempFile);
                     }
@@ -1041,9 +1164,20 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
     }
 
     if($action === 'update_settings'){
+        // CSRF validation
+        if (!validate_csrf_token()) {
+            echo json_encode(['status'=>'error','message'=>'Invalid request token']); exit;
+        }
+        
         // allow logged-in users to change settings: username, email, session duration
         if(empty($_SESSION['user_id'])){ echo json_encode(['status'=>'error','message'=>'Not authenticated']); exit; }
         $uid = intval($_SESSION['user_id']);
+        
+        // Authorization check: can only update own settings
+        $target_user_id = intval($_POST['user_id'] ?? $uid);
+        if ($target_user_id !== $uid && empty($_SESSION['is_admin'])) {
+            echo json_encode(['status'=>'error','message'=>'Unauthorized: cannot modify other users']); exit;
+        }
         
         $username = trim($_POST['username'] ?? '');
         $email = trim($_POST['email'] ?? '');
@@ -1069,11 +1203,18 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         if($stmt){
             $stmt->bind_param('ssi', $username, $email, $uid);
             if(!$stmt->execute()){ echo json_encode(['status'=>'error','message'=>'Failed to update settings']); exit; }
+            $_SESSION['user_name'] = $username;
+            $_SESSION['user_email'] = $email;
             echo json_encode(['status'=>'success','message'=>'Settings updated']); exit;
         } else { echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
     }
 
     if($action === 'upload_profile_picture'){
+        // CSRF validation
+        if (!validate_csrf_token()) {
+            echo json_encode(['status'=>'error','message'=>'Invalid request token']); exit;
+        }
+        
         // Handle profile picture upload
         if(empty($_SESSION['user_id'])){ echo json_encode(['status'=>'error','message'=>'Not authenticated']); exit; }
         
@@ -1081,6 +1222,14 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         
         $file = $_FILES['profile_picture'];
         $uid = intval($_SESSION['user_id']);
+        
+        // Validate MIME type
+        $allowed_mime = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $file_mime = mime_content_type($file['tmp_name']);
+        if (!in_array($file_mime, $allowed_mime)) {
+            echo json_encode(['status'=>'error','message'=>'Invalid image format. Allowed: JPEG, PNG, GIF, WebP']); 
+            exit;
+        }
         
         // Validate file
         if($file['error'] !== UPLOAD_ERR_OK){ 
@@ -1148,6 +1297,11 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
     }
 
     if($action === 'contact'){
+        // CSRF validation
+        if (!validate_csrf_token()) {
+            echo json_encode(['status'=>'error','message'=>'Invalid request token']); exit;
+        }
+        
         // Handle contact form submission
         $name = trim($_POST['name'] ?? '');
         $email = trim($_POST['email'] ?? '');
@@ -1268,6 +1422,8 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])){
             <div class="card">
                 <?php if($act === 'login'): ?>
                 <form id="loginForm">
+                    <input type="hidden" name="action" value="login">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
                     <div id="loginMsg" style="color:red;margin-bottom:8px" aria-live="polite"></div>
                     <input type="text" name="username" placeholder="Username or email" required style="display:block;margin:8px 0;padding:8px;width:100%">
                     <input type="password" name="password" placeholder="Password" required style="display:block;margin:8px 0;padding:8px;width:100%">
@@ -1275,6 +1431,8 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])){
                 </form>
                 <?php else: ?>
                 <form id="signupForm">
+                    <input type="hidden" name="action" value="signup">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
                     <div id="signupMsg" style="color:red;margin-bottom:8px" aria-live="polite"></div>
                     <input type="text" name="username" placeholder="Username" required style="display:block;margin:8px 0;padding:8px;width:100%">
                     <input type="email" name="email" placeholder="Email" required style="display:block;margin:8px 0;padding:8px;width:100%">

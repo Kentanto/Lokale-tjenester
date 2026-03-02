@@ -52,19 +52,17 @@ global $conn, $user_id;
                 <div class="dropdown-divider"></div>
                 <button id="logoutBtn">Logg ut</button>
             <?php else: ?>
-                <form id="loginForm" class="auth-form">
-                    <div class="form-message" aria-live="polite"></div>
-                    <input type="text" name="username" placeholder="Brukernavn eller e-post" required>
-                    <input type="password" name="password" placeholder="Passord" required>
-                    <button type="submit">Logg inn</button>
+                <form id=\"loginForm\" class=\"auth-form\">\n                    <input type=\"hidden\" name=\"action\" value=\"login\">\n                    <input type=\"hidden\" name=\"csrf_token\" value=\"<?php echo htmlspecialchars(generate_csrf_token()); ?>\">\n                    <div class=\"form-message\" aria-live=\"polite\"></div>
+                    <input type=\"text\" name=\"username\" placeholder=\"Brukernavn eller e-post\" required>
+                    <input type=\"password\" name=\"password\" placeholder=\"Passord\" required>
+                    <button type=\"submit\">Logg inn</button>
                 </form>
-                <div class="dropdown-divider"></div>
-                <form id="signupForm" class="auth-form">
-                    <div class="form-message" aria-live="polite"></div>
-                    <input type="text" name="username" placeholder="Brukernavn" required>
-                    <input type="email" name="email" placeholder="E-post" required>
-                    <input type="password" name="password" placeholder="Passord" required>
-                    <button type="submit" aria-disabled="true" disabled>Registrer (Deaktivert)</button>
+                <div class=\"dropdown-divider\"></div>
+                <form id=\"signupForm\" class=\"auth-form\">\n                    <input type=\"hidden\" name=\"action\" value=\"signup\">\n                    <input type=\"hidden\" name=\"csrf_token\" value=\"<?php echo htmlspecialchars(generate_csrf_token()); ?>\">\n                    <div class=\"form-message\" aria-live=\"polite\"></div>
+                    <input type=\"text\" name=\"username\" placeholder=\"Brukernavn\" required>
+                    <input type=\"email\" name=\"email\" placeholder=\"E-post\" required>
+                    <input type=\"password\" name=\"password\" placeholder=\"Passord\" required>
+                    <button type=\"submit\" aria-disabled=\"true\" disabled>Registrer (Deaktivert)</button>
                 </form>
             <?php endif; ?>
         </div>
