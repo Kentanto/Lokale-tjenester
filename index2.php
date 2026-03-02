@@ -2,6 +2,7 @@
     // Keep minimal PHP in index. Session/user logic moved to `display.php`.
     // `display.php` will start the session and expose $is_logged_in and $user_name.
     require_once 'display.php';
+    $user_id = $_SESSION['user_id'] ?? null;
     
     // Restrict access to admin users only
     if (!$is_logged_in || empty($is_admin)) {
@@ -13,9 +14,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="assets/Lokale_Tjenester_only_logo.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="static/style.css">
-    <title>Lokale Tjenester - Your Platform</title>
+    <title>Lokale Tjenester</title>
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -52,8 +54,8 @@
     <footer class="site-footer">
             <div class="footer-inner">
                 <div class="footer-links">
-                    <a href="index2.php">Hjem</a>
-                    <a href="pages.php?page=about">Om oss</a>
+                    <a href="index.php">Hjem</a>
+                    <a href="pages.php?page=about">Om Oss</a>
                     <a href="pages.php?page=services">Tjenester</a>
                     <a href="pages.php?page=contact">Kontakt</a>
                 </div>

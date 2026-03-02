@@ -53,7 +53,7 @@ function render_footer() {
     <footer class="site-footer">
         <div class="footer-inner">
             <div class="footer-links">
-                <a href="index2.php">Hjem</a>
+                <a href="index.php">Hjem</a>
                 <a href="pages.php?page=about">Om</a>
                 <a href="pages.php?page=services">Tjenester</a>
                 <a href="pages.php?page=contact">Kontakt</a>

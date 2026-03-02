@@ -5,7 +5,7 @@ global $conn, $user_id;
 ?>
 <nav>
     <div class="logo">
-        <a href="index2.php">
+        <a href="index.php">
             <img src="assets/Lokale_Tjenester.png" alt="Lokale Tjenester">
         </a>
     </div>

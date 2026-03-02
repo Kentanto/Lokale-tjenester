@@ -218,7 +218,7 @@ if(isset($_GET['action']) && $_GET['action'] === 'logout'){
         echo json_encode(['status'=>'success','message'=>'Logged out']);
         exit;
     }
-    header('Location: index2.php');
+    header('Location: index.php');
     exit;
 }
 session_start();
@@ -1282,7 +1282,7 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])){
                     <button type="submit">Sign Up</button>
                 </form>
                 <?php endif; ?>
-                <p style="margin-top:12px"><a href="index2.php">Return to home</a></p>
+                <p style="margin-top:12px"><a href="index.php">Return to home</a></p>
             </div>
           </div>
         <script>
@@ -1293,7 +1293,7 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])){
                 fetch('display.php', {method:'POST', body: data, credentials: 'same-origin'})
                 .then(r=>r.json()).then(function(resp){
                     if(resp.status === 'success'){
-                        window.location = 'index2.php';
+                        window.location = 'index.php';
                     } else {
                         var msgEl = document.getElementById(action === 'login' ? 'loginMsg' : 'signupMsg');
                         if(msgEl) msgEl.textContent = resp.message || 'Error';
