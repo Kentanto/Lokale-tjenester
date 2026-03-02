@@ -231,9 +231,10 @@
         .dropdown-menu .form-message.error { display: block; background: rgba(185,28,28,0.04); color: #b91c1c; border: 1px solid rgba(185,28,28,0.06); }
 
         /* Gray out signup form */
+        /* Signup form is now enabled */
         #signupForm {
-            opacity: 0.5;
-            pointer-events: none;
+            opacity: 1;
+            pointer-events: auto;
         }
 
         .dropdown-menu.active {

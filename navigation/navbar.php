@@ -52,7 +52,7 @@
                     <input type="text" name="username" placeholder="Brukernavn" required>
                     <input type="email" name="email" placeholder="E-post" required>
                     <input type="password" name="password" placeholder="Passord" required>
-                    <button type="submit" aria-disabled="true" disabled>Registrer (Deaktivert)</button>
+                    <button type="submit">Registrer</button>
                 </form>
             <?php endif; ?>
         </div>

@@ -358,6 +358,36 @@ if($q !== ''){
                     <?php endforeach; ?>
                 </div>
             </section>
+
+            <hr style="margin: 40px 0; border: none; border-top: 1px solid var(--box-border);">
+
+            <div id="pendingPostsSection" style="display: none;">
+                <section class="lead centered">
+                    <p>Moderate job postings: approve jobs to make them public, or reject to remove them.</p>
+                </section>
+                <div id="pendingPostsContainer" class="services-grid">
+                    <div class="grid" id="pendingJobsList"></div>
+                </div>
+            </div>
+
+            <div id="noPendingMessage" style="text-align: center; padding: 40px; display: none;">
+                <p style="color: var(--muted); font-size: 16px;">No pending jobs to moderate.</p>
+            </div>
+
+            <!-- Post Approval Modal -->
+            <div id="postApprovalModal" class="confirm-overlay">
+                <div class="confirm-box" style="max-width: 600px;">
+                    <h3>Job Posting Details</h3>
+                    <div id="postApprovalContent" style="max-height: 400px; overflow-y: auto; margin: 20px 0; padding: 15px; background: var(--page-bg); border-radius: 8px;">
+                        <!-- Content filled by JavaScript -->
+                    </div>
+                    <div class="confirm-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closePostApprovalModal()">Close</button>
+                        <button type="button" class="btn" style="background: #dc3545; color: white; border: none;" onclick="rejectPost()">Reject</button>
+                        <button type="button" class="btn btn-primary" onclick="approvePost()">Approve</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 </div>
@@ -365,5 +395,11 @@ if($q !== ''){
 
     <script src="static/admin.js"></script>
     <script src="static/script.js"></script>
+    <script>
+        // Load pending posts when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPendingPosts();
+        });
+    </script>
 </body>
 </html>

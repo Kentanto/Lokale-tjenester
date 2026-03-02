@@ -11,22 +11,15 @@
 -Dugnadsfunksjon/logge inn som en gruppe/idrettslag 
     vi skal se videre på det, men tror vi kan gjøre dette via et "admin må accepte gruppa" type system.
 
-mail system?
-make email verificationactually work, be able to send mail to users
 make sure users use .com or .no as their mail suffix
 
 improve other pages than main pages
 fix up temp items and such
 fix up the logo by using the remake and new text and make it possible to enable dark mode on it
 
-make finding and creating jobs actually work
-
-remove session length from settings, it doesnt need to be changeable or visible
 
 change password should be more sophisticated and only available througha forgot password option and mailing verification.
 meaning, no willy nilly password change
-
-Admin panel with functionality
 
 proper user settings with functionality
 
@@ -35,6 +28,5 @@ ToS and Privacy
 make sure not a bot check
 prevent certain bot attacks or spam on signup and making jobs
 
-cookies?
 
 
