@@ -131,13 +131,17 @@ async function openJobDetail(postId){
 
             detailContent.innerHTML = `
                 ${imageHtml}
-                <h2>${escapeHtml(p.title)}</h2>
-                <p style="color:#666;font-size:14px;margin-bottom:16px;">${escapeHtml(p.username)} • ${escapeHtml(p.location||'Not specified')}</p>
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+                    ${p.profile_picture ? `<img src="${p.profile_picture}" alt="${escapeHtml(p.username)}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">` : `<div style="width:40px;height:40px;border-radius:50%;background:#ddd;display:flex;align-items:center;justify-content:center;font-weight:bold;">${escapeHtml(p.username.charAt(0))}</div>`}
+                    <div>
+                        <h3 style="margin:0;">${escapeHtml(p.username)}</h3>
+                        <p style="color:#666;font-size:13px;margin:4px 0 0 0;">${escapeHtml(p.location||'Not specified')}</p>
+                    </div>
+                </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
                     <div><strong>Budget:</strong> <span style="font-size:18px;color:var(--green);">${p.budget ? (parseInt(p.budget) + ' NOK') : 'Negotiable'}</span></div>
                     <div><strong>Category:</strong> ${escapeHtml(p.category||'Not specified')}</div>
-                    <div><strong>Location:</strong> ${escapeHtml(p.location||'Not specified')}</div>
-                    <div><strong>Posted:</strong> ${escapeHtml(p.created_at)}</div>
+                    <div style="grid-column:1/-1;"><strong>Posted:</strong> ${escapeHtml(p.created_at)}</div>
                 </div>
                 ${p.contact_info ? `<div style="background:#f5f5f5;padding:12px;border-radius:6px;margin-bottom:20px;border-left:4px solid var(--green);"><strong>Contact:</strong> ${escapeHtml(p.contact_info)}</div>` : ''}
                 <hr style="margin:20px 0;border:none;border-top:1px solid var(--off-white);">
