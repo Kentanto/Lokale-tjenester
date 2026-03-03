@@ -51,6 +51,29 @@ function showFormMessage(form, message, status){
 function escapeHtml(s){ if(!s && s!==0) return ''; return String(s).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];}); }
 
 // Render jobs list
+// Helper: format relative time with specific intervals
+function formatRelativeTime(isoDate){
+    const now = new Date();
+    const date = new Date(isoDate);
+    const diffMs = now - date;
+    const diffMinutes = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if(diffMinutes < 60){
+        // Up to 1 hour: 10 minute intervals
+        const interval = Math.round(diffMinutes / 10) * 10;
+        if(interval === 0) return 'just now';
+        return interval + ' min ago';
+    } else if(diffHours < 24){
+        // 1-24 hours: every hour
+        return diffHours + ' hour' + (diffHours > 1 ? 's' : '') + ' ago';
+    } else {
+        // After 24 hours: every day
+        return diffDays + ' day' + (diffDays > 1 ? 's' : '') + ' ago';
+    }
+}
+
 function renderJobs(jobs, container){
     if(!container) return;
     if(!jobs || jobs.length === 0){
@@ -73,7 +96,7 @@ function renderJobs(jobs, container){
             <p>${escapeHtml(j.description.substring(0,150)) + (j.description.length > 150 ? '...' : '')}</p>
             <p style="color:#666;font-size:13px">${escapeHtml(j.username)} — ${escapeHtml(j.location||'')}</p>
             <p style="font-weight:600;margin-top:6px">Budget: ${j.budget ? (parseInt(j.budget) + ' NOK') : 'Negotiable'}</p>
-            <div style="font-size:12px;color:#888;margin-top:6px">Posted: ${escapeHtml(j.created_at)}</div>
+            <div style="font-size:12px;color:#888;margin-top:6px">Posted: ${formatRelativeTime(j.created_at)}</div>
         </article>`;
     });
     container.innerHTML = out;
@@ -141,7 +164,7 @@ async function openJobDetail(postId){
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
                     <div><strong>Budget:</strong> <span style="font-size:18px;color:var(--green);">${p.budget ? (parseInt(p.budget) + ' NOK') : 'Negotiable'}</span></div>
                     <div><strong>Category:</strong> ${escapeHtml(p.category||'Not specified')}</div>
-                    <div style="grid-column:1/-1;"><strong>Posted:</strong> ${escapeHtml(p.created_at)}</div>
+                    <div style="grid-column:1/-1;"><strong>Posted:</strong> ${formatRelativeTime(p.created_at)}</div>
                 </div>
                 ${p.contact_info ? `<div style="background:#f5f5f5;padding:12px;border-radius:6px;margin-bottom:20px;border-left:4px solid var(--green);"><strong>Contact:</strong> ${escapeHtml(p.contact_info)}</div>` : ''}
                 <hr style="margin:20px 0;border:none;border-top:1px solid var(--off-white);">
