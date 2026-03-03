@@ -44,16 +44,20 @@ function request_is_secure(){
 
 // session_set_cookie_params() accepts an options array since PHP 7.3. For older PHP versions
 // pass the classic signature (lifetime, path, domain, secure, httponly).
+// Set 30-day persistent session (2592000 seconds = 30 days)
+$sessionLifetime = 30 * 24 * 60 * 60; // 30 days
+$isSecure = request_is_secure();
+
 if(defined('PHP_VERSION_ID') && PHP_VERSION_ID >= 70300){
     session_set_cookie_params([
-        'lifetime' => 0,
+        'lifetime' => $sessionLifetime,
         'path' => '/',
+        'secure' => $isSecure,
         'httponly' => true,
         'samesite' => 'Lax'
     ]);
 } else {
-    $isSecure = request_is_secure();
-    session_set_cookie_params(0, '/', '', $isSecure, true);
+    session_set_cookie_params($sessionLifetime, '/', '', $isSecure, true);
 }
 
 session_start();
