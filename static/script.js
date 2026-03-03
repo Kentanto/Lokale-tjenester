@@ -139,6 +139,7 @@ async function openJobDetail(postId){
                     <div><strong>Location:</strong> ${escapeHtml(p.location||'Not specified')}</div>
                     <div><strong>Posted:</strong> ${escapeHtml(p.created_at)}</div>
                 </div>
+                ${p.contact_info ? `<div style="background:#f5f5f5;padding:12px;border-radius:6px;margin-bottom:20px;border-left:4px solid var(--green);"><strong>Contact:</strong> ${escapeHtml(p.contact_info)}</div>` : ''}
                 <hr style="margin:20px 0;border:none;border-top:1px solid var(--off-white);">
                 <h3 style="margin-top:0;">Description</h3>
                 <p style="line-height:1.6;white-space:pre-wrap;">${escapeHtml(p.description)}</p>
