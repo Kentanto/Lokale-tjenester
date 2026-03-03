@@ -31,8 +31,13 @@ set_error_handler(function($errno, $errstr, $errfile, $errline) {
     return false;
 });
 
-// Configure session GC and cookie parameters for indefinite sessions.
-ini_set('session.gc_maxlifetime', 31536000); // 1 year
+// Configure session GC and cookie parameters for 30-day persistent sessions
+// Set both gc_maxlifetime and cookie lifetime to 30 days to ensure server-side session files aren't garbage collected prematurely
+$sessionLifetime = 30 * 24 * 60 * 60; // 30 days in seconds
+ini_set('session.gc_maxlifetime', $sessionLifetime); // Server-side session file lifetime
+ini_set('session.gc_probability', 1); // Run GC 1% of the time (default is fine)
+ini_set('session.gc_divisor', 100); // Run GC every ~100 requests
+ini_set('session.cache_expire', 43200); // Cache for 30 days worth of minutes (30*24*60 = 43200)
 
 // Helper: detect if the current request is secure (HTTPS) — robust across servers/proxies
 function request_is_secure(){
@@ -42,10 +47,6 @@ function request_is_secure(){
     return false;
 }
 
-// session_set_cookie_params() accepts an options array since PHP 7.3. For older PHP versions
-// pass the classic signature (lifetime, path, domain, secure, httponly).
-// Set 30-day persistent session (2592000 seconds = 30 days)
-$sessionLifetime = 30 * 24 * 60 * 60; // 30 days
 $isSecure = request_is_secure();
 
 if(defined('PHP_VERSION_ID') && PHP_VERSION_ID >= 70300){
