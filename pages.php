@@ -68,6 +68,17 @@ function render_footer() {
 
 </div> <!-- .page-wrapper -->
 
+<!-- Job Detail Modal (positioned at body level for fixed positioning) -->
+<div id="jobDetailModal" class="job-detail-modal" style="display: none;">
+    <div class="job-detail-overlay"></div>
+    <div class="job-detail-box">
+        <button class="job-detail-close" onclick="document.getElementById('jobDetailModal').style.display = 'none';">&times;</button>
+        <div class="job-detail-content" id="jobDetailContent">
+            <p>Loading...</p>
+        </div>
+    </div>
+</div>
+
 <script src="static/script.js"></script>
 </body>
 </html>

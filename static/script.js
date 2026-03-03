@@ -299,7 +299,7 @@ document.addEventListener('DOMContentLoaded',function(){
                 if(previewArea) previewArea.innerHTML = '';
             }
             // redirect to job listings after successful creation
-            showConfirmation('Job created','Your job was posted successfully.', 'pages.php?page=jobs', 1200);
+            showConfirmation('Job Posted!','Your job has been submitted and is awaiting moderator approval. You will be notified once it is published.');
         }
     });
 
