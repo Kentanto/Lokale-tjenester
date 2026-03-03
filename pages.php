@@ -175,8 +175,8 @@ switch ($page) {
                                     <input id="job-title" name="title" type="text" required placeholder="Fiks en lekkende kran">
                                 </div>
                                 <div class="form-group">
-                                    <label for="job-desc">Beskrivelse</label>
-                                    <textarea id="job-desc" name="description" rows="6" required placeholder="Beskriv arbeidet, eventuelle tilgangsdetaljer og ønsket tidspunkt."></textarea>
+                                    <label for="job-desc">Beskrivelse <span class="char-counter" id="desc-counter">0/2000</span></label>
+                                    <textarea id="job-desc" name="description" rows="6" required placeholder="Beskriv arbeidet, eventuelle tilgangsdetaljer og ønsket tidspunkt." maxlength="2000"></textarea>
                                 </div>
                                 <div class="form-row form-row-two-cols">
                                     <div class="form-col">
@@ -188,7 +188,7 @@ switch ($page) {
                                     <div class="form-col form-col-narrow">
                                         <div class="form-group">
                                             <label for="job-budget">Budsjett</label>
-                                            <input id="job-budget" name="budget" type="number" min="0" step="1" placeholder="NOK">
+                                            <input id="job-budget" name="budget" type="number" min="0" max="99999" step="1" placeholder="NOK">
                                         </div>
                                     </div>
                                 </div>
@@ -197,8 +197,8 @@ switch ($page) {
                                     <input id="job-location" name="location" type="text" placeholder="By eller postnummer">
                                 </div>
                                 <div class="form-group">
-                                    <label for="job-contact">Kontaktinformasjon</label>
-                                    <input id="job-contact" name="contact_info" type="text" placeholder="Telefon, e-post eller annen kontaktinformasjon" required>
+                                    <label for="job-contact">Kontaktinformasjon <span class="char-counter" id="contact-counter">0/30</span></label>
+                                    <input id="job-contact" name="contact_info" type="text" placeholder="Telefon, e-post eller annen kontaktinformasjon" required maxlength="30">
                                 </div>
                                 <div class="form-group">
                                     <label for="job-image">Bilde (valgfritt)</label>

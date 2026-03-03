@@ -230,24 +230,39 @@ document.addEventListener('DOMContentLoaded',function(){
         const nowBtn = overlay.querySelector('#confirmNow');
         const stayBtn = overlay.querySelector('#confirmStay');
         const countEl = overlay.querySelector('#confirmCountdown');
+        const countdownDiv = countEl.closest('.small-muted');
 
         titleEl.textContent = title || 'Success';
         msgEl.textContent = message || '';
-        let remaining = Math.ceil(autoMs/1000);
-        countEl.textContent = remaining;
-        overlay.classList.add('active');
+        
+        // Only show countdown and redirect if redirectUrl is provided
+        if(redirectUrl) {
+            let remaining = Math.ceil(autoMs/1000);
+            countEl.textContent = remaining;
+            countdownDiv.style.display = 'block';
+            overlay.classList.add('active');
 
-        let cancelled = false;
-        const interval = setInterval(()=>{
-            remaining -= 1; if(remaining<=0) remaining=0; countEl.textContent = remaining;
-        },1000);
+            let cancelled = false;
+            const interval = setInterval(()=>{
+                remaining -= 1; if(remaining<=0) remaining=0; countEl.textContent = remaining;
+            },1000);
 
-        const timeout = setTimeout(()=>{
-            if(!cancelled){ overlay.classList.remove('active'); window.location.href = redirectUrl; }
-        }, autoMs);
+            const timeout = setTimeout(()=>{
+                if(!cancelled){ overlay.classList.remove('active'); window.location.href = redirectUrl; }
+            }, autoMs);
 
-        nowBtn.onclick = ()=>{ clearTimeout(timeout); clearInterval(interval); overlay.classList.remove('active'); window.location.href = redirectUrl; };
-        stayBtn.onclick = ()=>{ cancelled = true; clearTimeout(timeout); clearInterval(interval); overlay.classList.remove('active'); };
+            nowBtn.onclick = ()=>{ clearTimeout(timeout); clearInterval(interval); overlay.classList.remove('active'); window.location.href = redirectUrl; };
+            stayBtn.onclick = ()=>{ cancelled = true; clearTimeout(timeout); clearInterval(interval); overlay.classList.remove('active'); };
+            stayBtn.style.display = 'block';
+        } else {
+            // No redirect, just show confirmation message with close button
+            countdownDiv.style.display = 'none';
+            stayBtn.style.display = 'none';
+            stayBtn.textContent = 'Close';
+            nowBtn.textContent = 'Close';
+            nowBtn.onclick = ()=>{ overlay.classList.remove('active'); };
+            overlay.classList.add('active');
+        }
     }
 
     // Handle reset limit button (for admins) - use event delegation
@@ -283,6 +298,28 @@ document.addEventListener('DOMContentLoaded',function(){
             submitBtn.title = 'Daglig grense nådd. Prøv igjen i morgen!';
             submitBtn.style.opacity = '0.6';
             submitBtn.style.cursor = 'not-allowed';
+        }
+        
+        // Add character counter for description
+        let descField = createPostForm.querySelector('#job-desc');
+        let descCounter = createPostForm.querySelector('#desc-counter');
+        if(descField && descCounter) {
+            descField.addEventListener('input', function() {
+                descCounter.textContent = this.value.length + '/2000';
+            });
+            // Initialize counter on page load
+            descCounter.textContent = descField.value.length + '/2000';
+        }
+        
+        // Add character counter for contact info
+        let contactField = createPostForm.querySelector('#job-contact');
+        let contactCounter = createPostForm.querySelector('#contact-counter');
+        if(contactField && contactCounter) {
+            contactField.addEventListener('input', function() {
+                contactCounter.textContent = this.value.length + '/30';
+            });
+            // Initialize counter on page load
+            contactCounter.textContent = contactField.value.length + '/30';
         }
     }
 

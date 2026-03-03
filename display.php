@@ -813,6 +813,8 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             if(isset($_FILES['image'])){
                 if(is_array($_FILES['image']['name'])){
                     for($i=0;$i<count($_FILES['image']['name']);$i++){
+                        // Skip if no file uploaded at this index
+                        if($_FILES['image']['error'][$i] == UPLOAD_ERR_NO_FILE) continue;
                         // Validate MIME type against whitelist
                         $file_mime = mime_content_type($_FILES['image']['tmp_name'][$i] ?? '');
                         if (!in_array($file_mime, $allowed_mime_types)) {
@@ -827,12 +829,17 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
                         ];
                     }
                 } else {
-                    // Validate MIME type against whitelist
-                    $file_mime = mime_content_type($_FILES['image']['tmp_name'] ?? '');
-                    if (in_array($file_mime, $allowed_mime_types)) {
-                        $files[] = [ 'name'=>$_FILES['image']['name'],'tmp_name'=>$_FILES['image']['tmp_name'],'size'=>$_FILES['image']['size'],'error'=>$_FILES['image']['error'] ];
+                    // Skip if no file uploaded
+                    if($_FILES['image']['error'] === UPLOAD_ERR_NO_FILE) {
+                        debug_log('create_post: No file uploaded (optional)');
                     } else {
-                        debug_log('File upload rejected: invalid MIME type ' . $file_mime);
+                        // Validate MIME type against whitelist
+                        $file_mime = mime_content_type($_FILES['image']['tmp_name'] ?? '');
+                        if (in_array($file_mime, $allowed_mime_types)) {
+                            $files[] = [ 'name'=>$_FILES['image']['name'],'tmp_name'=>$_FILES['image']['tmp_name'],'size'=>$_FILES['image']['size'],'error'=>$_FILES['image']['error'] ];
+                        } else {
+                            debug_log('File upload rejected: invalid MIME type ' . $file_mime);
+                        }
                     }
                 }
             }
