@@ -252,12 +252,17 @@ $conn->query("CREATE TABLE IF NOT EXISTS posts (
     user_id INT UNSIGNED,
     image MEDIUMBLOB DEFAULT NULL,
     image_type VARCHAR(50) DEFAULT NULL,
+    status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     KEY (user_id),
     KEY (category),
-    KEY (created_at)
+    KEY (created_at),
+    KEY (status)
 )");
+
+// Add status column if it doesn't exist (for existing databases)
+$conn->query("ALTER TABLE posts ADD COLUMN IF NOT EXISTS status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending'");
 
 // Create post_images table for multiple images per post
 $conn->query("CREATE TABLE IF NOT EXISTS post_images (
@@ -780,7 +785,7 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             }
 
             // Insert post record first (no image columns relied on here)
-            $stmt = safe_prepare($conn, "INSERT INTO posts (title, description, category, budget, location, user_id, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())");
+            $stmt = safe_prepare($conn, "INSERT INTO posts (title, description, category, budget, location, user_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, 'pending', NOW())");
             if(!$stmt){ error_log('create_post: safe_prepare posts insert failed - ' . ($conn ? $conn->error : 'No connection')); echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
             $stmt->bind_param('sssisi', $title, $desc, $category, $budget, $location, $uid);
             if(!$stmt->execute()){ error_log('create_post: execute posts insert failed - ' . $stmt->error); echo json_encode(['status'=>'error','message'=>'Failed to create job']); exit; }
@@ -979,7 +984,7 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         }
 
             error_log('=== CREATE_POST END SUCCESS ===');
-            echo json_encode(['status'=>'success','message'=>'Job created successfully']);
+            echo json_encode(['status'=>'success','message'=>'Job opprettet! Det avventer godkjenning fra admin før det vises offentlig.']);
         } catch(Exception $e) {
             error_log('create_post EXCEPTION: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
             error_log('Trace: ' . $e->getTraceAsString());
@@ -1004,6 +1009,9 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         $where = [];
         $types = '';
         $params = [];
+
+        // Always filter for approved posts only
+        $where[] = "p.status = 'approved'";
 
         if($q !== ''){ $where[] = "(p.title LIKE ? OR p.description LIKE ? )"; $params[] = "%$q%"; $params[] = "%$q%"; $types .= 'ss'; }
         if($category !== ''){ $where[] = "p.category = ?"; $params[] = $category; $types .= 's'; }
@@ -1098,7 +1106,7 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
         if($post_id <= 0){ echo json_encode(['status'=>'error','message'=>'Invalid post ID']); exit; }
         
-        $sql = "SELECT p.id, p.title, p.description, p.category, p.budget, p.location, p.created_at, COALESCE(u.username,'Guest') AS username, IF(p.image, CONCAT('data:image/', COALESCE(p.image_type, 'jpeg'), ';base64,', TO_BASE64(p.image)), NULL) AS image FROM posts p LEFT JOIN users u ON p.user_id = u.id WHERE p.id = ? LIMIT 1";
+        $sql = "SELECT p.id, p.title, p.description, p.category, p.budget, p.location, p.created_at, p.status, p.user_id, COALESCE(u.username,'Guest') AS username, IF(p.image, CONCAT('data:image/', COALESCE(p.image_type, 'jpeg'), ';base64,', TO_BASE64(p.image)), NULL) AS image FROM posts p LEFT JOIN users u ON p.user_id = u.id WHERE p.id = ? LIMIT 1";
         
         $stmt = safe_prepare($conn, $sql);
         if(!$stmt){ echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
@@ -1132,6 +1140,13 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         $stmt->close();
 
         if(!$row){ echo json_encode(['status'=>'error','message'=>'Post not found']); exit; }
+
+        // Check permissions: only approved posts can be viewed by others; users can view their own posts regardless of status
+        $currentUserId = $_SESSION['user_id'] ?? null;
+        if($row['status'] !== 'approved' && $currentUserId != $row['user_id']){
+            echo json_encode(['status'=>'error','message'=>'Post not available']); 
+            exit;
+        }
 
         // Fetch all images for this post
         $images = [];

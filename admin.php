@@ -220,6 +220,50 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
         header('Location: admin.php');
         exit;
     }
+    if($action === 'approve_post'){
+        $post_id = intval($_POST['post_id'] ?? 0);
+        if($post_id > 0){
+            $stmt = safe_prepare($conn, "UPDATE posts SET status = 'approved' WHERE id = ?");
+            if($stmt){
+                $stmt->bind_param('i', $post_id);
+                if($stmt->execute()){
+                    $_SESSION['notice'] = 'Job approved and is now public.';
+                    $_SESSION['notice_type'] = 'success';
+                } else {
+                    $_SESSION['notice'] = 'Failed to approve job.';
+                    $_SESSION['notice_type'] = 'danger';
+                }
+                $stmt->close();
+            } else {
+                $_SESSION['notice'] = 'Database error.';
+                $_SESSION['notice_type'] = 'danger';
+            }
+        }
+        header('Location: admin.php');
+        exit;
+    }
+    if($action === 'reject_post'){
+        $post_id = intval($_POST['post_id'] ?? 0);
+        if($post_id > 0){
+            $stmt = safe_prepare($conn, "UPDATE posts SET status = 'rejected' WHERE id = ?");
+            if($stmt){
+                $stmt->bind_param('i', $post_id);
+                if($stmt->execute()){
+                    $_SESSION['notice'] = 'Job rejected.';
+                    $_SESSION['notice_type'] = 'danger';
+                } else {
+                    $_SESSION['notice'] = 'Failed to reject job.';
+                    $_SESSION['notice_type'] = 'danger';
+                }
+                $stmt->close();
+            } else {
+                $_SESSION['notice'] = 'Database error.';
+                $_SESSION['notice_type'] = 'danger';
+            }
+        }
+        header('Location: admin.php');
+        exit;
+    }
 }
 
 // If this was an AJAX request, return a small JSON payload and exit
@@ -267,6 +311,24 @@ if($q !== ''){
             }
         }
     }
+}
+
+// Fetch pending posts/jobs
+$pending_posts = [];
+$stmt = safe_prepare($conn, "SELECT p.id, p.title, p.description, p.category, p.budget, p.location, p.created_at, COALESCE(u.username,'Guest') AS username FROM posts p LEFT JOIN users u ON p.user_id = u.id WHERE p.status = 'pending' ORDER BY p.created_at ASC LIMIT 200");
+if($stmt){
+    $stmt->execute();
+    if(method_exists($stmt, 'get_result')){
+        $res = $stmt->get_result();
+        while($r = $res->fetch_assoc()) $pending_posts[] = $r;
+    } else {
+        $stmt->store_result();
+        $stmt->bind_result($id,$title,$description,$category,$budget,$location,$created_at,$username);
+        while($stmt->fetch()){
+            $pending_posts[] = ['id'=>$id,'title'=>$title,'description'=>$description,'category'=>$category,'budget'=>$budget,'location'=>$location,'created_at'=>$created_at,'username'=>$username];
+        }
+    }
+    $stmt->close();
 }
 
 ?><!doctype html>
@@ -327,6 +389,41 @@ if($q !== ''){
                 </div>
             <?php endif; ?>
 
+            <!-- PENDING JOBS SECTION -->
+            <?php if(!empty($pending_posts)): ?>
+            <section class="pending-jobs-section" style="margin-bottom: 40px; padding: 20px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+                <h2>📋 Jobber avventende godkjenning (<?php echo count($pending_posts); ?>)</h2>
+                <p style="color: #856404; margin-bottom: 20px;">Godkjenn eller avvis disse jobbannonsene for å kontrollere quality.</p>
+                <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
+                    <?php foreach($pending_posts as $p): ?>
+                    <div class="service-card" style="border: 2px solid #ffc107;">
+                        <h3><?php echo htmlspecialchars($p['title']); ?></h3>
+                        <p><small style="color: #666;">av <?php echo htmlspecialchars($p['username']); ?> • <?php echo htmlspecialchars($p['created_at']); ?></small></p>
+                        <p><?php echo htmlspecialchars(substr($p['description'], 0, 100)); ?><?php if(strlen($p['description']) > 100) echo '...'; ?></p>
+                        <p style="color: #666; font-size: 13px;">
+                            <?php if($p['category']) echo '📁 ' . htmlspecialchars($p['category']) . ' • '; ?>
+                            <?php if($p['location']) echo '📍 ' . htmlspecialchars($p['location']); ?>
+                        </p>
+                        <?php if($p['budget']): ?>
+                        <p style="font-weight: 600; color: var(--green);">💰 <?php echo intval($p['budget']); ?> NOK</p>
+                        <?php endif; ?>
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            <form method="POST" style="flex: 1;">
+                                <input type="hidden" name="action" value="approve_post">
+                                <input type="hidden" name="post_id" value="<?php echo intval($p['id']); ?>">
+                                <button type="submit" class="btn btn-primary" style="width: 100%;">✓ Godkjenn</button>
+                            </form>
+                            <form method="POST" style="flex: 1;">
+                                <input type="hidden" name="action" value="reject_post">
+                                <input type="hidden" name="post_id" value="<?php echo intval($p['id']); ?>">
+                                <button type="submit" class="btn delete-btn" style="width: 100%;">✗ Avvis</button>
+                            </form>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </section>
+            <?php endif; ?>
            
             <form method="get" action="admin.php" class="admin-search-form">
                 <input type="search" name="q" placeholder="Search username or email" value="<?php echo htmlspecialchars($_GET['q'] ?? ''); ?>" >
