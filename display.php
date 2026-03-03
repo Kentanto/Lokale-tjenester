@@ -1101,7 +1101,7 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
         if($post_id <= 0){ echo json_encode(['status'=>'error','message'=>'Invalid post ID']); exit; }
         
-        $sql = "SELECT p.id, p.title, p.description, p.category, p.budget, p.location, p.contact_info, p.created_at, COALESCE(u.username,'Guest') AS username, IF(p.image, CONCAT('data:image/', COALESCE(p.image_type, 'jpeg'), ';base64,', TO_BASE64(p.image)), NULL) AS image FROM posts p LEFT JOIN users u ON p.user_id = u.id WHERE p.id = ? LIMIT 1";
+        $sql = "SELECT p.id, p.title, p.description, p.category, p.budget, p.location, p.contact_info, p.user_id, p.created_at, COALESCE(u.username,'Guest') AS username, IF(p.image, CONCAT('data:image/', COALESCE(p.image_type, 'jpeg'), ';base64,', TO_BASE64(p.image)), NULL) AS image FROM posts p LEFT JOIN users u ON p.user_id = u.id WHERE p.id = ? LIMIT 1";
         
         $stmt = safe_prepare($conn, $sql);
         if(!$stmt){ echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
@@ -1157,6 +1157,12 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         // Provide images array and keep legacy `image` field if present
         $row['images'] = $images;
         if(empty($row['image']) && count($images) > 0) $row['image'] = $images[0];
+
+        // Fetch user profile picture if user_id is available
+        $row['profile_picture'] = null;
+        if(!empty($row['user_id'])) {
+            $row['profile_picture'] = get_profile_picture_url($conn, $row['user_id']);
+        }
 
         echo json_encode(['status'=>'success','post'=>$row]);
         exit;
