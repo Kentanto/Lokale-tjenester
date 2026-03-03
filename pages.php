@@ -197,6 +197,10 @@ switch ($page) {
                                     <input id="job-location" name="location" type="text" placeholder="By eller postnummer">
                                 </div>
                                 <div class="form-group">
+                                    <label for="job-contact">Kontaktinformasjon</label>
+                                    <input id="job-contact" name="contact_info" type="text" placeholder="Telefon, e-post eller annen kontaktinformasjon" required>
+                                </div>
+                                <div class="form-group">
                                     <label for="job-image">Bilde (valgfritt)</label>
                                     <input id="job-image" name="image" type="file" accept="image/*" aria-describedby="image-help">
                                     <small id="image-help">Tillatte format: JPEG, PNG, GIF, WebP. Maks 5 MB. Bildet vil bli komprimert automatisk.</small>

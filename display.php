@@ -72,7 +72,7 @@ header('X-XSS-Protection: 1; mode=block');
 // Force HTTPS (uncomment when on production)
 // header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
 // Content Security Policy
-header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:;");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:;");
 
 // ===== DEBUG MODE CONTROL =====
 define('DEBUG_MODE', getenv('DEBUG_MODE') === 'true');
@@ -249,6 +249,7 @@ $conn->query("CREATE TABLE IF NOT EXISTS posts (
     category VARCHAR(100),
     budget INT DEFAULT 0,
     location VARCHAR(255),
+    contact_info VARCHAR(255),
     user_id INT UNSIGNED,
     image MEDIUMBLOB DEFAULT NULL,
     image_type VARCHAR(50) DEFAULT NULL,
@@ -744,8 +745,10 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             $category = trim($_POST['category'] ?? '');
             $budget = intval($_POST['budget'] ?? 0);
             $location = trim($_POST['location'] ?? '');
+            $contact_info = trim($_POST['contact_info'] ?? '');
 
             if(!$title || !$desc){ debug_log('create_post: Missing title or desc'); echo json_encode(['status'=>'error','message'=>'Title and description required']); exit; }
+            if(!$contact_info){ debug_log('create_post: Missing contact info'); echo json_encode(['status'=>'error','message'=>'Contact information is required']); exit; }
             if(empty($_SESSION['user_id'])){ debug_log('create_post: No user_id in session'); echo json_encode(['status'=>'error','message'=>'You must be logged in to create a job']); exit; }
             $uid = intval($_SESSION['user_id']);
 
@@ -780,9 +783,9 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             }
 
             // Insert post record first (no image columns relied on here)
-            $stmt = safe_prepare($conn, "INSERT INTO posts (title, description, category, budget, location, user_id, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())");
+            $stmt = safe_prepare($conn, "INSERT INTO posts (title, description, category, budget, location, contact_info, user_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
             if(!$stmt){ error_log('create_post: safe_prepare posts insert failed - ' . ($conn ? $conn->error : 'No connection')); echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
-            $stmt->bind_param('sssisi', $title, $desc, $category, $budget, $location, $uid);
+            $stmt->bind_param('sssissi', $title, $desc, $category, $budget, $location, $contact_info, $uid);
             if(!$stmt->execute()){ error_log('create_post: execute posts insert failed - ' . $stmt->error); echo json_encode(['status'=>'error','message'=>'Failed to create job']); exit; }
             $post_id = $conn->insert_id;
             error_log('create_post: Successfully created post with id=' . $post_id);
@@ -1098,7 +1101,7 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
         if($post_id <= 0){ echo json_encode(['status'=>'error','message'=>'Invalid post ID']); exit; }
         
-        $sql = "SELECT p.id, p.title, p.description, p.category, p.budget, p.location, p.created_at, COALESCE(u.username,'Guest') AS username, IF(p.image, CONCAT('data:image/', COALESCE(p.image_type, 'jpeg'), ';base64,', TO_BASE64(p.image)), NULL) AS image FROM posts p LEFT JOIN users u ON p.user_id = u.id WHERE p.id = ? LIMIT 1";
+        $sql = "SELECT p.id, p.title, p.description, p.category, p.budget, p.location, p.contact_info, p.created_at, COALESCE(u.username,'Guest') AS username, IF(p.image, CONCAT('data:image/', COALESCE(p.image_type, 'jpeg'), ';base64,', TO_BASE64(p.image)), NULL) AS image FROM posts p LEFT JOIN users u ON p.user_id = u.id WHERE p.id = ? LIMIT 1";
         
         $stmt = safe_prepare($conn, $sql);
         if(!$stmt){ echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
