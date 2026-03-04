@@ -1,4 +1,37 @@
 
+// ============================================
+// Terms of Service Modal - localStorage control
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    const termsModal = document.getElementById('termsModal');
+    const acceptTermsBtn = document.getElementById('acceptTermsBtn');
+    
+    if (termsModal && acceptTermsBtn) {
+        // Check if user has already accepted terms
+        const hasAcceptedTerms = localStorage.getItem('termsAccepted');
+        
+        if (!hasAcceptedTerms) {
+            // Show the modal if not accepted
+            termsModal.classList.add('active');
+        }
+        
+        // Handle accept button click
+        acceptTermsBtn.addEventListener('click', function() {
+            // Save to localStorage that user accepted
+            localStorage.setItem('termsAccepted', 'true');
+            // Hide the modal
+            termsModal.classList.remove('active');
+        });
+        
+        // Prevent closing modal by clicking outside (modal must be explicitly accepted)
+        termsModal.addEventListener('click', function(e) {
+            if (e.target === termsModal) {
+                e.preventDefault();
+            }
+        });
+    }
+});
+
 function toggleDropdown(){
     const dropdownMenu=document.getElementById('dropdownMenu');
     if(dropdownMenu) dropdownMenu.classList.toggle('active');

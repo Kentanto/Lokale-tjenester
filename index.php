@@ -44,6 +44,67 @@
         </div>
     </div>
 
+    <!-- Terms of Service Modal -->
+    <div id="termsModal" class="modal">
+        <div class="modal-content terms-modal-content">
+            <div class="terms-header">
+                <h2>Brukervilkår (Terms of Service)</h2>
+                <p class="terms-date">Lokale Tjenester UB - Sist oppdatert: 04.03.2026</p>
+            </div>
+            <div class="terms-body">
+                <p>Velkommen til Lokale Tjenester UB. Ved å bruke vår nettside eller tjenester godtar du disse brukervilkårene.</p>
+
+                <h4>1. Om tjenesten</h4>
+                <p>Lokale Tjenester UB er en digital plattform som kobler personer som trenger hjelp med småoppgaver med lokale ungdommer som ønsker fleksible småjobber.</p>
+                <p>Lokale Tjenester UB fungerer kun som en formidler mellom oppdragsgiver og hjelper. Vi er ikke arbeidsgiver for brukerne og er ikke part i selve avtalen mellom oppdragsgiver og hjelper.</p>
+
+                <h4>2. Bruk av tjenesten</h4>
+                <p>For å bruke tjenesten må brukere:</p>
+                <ul>
+                    <li>Oppgi korrekt og sann informasjon</li>
+                    <li>Bruke plattformen på en lovlig og respektfull måte</li>
+                    <li>Følge gjeldende lover og regler</li>
+                </ul>
+                <p>Lokale Tjenester UB forbeholder seg retten til å suspendere eller stenge brukere som misbruker tjenesten.</p>
+
+                <h4>3. Oppdrag</h4>
+                <p>Oppdragsgiver og hjelper inngår selv avtalen om oppdraget. Dette inkluderer blant annet:</p>
+                <ul>
+                    <li>arbeidsoppgaver</li>
+                    <li>tidspunkt</li>
+                    <li>pris</li>
+                </ul>
+                <p>Lokale Tjenester UB har ikke ansvar for gjennomføring, kvalitet eller resultat av oppdrag.</p>
+
+                <h4>4. Betaling</h4>
+                <p>Betaling for oppdrag skjer direkte mellom oppdragsgiver og hjelper, med mindre annet er oppgitt.</p>
+                <p>Lokale Tjenester UB kan ta et formidlingsgebyr for bruk av plattformen.</p>
+                <p>Brukere er selv ansvarlige for eventuelle skatter og avgifter knyttet til betaling.</p>
+
+                <h4>5. Alderskrav</h4>
+                <p>Brukere må være minst 13 år for å bruke plattformen. Brukere under 18 år bør ha samtykke fra foresatte.</p>
+
+                <h4>6. Ansvar</h4>
+                <p>Lokale Tjenester UB er ikke ansvarlig for:</p>
+                <ul>
+                    <li>skader eller uhell som oppstår under oppdrag</li>
+                    <li>kvaliteten på utført arbeid</li>
+                    <li>konflikter eller økonomiske tap mellom brukere</li>
+                </ul>
+                <p>All bruk av tjenesten skjer på eget ansvar.</p>
+
+                <h4>7. Endringer i vilkårene</h4>
+                <p>Lokale Tjenester UB kan oppdatere disse vilkårene ved behov. Oppdaterte vilkår publiseres på nettsiden.</p>
+
+                <h4>8. Kontakt</h4>
+                <p>Hvis du har spørsmål om disse vilkårene, kan du kontakte oss: <a href="mailto:lokaletjenester.gjovik@gmail.com">lokaletjenester.gjovik@gmail.com</a></p>
+            </div>
+            <div class="terms-footer">
+                <button id="acceptTermsBtn" class="btn btn-primary">Godta vilkårene</button>
+            </div>
+        </div>
+    </div>
+
     <footer class="site-footer">
             <div class="footer-inner">
                 <div class="footer-links">
