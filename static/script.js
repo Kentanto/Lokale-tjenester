@@ -1,5 +1,4 @@
 
-
 function toggleDropdown(){
     const dropdownMenu=document.getElementById('dropdownMenu');
     if(dropdownMenu) dropdownMenu.classList.toggle('active');
@@ -287,9 +286,57 @@ document.addEventListener('DOMContentLoaded',function(){
         }
     });
 
-    // Initialize create job form with rate limit check
+    // Initialize create job form with form data caching
     let createPostForm = document.getElementById("createPostForm");
     if(createPostForm) {
+        const cacheKey = 'createPostFormCache';
+        
+        // Restore from localStorage on page load
+        try {
+            const cached = localStorage.getItem(cacheKey);
+            if(cached) {
+                const data = JSON.parse(cached);
+                const fieldsToRestore = ['title', 'description', 'category', 'budget', 'location', 'contact_info'];
+                fieldsToRestore.forEach(fieldName => {
+                    const input = createPostForm.querySelector(`[name="${fieldName}"]`);
+                    if(input && data[fieldName]) {
+                        input.value = data[fieldName];
+                        input.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                });
+            }
+        } catch(e) {}
+        
+        // Save to localStorage on input
+        let saveTimeout;
+        createPostForm.addEventListener('input', function(e) {
+            if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(() => {
+                    try {
+                        const data = {};
+                        const fieldsToSave = ['title', 'description', 'category', 'budget', 'location', 'contact_info'];
+                        fieldsToSave.forEach(fieldName => {
+                            const input = createPostForm.querySelector(`[name="${fieldName}"]`);
+                            if(input) data[fieldName] = input.value;
+                        });
+                        localStorage.setItem(cacheKey, JSON.stringify(data));
+                    } catch(e) {}
+                }, 300);
+            }
+        });
+        
+        // Clear cache on successful submit
+        const originalHandler = createPostForm.onsubmit;
+        createPostForm.addEventListener('submit', function(e) {
+            // This will run after form submission completes
+            if(e.target.clearFormCache) {
+                e.target.clearFormCache = function() {
+                    try { localStorage.removeItem(cacheKey); } catch(e) {}
+                };
+            }
+        });
+        
         let remainingPosts = parseInt(createPostForm.dataset.remainingPosts || '3');
         let submitBtn = createPostForm.querySelector('button[type="submit"]');
         
@@ -307,7 +354,6 @@ document.addEventListener('DOMContentLoaded',function(){
             descField.addEventListener('input', function() {
                 descCounter.textContent = this.value.length + '/2000';
             });
-            // Initialize counter on page load
             descCounter.textContent = descField.value.length + '/2000';
         }
         
@@ -318,7 +364,6 @@ document.addEventListener('DOMContentLoaded',function(){
             contactField.addEventListener('input', function() {
                 contactCounter.textContent = this.value.length + '/30';
             });
-            // Initialize counter on page load
             contactCounter.textContent = contactField.value.length + '/30';
         }
     }
@@ -355,6 +400,8 @@ document.addEventListener('DOMContentLoaded',function(){
         disableForm(form, false);
         
         if(data.status === 'success'){
+            // Clear form cache from localStorage
+            try { localStorage.removeItem('createPostFormCache'); } catch(e) {}
             // Clear form fields
             form.reset();
             // Reset file input display
@@ -381,6 +428,8 @@ document.addEventListener('DOMContentLoaded',function(){
         showFormMessage(form, data.message, data.status);
         disableForm(form, false);
         if(data.status === 'success'){
+            // Clear signup form cache
+            localStorage.removeItem('signupFormCache');
             // show small confirmation and then redirect to profile
             showConfirmation('Signup successful','Welcome — your account was created.', 'pages.php?page=profile', 1800);
         }
@@ -399,9 +448,52 @@ document.addEventListener('DOMContentLoaded',function(){
         showFormMessage(form, data.message, data.status);
         disableForm(form, false);
         if(data.status === 'success'){
+            // Clear login form cache
+            localStorage.removeItem('loginFormCache');
             location.reload();
         }
     });
+    
+    // Setup form data caching for login and signup forms
+    function setupFormCache(formId, cacheKey) {
+        const form = document.getElementById(formId);
+        if(!form) return;
+        
+        // Restore cached data
+        try {
+            const cached = localStorage.getItem(cacheKey);
+            if(cached) {
+                const data = JSON.parse(cached);
+                Object.keys(data).forEach(fieldName => {
+                    const input = form.querySelector(`[name="${fieldName}"]`);
+                    if(input) input.value = data[fieldName];
+                });
+            }
+        } catch(e) {
+            console.error('Error restoring form cache:', e);
+        }
+        
+        // Save data on input change
+        form.addEventListener('input', function(e) {
+            if(e.target.tagName === 'INPUT') {
+                try {
+                    const data = {};
+                    const inputs = form.querySelectorAll('input');
+                    inputs.forEach(input => {
+                        if(input.name && input.type !== 'hidden' && input.type !== 'submit') {
+                            data[input.name] = input.value;
+                        }
+                    });
+                    localStorage.setItem(cacheKey, JSON.stringify(data));
+                } catch(e) {
+                    console.error('Error saving form cache:', e);
+                }
+            }
+        });
+    }
+    
+    setupFormCache('signupForm', 'signupFormCache');
+    setupFormCache('loginForm', 'loginFormCache');
 
     // Handle image preview for job creation form
     document.getElementById("job-image")?.addEventListener("change", function(e){
