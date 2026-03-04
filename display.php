@@ -168,6 +168,7 @@ function clear_session_cookie(){
 $is_logged_in = false;
 $user_name = "Guest";
 $user_email = '';
+$user_id = null;
 $user_created = null;
 $email_verified = false;
 
@@ -319,6 +320,14 @@ require_once __DIR__ . '/vendor/autoload.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+// Populate variables from session (now that session_start() has been called)
+if(!empty($_SESSION['user_id'])){
+    $is_logged_in = true;
+    $user_id = intval($_SESSION['user_id']);
+    $user_name = $_SESSION['user_name'] ?? 'User';
+    $user_email = $_SESSION['user_email'] ?? '';
+}
+
 // ---- DEBUGGING: log every POST ----
 error_log("=== display.php hit ===");
 error_log("POST keys: " . implode(',', array_keys($_POST)));
@@ -417,11 +426,26 @@ function get_profile_picture_url(mysqli $conn, int $user_id): string {
     
     $stmt->bind_param('i', $user_id);
     $stmt->execute();
-    $stmt->bind_result($imgData, $imgType);
-    $stmt->fetch();
+    
+    $imgData = null;
+    $imgType = null;
+    
+    // Use get_result() for proper BLOB handling when available
+    if(method_exists($stmt, 'get_result')){
+        $res = $stmt->get_result();
+        if($row = $res->fetch_assoc()){
+            $imgData = $row['profile_picture'];
+            $imgType = $row['profile_picture_type'];
+        }
+    } else {
+        // Fallback for older MySQL drivers
+        $stmt->bind_result($imgData, $imgType);
+        $stmt->fetch();
+    }
+    
     $stmt->close();
     
-    if(!$imgData || !$imgType) return '';
+    if(empty($imgData) || empty($imgType)) return '';
     
     $base64 = base64_encode($imgData);
     return "data:{$imgType};base64,{$base64}";
@@ -1016,7 +1040,7 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         $max = isset($_POST['max_budget']) ? intval($_POST['max_budget']) : null;
         $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 50;
 
-        $sql = "SELECT p.id, p.title, p.description, p.category, p.budget, p.location, p.created_at, COALESCE(u.username,'Guest') AS username, IF(p.image, CONCAT('data:image/', COALESCE(p.image_type, 'jpeg'), ';base64,', TO_BASE64(p.image)), NULL) AS image FROM posts p LEFT JOIN users u ON p.user_id = u.id";
+        $sql = "SELECT p.id, p.title, p.description, p.category, p.budget, p.location, p.created_at, p.user_id, COALESCE(u.username,'Guest') AS username, IF(p.image, CONCAT('data:image/', COALESCE(p.image_type, 'jpeg'), ';base64,', TO_BASE64(p.image)), NULL) AS image, IF(u.profile_picture, CONCAT(COALESCE(u.profile_picture_type, 'image/jpeg'), ';base64,', TO_BASE64(u.profile_picture)), NULL) AS profile_picture FROM posts p LEFT JOIN users u ON p.user_id = u.id";
         $where = [];
         $types = '';
         $params = [];
@@ -1374,7 +1398,13 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             exit; 
         }
         
-        $stmt->bind_param('si', $imgData, $uid);
+        $null = NULL;
+        $stmt->bind_param('bi', $null, $uid);
+        if(!$stmt->send_long_data(0, $imgData)){ 
+            echo json_encode(['status'=>'error','message'=>'Failed to send image data']); 
+            exit; 
+        }
+        
         if(!$stmt->execute()){ 
             echo json_encode(['status'=>'error','message'=>'Failed to save profile picture']); 
             exit; 

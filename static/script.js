@@ -89,11 +89,12 @@ function renderJobs(jobs, container){
     let out = '';
     jobs.forEach(j=>{
         let imageHtml = j.image ? `<img src="${j.image}" alt="${escapeHtml(j.title)}" style="width:100%;height:200px;object-fit:cover;border-radius:6px;margin-bottom:12px;">` : '';
+        let profilePictureHtml = j.profile_picture ? `<img src="data:${j.profile_picture}" alt="${escapeHtml(j.username)}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;margin-right:8px;">` : `<div style="width:32px;height:32px;border-radius:50%;background:#ddd;display:flex;align-items:center;justify-content:center;font-weight:bold;margin-right:8px;font-size:14px;">${escapeHtml(j.username.charAt(0))}</div>`;
         out += `<article class="service-card" style="margin-bottom:12px;cursor:pointer;" onclick="openJobDetail(${j.id})">
             ${imageHtml}
             <h3>${escapeHtml(j.title)}</h3>
             <p>${escapeHtml(j.description.substring(0,150)) + (j.description.length > 150 ? '...' : '')}</p>
-            <p style="color:#666;font-size:13px">${escapeHtml(j.username)} — ${escapeHtml(j.location||'')}</p>
+            <p style="color:#666;font-size:13px;display:flex;align-items:center;">${profilePictureHtml}<span>${escapeHtml(j.username)} — ${escapeHtml(j.location||'')}</span></p>
             <p style="font-weight:600;margin-top:6px">Budget: ${j.budget ? (parseInt(j.budget) + ' NOK') : 'Negotiable'}</p>
             <div style="font-size:12px;color:#888;margin-top:6px">Posted: ${formatRelativeTime(j.created_at)}</div>
         </article>`;
