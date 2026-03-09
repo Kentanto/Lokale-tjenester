@@ -828,8 +828,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     console.log('✓ Resend verification button found and listener attached');
 
+    let cooldownActive = false;
+    let cooldownEnd = 0;
+
     btn.addEventListener('click', async e => {
         e.preventDefault();
+        
+        // Check if cooldown is still active
+        if (cooldownActive) {
+            const remaining = Math.ceil((cooldownEnd - Date.now()) / 1000);
+            alert(`Vennligst vent ${remaining} sekund før du prøver igjen.`);
+            return;
+        }
+        
         console.log('🔘 Resend verification button clicked');
         btn.disabled = true;
 
@@ -870,30 +881,54 @@ document.addEventListener('DOMContentLoaded', function() {
 
         console.log('📦 Server response data:', data);
 
+        // Start 60-second cooldown
+        cooldownActive = true;
+        cooldownEnd = Date.now() + 60000;
+        const originalText = btn.textContent;
+        
+        const cooldownInterval = setInterval(() => {
+            const remaining = Math.ceil((cooldownEnd - Date.now()) / 1000);
+            if (remaining > 0) {
+                btn.textContent = `Vent ${remaining}s`;
+            } else {
+                clearInterval(cooldownInterval);
+                cooldownActive = false;
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }, 100);
+
         if (data.success) {
             console.log('✓ Email sent successfully');
-            // Show success notification
+            // Show success notification (centered and prominent)
             let notif = document.createElement('div');
             notif.style.cssText = `
                 position: fixed;
-                top: 20px;
-                right: 20px;
-                max-width: 400px;
-                padding: 16px;
-                background: #E8F5E9;
-                border: 2px solid #388E3C;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                max-width: 500px;
+                padding: 32px;
+                background: #F0F8E8;
+                border: 4px solid #1B5E20;
+                border-radius: 12px;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.25);
                 z-index: 5000;
                 font-family: Arial, sans-serif;
                 color: #1B5E20;
+                text-align: center;
             `;
             notif.innerHTML = `
-                <strong style="font-size: 16px;">✓ Bekreftelsesmail sendt</strong><br/>
-                <small style="color: #1B5E20;">Sjekk innboksen din for bekreftelseslenken.</small>
+                <div style="position: absolute; top: 10px; right: 10px; cursor: pointer; font-size: 24px; line-height: 1; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: rgba(27, 94, 32, 0.1); border-radius: 4px; user-select: none;" class="close-btn">✕</div>
+                <div style="font-size: 48px; margin-bottom: 16px;">✓</div>
+                <strong style="font-size: 20px; display: block; margin-bottom: 12px;">Bekreftelsesmail sendt!</strong>
+                <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #2C5F2D;">
+                    En bekreftelseslenke har blitt sendt til din e-postadresse.<br/>
+                    <strong>Sjekk også spam-mappen din hvis du ikke finner den i innboksen.</strong>
+                </p>
             `;
             document.body.appendChild(notif);
-            setTimeout(() => notif.remove(), 5000);
+            notif.querySelector('.close-btn').addEventListener('click', () => notif.remove());
         } else {
             console.log('❌ Email send failed');
             // Show error notification

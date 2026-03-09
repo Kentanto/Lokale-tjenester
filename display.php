@@ -379,81 +379,39 @@ function send_verification_email(mysqli $conn, string $email, int $user_id): boo
     $verifyLink = "https://" . $domain . "/pages.php?page=verify&token=" . urlencode($token);
     error_log("[EMAIL] Verify link: " . substr($verifyLink, 0, 50) . "...");
 
-    $mail = new PHPMailer(true);
-    try {
-        error_log("[EMAIL] Initializing PHPMailer");
-        $mail->CharSet = 'UTF-8';
-        $mail->Encoding = 'base64';
-        $mail->isSendmail();
-        error_log("[EMAIL] Set to use sendmail");
-        
-        $fromEmail = 'noreply@lokale-tjenester.no';
-        $fromName = 'Lokale Tjenester';
-        
-        $mail->setFrom($fromEmail, $fromName);
-        error_log("[EMAIL] From set to: $fromEmail");
-        
-        $mail->addAddress($email);
-        error_log("[EMAIL] Recipient set to: $email");
-        
-        $mail->isHTML(true);
-        $mail->Subject = 'Verifiser din e-postadresse - Lokale Tjenester';
-        error_log("[EMAIL] Subject set");
-        
-        $mail->Body = "
-            <html>
-                <body style='font-family: Arial, sans-serif;'>
-                    <h2>Verifiser din e-postadresse</h2>
-                    <p>Hei,</p>
-                    <p>Takk for at du registrerte deg på Lokale Tjenester UB. For å fullføre registreringen, vennligst verifiser din e-postadresse ved å klikke på lenken nedenfor:</p>
-                    <p><a href='$verifyLink' style='background-color: #2C8C42; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>Verifiser e-postadresse</a></p>
-                    <p>Eller kopier og lim inn denne lenken i nettleseren din:</p>
-                    <p><code>$verifyLink</code></p>
-                    <p>Lenken utløper om 24 timer.</p>
-                    <p>Hvis du ikke opprettet denne kontoen, kan du ignorere denne e-posten.</p>
-                    <p>Med vennlig hilsen,<br/>Lokale Tjenester UB</p>
-                </body>
-            </html>
-        ";
-        $mail->AltBody = "Verifiser e-postadresse: $verifyLink";
-        error_log("[EMAIL] Body and AltBody set");
-
-        error_log("[EMAIL] Attempting to send email...");
-        $sent = $mail->send();
-        
-        if ($sent) {
-            error_log("[EMAIL] ✓ Email sent successfully to $email");
-            return true;
-        } else {
-            error_log("[EMAIL] ✗ send() returned false. ErrorInfo: " . $mail->ErrorInfo);
-            return false;
-        }
-    } catch (Exception $e) {
-        error_log("[EMAIL] ✗ EXCEPTION: " . $e->getMessage());
-        error_log("[EMAIL] ✗ PHPMailer ErrorInfo: " . $mail->ErrorInfo);
-    error_log("Sending verification email to $email, link: $verifyLink");
-
-    $mail = new PHPMailer(false);
-    if(!$mail) {
-        error_log("PHPMailer creation failed");
+    // Use PHP's built-in mail() function instead of PHPMailer
+    $subject = 'Verifiser din e-postadresse - Lokale Tjenester';
+    $fromEmail = 'noreply@lokale-tjenester.no';
+    $headers = "MIME-Version: 1.0\r\n";
+    $headers .= "Content-type: text/html; charset=UTF-8\r\n";
+    $headers .= "From: Lokale Tjenester <$fromEmail>\r\n";
+    
+    $htmlBody = "
+        <html>
+            <body style='font-family: Arial, sans-serif;'>
+                <h2>Verifiser din e-postadresse</h2>
+                <p>Hei,</p>
+                <p>Takk for at du registrerte deg på Lokale Tjenester UB. For å fullføre registreringen, vennligst verifiser din e-postadresse ved å klikke på lenken nedenfor:</p>
+                <p><a href='$verifyLink' style='background-color: #2C8C42; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>Verifiser e-postadresse</a></p>
+                <p>Eller kopier og lim inn denne lenken i nettleseren din:</p>
+                <p><code>$verifyLink</code></p>
+                <p>Lenken utløper om 24 timer.</p>
+                <p>Hvis du ikke opprettet denne kontoen, kan du ignorere denne e-posten.</p>
+                <p>Med vennlig hilsen,<br/>Lokale Tjenester UB</p>
+            </body>
+        </html>
+    ";
+    
+    error_log("[EMAIL] Attempting to send email using mail()...");
+    $sent = @mail($email, $subject, $htmlBody, $headers);
+    
+    if ($sent) {
+        error_log("[EMAIL] ✓ Email sent successfully to $email");
+        return true;
+    } else {
+        error_log("[EMAIL] ✗ mail() returned false for $email");
         return false;
     }
-
-    $mail->CharSet = 'UTF-8';
-    $mail->Encoding = 'base64';
-    $mail->isSendmail();
-    $mail->setFrom(getenv('FROM_EMAIL'), getenv('FROM_NAME') ?: 'Lokale Tjenester');
-    $mail->addAddress($email);
-    $mail->isHTML(true);
-    $mail->Subject = 'Verify your email';
-    $mail->Body = "<p><a href='$verifyLink'>Verify Email</a></p>";
-
-    if(!$mail->send()){
-        error_log("Email send failed: " . $mail->ErrorInfo);
-        return false;
-    }
-    error_log("Email sent successfully to $email");
-    return true;
 }
 
 
@@ -554,8 +512,8 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         if(strlen($username) < 3 || strlen($username) > 32){ 
             echo json_encode(['status'=>'error','message'=>'Username must be 3-32 characters']); exit; 
         }
-        if(!preg_match('/^[A-Za-z0-9_\-]+$/', $username)){ 
-            echo json_encode(['status'=>'error','message'=>'Username may only contain letters, numbers, dash or underscore']); exit; 
+        if(!preg_match('/^[\p{L}0-9_\-\s]+$/u', $username)){ 
+            echo json_encode(['status'=>'error','message'=>'Username may only contain letters, numbers, dash, underscore or spaces']); exit; 
         }
         if(strlen($password) < 6){ 
             echo json_encode(['status'=>'error','message'=>'Password must be at least 6 characters']); exit; 
