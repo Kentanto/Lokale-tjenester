@@ -390,7 +390,7 @@ function send_verification_email(mysqli $conn, string $email, int $user_id): boo
     $stmt->execute();
     $stmt->close();
 
-    // Insert new token
+    // Insert new token (24 hour expiry)
     $stmt = $conn->prepare(
         "INSERT INTO email_tokens (user_id, token, created_at) VALUES (?, ?, NOW())"
     );
@@ -398,23 +398,82 @@ function send_verification_email(mysqli $conn, string $email, int $user_id): boo
     $stmt->execute();
     $stmt->close();
 
-    $verifyLink = "https://" . getenv('DOMAIN') . "/pages.php?page=verify&token=" . urlencode($token);
+    $domain = getenv('DOMAIN') ?: $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $verifyLink = "https://" . $domain . "/pages.php?page=verify&token=" . urlencode($token);
 
     $mail = new PHPMailer(true);
     try {
         // Ensure outgoing mail uses UTF-8 charset so Norwegian characters are preserved
         $mail->CharSet = 'UTF-8';
         $mail->Encoding = 'base64';
-        $mail->isSendmail();
-        $mail->setFrom(getenv('FROM_EMAIL'), getenv('FROM_NAME') ?: 'Lokale Tjenester');
+
+        // Check if SMTP credentials are configured
+        $smtpHost = getenv('SMTP_HOST');
+        $smtpPort = getenv('SMTP_PORT') ?: 587;
+        $smtpUser = getenv('SMTP_USER');
+        $smtpPass = getenv('SMTP_PASS');
+        
+        // Debug logging
+        error_log("Email config check - Host: " . ($smtpHost ? "SET" : "NOT SET") . 
+                  ", User: " . ($smtpUser ? "SET" : "NOT SET") . 
+                  ", Pass: " . ($smtpPass ? "SET" : "NOT SET"));
+        
+        if (!$smtpHost || !$smtpUser || !$smtpPass) {
+            error_log("CRITICAL: SMTP credentials not configured. Set SMTP_HOST, SMTP_USER, SMTP_PASS environment variables.");
+            return false;
+        }
+        
+        // Use SMTP
+        $mail->isSMTP();
+        $mail->Host = $smtpHost;
+        $mail->Port = intval($smtpPort);
+        $mail->SMTPAuth = true;
+        $mail->Username = $smtpUser;
+        $mail->Password = $smtpPass;
+        $mail->SMTPSecure = intval($smtpPort) == 465 ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->SMTPOptions = array(
+            'ssl' => array(
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+                'allow_self_signed' => true
+            )
+        );
+        
+        error_log("SMTP configured: " . $smtpHost . ":" . $smtpPort . " for email to $email");
+        
+        $fromEmail = getenv('FROM_EMAIL') ?: 'noreply@lokale-tjenester.no';
+        $fromName = getenv('FROM_NAME') ?: 'Lokale Tjenester';
+        
+        $mail->setFrom($fromEmail, $fromName);
         $mail->addAddress($email);
         $mail->isHTML(true);
-        $mail->Subject = 'Verify your email';
-        $mail->Body = "<p><a href='$verifyLink'>Verify Email</a></p>";
+        $mail->Subject = 'Verifiser din e-postadresse - Lokale Tjenester';
+        $mail->Body = "
+            <html>
+                <body style='font-family: Arial, sans-serif;'>
+                    <h2>Verifiser din e-postadresse</h2>
+                    <p>Hei,</p>
+                    <p>Takk for at du registrerte deg på Lokale Tjenester UB. For å fullføre registreringen, vennligst verifiser din e-postadresse ved å klikke på lenken nedenfor:</p>
+                    <p><a href='$verifyLink' style='background-color: #2C8C42; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>Verifiser e-postadresse</a></p>
+                    <p>Eller kopier og lim inn denne lenken i nettleseren din:</p>
+                    <p><code>$verifyLink</code></p>
+                    <p>Lenken utløper om 24 timer.</p>
+                    <p>Hvis du ikke opprettet denne kontoen, kan du ignorere denne e-posten.</p>
+                    <p>Med vennlig hilsen,<br/>Lokale Tjenester UB</p>
+                </body>
+            </html>
+        ";
+        $mail->AltBody = "Verifiser e-postadresse: $verifyLink";
 
-        return $mail->send();
+        $sent = $mail->send();
+        if ($sent) {
+            error_log("Verification email sent successfully to $email");
+        } else {
+            error_log("PHPMailer failed to send but no exception: $email - " . $mail->ErrorInfo);
+        }
+        return $sent;
     } catch (Exception $e) {
-        error_log($mail->ErrorInfo);
+        error_log("Exception sending verification email to $email: " . $e->getMessage() . " || " . $mail->ErrorInfo);
         return false;
     }
 }

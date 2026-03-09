@@ -298,6 +298,52 @@ document.addEventListener('DOMContentLoaded',function(){
         }
     }
 
+    // Show notification popup (info, success, warning, error)
+    function showNotification(title, message, type='info', autoDismiss=4000) {
+        let notifDiv = document.getElementById('notificationPopup');
+        if (!notifDiv) {
+            notifDiv = document.createElement('div');
+            notifDiv.id = 'notificationPopup';
+            notifDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                max-width: 400px;
+                padding: 16px;
+                border-radius: 8px;
+                font-size: 14px;
+                z-index: 4000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                animation: slideInRight 0.3s ease-out;
+            `;
+            document.body.appendChild(notifDiv);
+        }
+
+        // Color based on type
+        const colors = {
+            'info': { bg: '#E3F2FD', border: '#1976D2', text: '#0D47A1' },
+            'success': { bg: '#E8F5E9', border: '#388E3C', text: '#1B5E20' },
+            'warning': { bg: '#FFF3E0', border: '#F57C00', text: '#E65100' },
+            'error': { bg: '#FFEBEE', border: '#C62828', text: '#B71C1C' }
+        };
+        const color = colors[type] || colors['info'];
+
+        notifDiv.style.backgroundColor = color.bg;
+        notifDiv.style.borderLeft = `4px solid ${color.border}`;
+        notifDiv.style.color = color.text;
+        notifDiv.innerHTML = `
+            <strong>${title}</strong><br/>
+            <small>${message}</small>
+            <button onclick="this.parentElement.remove();" style="position: absolute; top: 8px; right: 8px; background: none; border: none; color: ${color.text}; cursor: pointer; font-size: 18px; padding: 0; width: 24px; height: 24px;">×</button>
+        `;
+
+        if (autoDismiss > 0) {
+            setTimeout(() => {
+                if (notifDiv.parentElement) notifDiv.remove();
+            }, autoDismiss);
+        }
+    }
+
     // Handle reset limit button (for admins) - use event delegation
     document.addEventListener("click", async e => {
         if(e.target.id !== "resetLimitBtn") return;
@@ -464,8 +510,17 @@ document.addEventListener('DOMContentLoaded',function(){
         if(data.status === 'success'){
             // Clear signup form cache
             localStorage.removeItem('signupFormCache');
-            // show small confirmation and then redirect to profile
-            showConfirmation('Signup successful','Welcome — your account was created.', 'pages.php?page=profile', 1800);
+            // Check if verification email was sent
+            if(data.message.includes('Verification email sent')){
+                showNotification('Bekreftelsesmail sendt', 'En bekreftelsesmail har blitt sendt til din e-postadresse. Vennligst sjekk innboksen din og klikk på lenken for å fullføre registreringen.', 'info');
+                // After email notification, show small confirmation and then redirect
+                setTimeout(()=>{
+                    showConfirmation('Signup successful','Welcome — your account was created.', 'pages.php?page=profile', 1800);
+                }, 2000);
+            } else {
+                // No email was sent, just redirect
+                showConfirmation('Signup successful','Welcome — your account was created.', 'pages.php?page=profile', 1800);
+            }
         }
     });
 
@@ -797,11 +852,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         console.log('Server response:', data);
 
-        const profileForm = document.getElementById('settingsForm');
-        if (profileForm) {
-            showFormMessage(profileForm, data.message + (data.verification_url ? (' — ' + data.verification_url) : ''), data.status);
+        if (data.success) {
+            showNotification('Bekreftelsesmail sendt', 'En bekreftelsesmail har blitt sendt til din e-postadresse. Vennligst sjekk innboksen din.', 'success', 5000);
         } else {
-            alert(data.message);
+            showNotification('Feil', 'Kunne ikke sende bekreftelsesmail: ' + data.message, 'error', 5000);
         }
 
         btn.disabled = false;
