@@ -445,7 +445,7 @@ document.addEventListener('DOMContentLoaded',function(){
                 if(previewArea) previewArea.innerHTML = '';
             }
             // redirect to job listings after successful creation
-            showConfirmation('Job Posted!','Your job has been submitted and is awaiting moderator approval. You will be notified once it is published.');
+            showConfirmation('Jobb Publisert!','Din jobb har blitt sendt inn og venter på godkjenning fra moderator. Du vil bli varslet når den er publisert.');
         }
     });
 
