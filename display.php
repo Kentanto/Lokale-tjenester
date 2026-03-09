@@ -183,11 +183,8 @@ $DB_PASS = getenv('DB_PASS') ?: 'pwlt01!';
 $conn = @new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME);
 if ($conn && $conn->connect_error) {
     error_log('display.php: DB connect error: ' . $conn->connect_error);
-    if (DEBUG_MODE) {
-        @file_put_contents(__DIR__ . '/debug_db.log', 'Connect error: ' . $conn->connect_error . "\n", FILE_APPEND);
-    }
-} else if (DEBUG_MODE) {
-    @file_put_contents(__DIR__ . '/debug_db.log', 'Connected successfully' . "\n", FILE_APPEND);
+} else if ($conn) {
+    $conn->set_charset('utf8mb4');
 }
 
 function safe_prepare($conn, $sql){
@@ -434,8 +431,29 @@ function send_verification_email(mysqli $conn, string $email, int $user_id): boo
     } catch (Exception $e) {
         error_log("[EMAIL] ✗ EXCEPTION: " . $e->getMessage());
         error_log("[EMAIL] ✗ PHPMailer ErrorInfo: " . $mail->ErrorInfo);
+    error_log("Sending verification email to $email, link: $verifyLink");
+
+    $mail = new PHPMailer(false);
+    if(!$mail) {
+        error_log("PHPMailer creation failed");
         return false;
     }
+
+    $mail->CharSet = 'UTF-8';
+    $mail->Encoding = 'base64';
+    $mail->isSendmail();
+    $mail->setFrom(getenv('FROM_EMAIL'), getenv('FROM_NAME') ?: 'Lokale Tjenester');
+    $mail->addAddress($email);
+    $mail->isHTML(true);
+    $mail->Subject = 'Verify your email';
+    $mail->Body = "<p><a href='$verifyLink'>Verify Email</a></p>";
+
+    if(!$mail->send()){
+        error_log("Email send failed: " . $mail->ErrorInfo);
+        return false;
+    }
+    error_log("Email sent successfully to $email");
+    return true;
 }
 
 
@@ -573,9 +591,9 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
 
             // Send verification email
             if(send_verification_email($conn, $email, $new_id)){
-                echo json_encode(['status'=>'success','message'=>'Signup successful! Verification email sent.','email_sent'=>true]);
+                echo json_encode(['status'=>'success','message'=>'Signup successful! Verification email sent.']);
             } else {
-                echo json_encode(['status'=>'success','message'=>'Signup successful but failed to send verification email.','email_sent'=>false]);
+                echo json_encode(['status'=>'success','message'=>'Signup successful but failed to send verification email.']);
             }
             exit;
         } else { 
