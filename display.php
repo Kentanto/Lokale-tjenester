@@ -1,8 +1,4 @@
 <?php
-// Temporary debug log to help diagnose 500 errors when browser shows no response.
-// The webserver must be able to write files in this directory for these logs to appear.
-@file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - display.php loaded\n", FILE_APPEND);
-
 // Increase PHP limits for file uploads (5MB + overhead)
 ini_set('upload_max_filesize', '5M');
 ini_set('post_max_size', '15M');
@@ -385,18 +381,22 @@ function send_verification_email(mysqli $conn, string $email, int $user_id): boo
     $token = bin2hex(random_bytes(32));
 
     // Remove old tokens
-    $stmt = $conn->prepare("DELETE FROM email_tokens WHERE user_id=?");
-    $stmt->bind_param('i', $user_id);
-    $stmt->execute();
-    $stmt->close();
+    $stmt = safe_prepare($conn, "DELETE FROM email_tokens WHERE user_id=?");
+    if($stmt){
+        $stmt->bind_param('i', $user_id);
+        $stmt->execute();
+        $stmt->close();
+    }
 
     // Insert new token
-    $stmt = $conn->prepare(
-        "INSERT INTO email_tokens (user_id, token, created_at) VALUES (?, ?, NOW())"
-    );
-    $stmt->bind_param('is', $user_id, $token);
-    $stmt->execute();
-    $stmt->close();
+    $stmt = safe_prepare($conn, "INSERT INTO email_tokens (user_id, token, created_at) VALUES (?, ?, NOW())");
+    if($stmt){
+        $stmt->bind_param('is', $user_id, $token);
+        $stmt->execute();
+        $stmt->close();
+    } else {
+        return false;
+    }
 
     $verifyLink = "https://" . getenv('DOMAIN') . "/pages.php?page=verify&token=" . urlencode($token);
 
@@ -487,17 +487,10 @@ function get_user_remaining_posts(mysqli $conn, int $user_id): int {
 // Only handle AJAX-style POST actions when this file is the requested endpoint
 // (i.e. avoid intercepting POSTs intended for pages that `require_once 'display.php'`).
 if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
-    // Log the incoming POST request for debugging (temporary)
-    $post_log = date('c') . " - POST start: action=" . ($_POST['action'] ?? '(none)') . " method=" . ($_SERVER['REQUEST_METHOD'] ?? '') . " remote=" . ($_SERVER['REMOTE_ADDR'] ?? '') . "\n";
-    @file_put_contents(__DIR__ . '/debug_display_exec.log', $post_log, FILE_APPEND);
-
     $action = $_POST['action'] ?? null;
 
 
     header('Content-Type: application/json; charset=utf-8');
-    // Also log POST keys and cookies briefly
-    @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - POST keys: " . implode(',', array_keys($_POST)) . "\n", FILE_APPEND);
-    @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - COOKIES: " . json_encode(array_keys($_COOKIE)) . "\n", FILE_APPEND);
 
     if($action === 'signup'){
         $username = trim($_POST['username'] ?? '');
@@ -511,8 +504,8 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         if(strlen($username) < 3 || strlen($username) > 32){ 
             echo json_encode(['status'=>'error','message'=>'Username must be 3-32 characters']); exit; 
         }
-        if(!preg_match('/^[A-Za-z0-9_\-]+$/', $username)){ 
-            echo json_encode(['status'=>'error','message'=>'Username may only contain letters, numbers, dash or underscore']); exit; 
+        if(!preg_match('/^[A-Za-zæøåÆØÅ0-9\s_\-]+$/', $username)){ 
+            echo json_encode(['status'=>'error','message'=>'Username may only contain letters (including æøå), numbers, spaces, dash or underscore']); exit; 
         }
         if(strlen($password) < 6){ 
             echo json_encode(['status'=>'error','message'=>'Password must be at least 6 characters']); exit; 

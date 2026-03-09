@@ -641,6 +641,44 @@ document.addEventListener('DOMContentLoaded',function(){
         if(data.status==='success') location.reload();
     });
 
+    // Navbar signup form handler
+    document.getElementById('signupForm')?.addEventListener('submit', async e=>{
+        e.preventDefault();
+        let fd=new FormData(e.target);
+        let form = e.target;
+        disableForm(form, true);
+        let res;
+        try{ res = await fetch('/display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
+        catch(err){ showFormMessage(form,'Network error','error'); disableForm(form,false); return; }
+        let data = await parseJsonResponse(res);
+        showFormMessage(form, data.message, data.status);
+        disableForm(form, false);
+        if(data.status==='success'){
+            // Close dropdown and reload to show logged in state
+            document.getElementById('dropdownMenu')?.classList.remove('active');
+            location.reload();
+        }
+    });
+
+    // Navbar login form handler
+    document.getElementById('loginForm')?.addEventListener('submit', async e=>{
+        e.preventDefault();
+        let fd=new FormData(e.target);
+        let form = e.target;
+        disableForm(form, true);
+        let res;
+        try{ res = await fetch('/display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
+        catch(err){ showFormMessage(form,'Network error','error'); disableForm(form,false); return; }
+        let data = await parseJsonResponse(res);
+        showFormMessage(form, data.message, data.status);
+        disableForm(form, false);
+        if(data.status==='success'){
+            // Close dropdown and reload
+            document.getElementById('dropdownMenu')?.classList.remove('active');
+            location.reload();
+        }
+    });
+
     // Settings form handler (profile page)
     document.getElementById('settingsForm')?.addEventListener('submit', async e=>{
         e.preventDefault();
