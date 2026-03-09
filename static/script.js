@@ -298,52 +298,6 @@ document.addEventListener('DOMContentLoaded',function(){
         }
     }
 
-    // Show notification popup (info, success, warning, error)
-    function showNotification(title, message, type='info', autoDismiss=4000) {
-        let notifDiv = document.getElementById('notificationPopup');
-        if (!notifDiv) {
-            notifDiv = document.createElement('div');
-            notifDiv.id = 'notificationPopup';
-            notifDiv.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                max-width: 400px;
-                padding: 16px;
-                border-radius: 8px;
-                font-size: 14px;
-                z-index: 4000;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                animation: slideInRight 0.3s ease-out;
-            `;
-            document.body.appendChild(notifDiv);
-        }
-
-        // Color based on type
-        const colors = {
-            'info': { bg: '#E3F2FD', border: '#1976D2', text: '#0D47A1' },
-            'success': { bg: '#E8F5E9', border: '#388E3C', text: '#1B5E20' },
-            'warning': { bg: '#FFF3E0', border: '#F57C00', text: '#E65100' },
-            'error': { bg: '#FFEBEE', border: '#C62828', text: '#B71C1C' }
-        };
-        const color = colors[type] || colors['info'];
-
-        notifDiv.style.backgroundColor = color.bg;
-        notifDiv.style.borderLeft = `4px solid ${color.border}`;
-        notifDiv.style.color = color.text;
-        notifDiv.innerHTML = `
-            <strong>${title}</strong><br/>
-            <small>${message}</small>
-            <button onclick="this.parentElement.remove();" style="position: absolute; top: 8px; right: 8px; background: none; border: none; color: ${color.text}; cursor: pointer; font-size: 18px; padding: 0; width: 24px; height: 24px;">×</button>
-        `;
-
-        if (autoDismiss > 0) {
-            setTimeout(() => {
-                if (notifDiv.parentElement) notifDiv.remove();
-            }, autoDismiss);
-        }
-    }
-
     // Handle reset limit button (for admins) - use event delegation
     document.addEventListener("click", async e => {
         if(e.target.id !== "resetLimitBtn") return;
@@ -510,17 +464,33 @@ document.addEventListener('DOMContentLoaded',function(){
         if(data.status === 'success'){
             // Clear signup form cache
             localStorage.removeItem('signupFormCache');
-            // Check if verification email was sent
-            if(data.message.includes('Verification email sent')){
-                showNotification('Bekreftelsesmail sendt', 'En bekreftelsesmail har blitt sendt til din e-postadresse. Vennligst sjekk innboksen din og klikk på lenken for å fullføre registreringen.', 'info');
-                // After email notification, show small confirmation and then redirect
-                setTimeout(()=>{
-                    showConfirmation('Signup successful','Welcome — your account was created.', 'pages.php?page=profile', 1800);
-                }, 2000);
-            } else {
-                // No email was sent, just redirect
-                showConfirmation('Signup successful','Welcome — your account was created.', 'pages.php?page=profile', 1800);
+            // Show email notification if email was sent
+            if(data.email_sent === true){
+                // Create and show notification popup
+                let notif = document.createElement('div');
+                notif.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    max-width: 400px;
+                    padding: 16px;
+                    background: #E8F5E9;
+                    border: 2px solid #388E3C;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                    z-index: 5000;
+                    font-family: Arial, sans-serif;
+                    color: #1B5E20;
+                `;
+                notif.innerHTML = `
+                    <strong style="font-size: 16px;">✓ Bekreftelsesmail sendt</strong><br/>
+                    <small style="color: #1B5E20;">En lenke har blitt sendt til din e-postadresse. Klikk på den for å bekrefte kontoen.</small>
+                `;
+                document.body.appendChild(notif);
+                setTimeout(() => notif.remove(), 5000);
             }
+            // show small confirmation and then redirect to profile
+            showConfirmation('Signup successful','Welcome — your account was created.', 'pages.php?page=profile', 1800);
         }
     });
 
@@ -696,6 +666,44 @@ document.addEventListener('DOMContentLoaded',function(){
         if(data.status==='success') location.reload();
     });
 
+    // Navbar signup form handler
+    document.getElementById('signupForm')?.addEventListener('submit', async e=>{
+        e.preventDefault();
+        let fd=new FormData(e.target);
+        let form = e.target;
+        disableForm(form, true);
+        let res;
+        try{ res = await fetch('/display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
+        catch(err){ showFormMessage(form,'Network error','error'); disableForm(form,false); return; }
+        let data = await parseJsonResponse(res);
+        showFormMessage(form, data.message, data.status);
+        disableForm(form, false);
+        if(data.status==='success'){
+            // Close dropdown and reload to show logged in state
+            document.getElementById('dropdownMenu')?.classList.remove('active');
+            location.reload();
+        }
+    });
+
+    // Navbar login form handler
+    document.getElementById('loginForm')?.addEventListener('submit', async e=>{
+        e.preventDefault();
+        let fd=new FormData(e.target);
+        let form = e.target;
+        disableForm(form, true);
+        let res;
+        try{ res = await fetch('/display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
+        catch(err){ showFormMessage(form,'Network error','error'); disableForm(form,false); return; }
+        let data = await parseJsonResponse(res);
+        showFormMessage(form, data.message, data.status);
+        disableForm(form, false);
+        if(data.status==='success'){
+            // Close dropdown and reload
+            document.getElementById('dropdownMenu')?.classList.remove('active');
+            location.reload();
+        }
+    });
+
     // Settings form handler (profile page)
     document.getElementById('settingsForm')?.addEventListener('submit', async e=>{
         e.preventDefault();
@@ -818,12 +826,14 @@ document.addEventListener('DOMContentLoaded', function() {
         console.warn('Resend verification button not found!');
         return;
     }
+    console.log('✓ Resend verification button found and listener attached');
 
     btn.addEventListener('click', async e => {
         e.preventDefault();
+        console.log('🔘 Resend verification button clicked');
         btn.disabled = true;
 
-        console.log('Resend verification clicked — sending POST');
+        console.log('📤 Sending POST to /display.php with action=resend_verification');
 
         const fd = new FormData();
         fd.append('action', 'resend_verification');
@@ -835,29 +845,82 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: fd,
                 credentials: 'same-origin'
             });
+            console.log('📡 Fetch returned, status:', res.status, res.statusText);
         } catch (err) {
-            console.error('Network error:', err);
+            console.error('❌ Network error:', err);
+            alert('Network error: ' + err.message);
             btn.disabled = false;
             return;
         }
 
+        let responseText = '';
         let data;
         try {
-            data = await res.json();
+            responseText = await res.text();
+            console.log('📝 Raw response:', responseText);
+            data = JSON.parse(responseText);
+            console.log('✓ Parsed JSON:', data);
         } catch (err) {
-            console.error('Invalid JSON response:', err, await res.text());
+            console.error('❌ Failed to parse response:', err);
+            console.error('Raw response was:', responseText);
+            alert('Server error: Invalid response');
             btn.disabled = false;
             return;
         }
 
-        console.log('Server response:', data);
+        console.log('📦 Server response data:', data);
 
         if (data.success) {
-            showNotification('Bekreftelsesmail sendt', 'En bekreftelsesmail har blitt sendt til din e-postadresse. Vennligst sjekk innboksen din.', 'success', 5000);
+            console.log('✓ Email sent successfully');
+            // Show success notification
+            let notif = document.createElement('div');
+            notif.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                max-width: 400px;
+                padding: 16px;
+                background: #E8F5E9;
+                border: 2px solid #388E3C;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 5000;
+                font-family: Arial, sans-serif;
+                color: #1B5E20;
+            `;
+            notif.innerHTML = `
+                <strong style="font-size: 16px;">✓ Bekreftelsesmail sendt</strong><br/>
+                <small style="color: #1B5E20;">Sjekk innboksen din for bekreftelseslenken.</small>
+            `;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 5000);
         } else {
-            showNotification('Feil', 'Kunne ikke sende bekreftelsesmail: ' + data.message, 'error', 5000);
+            console.log('❌ Email send failed');
+            // Show error notification
+            let notif = document.createElement('div');
+            notif.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                max-width: 400px;
+                padding: 16px;
+                background: #FFEBEE;
+                border: 2px solid #C62828;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 5000;
+                font-family: Arial, sans-serif;
+                color: #B71C1C;
+            `;
+            notif.innerHTML = `
+                <strong style="font-size: 16px;">✗ Feil</strong><br/>
+                <small style="color: #B71C1C;">${data.message}</small>
+            `;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 5000);
         }
 
+        console.log('✓ Resend verification handler complete');
         btn.disabled = false;
     });
 });
