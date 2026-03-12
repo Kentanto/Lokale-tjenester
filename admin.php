@@ -29,9 +29,12 @@ try {
 $notice = isset($_SESSION['notice']) ? $_SESSION['notice'] : '';
 unset($_SESSION['notice']);
 
+// Check if this is an AJAX request
+$is_ajax_request = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
 if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
     $action = $_POST['action'];
-    @file_put_contents(__DIR__ . '/debug_admin.log', date('c') . " - POST received: action=$action\n", FILE_APPEND);
+    @file_put_contents(__DIR__ . '/debug_admin.log', date('c') . " - POST received: action=$action, is_ajax=$is_ajax_request\n", FILE_APPEND);
     
     if($action === 'update_user'){
         $target = intval($_POST['user_id'] ?? 0);
@@ -86,10 +89,11 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
                 $_SESSION['notice_type'] = 'danger';
             }
         }
-        header('Location: admin.php');
-        exit;
+        if (!$is_ajax_request) {
+            header('Location: admin.php');
+            exit;
+        }
     }
-    if($action === 'change_password'){
         $target = intval($_POST['user_id'] ?? 0);
         $newpw = $_POST['new_password'] ?? '';
         if($target > 0 && strlen($newpw) >= 6){
@@ -113,8 +117,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
                 }
             } else { $_SESSION['notice'] = 'Database error.'; }
         } else { $_SESSION['notice'] = 'Invalid target or password too short (min 6).'; }
-        header('Location: admin.php');
-        exit;
+        if (!$is_ajax_request) { header('Location: admin.php'); exit; }
     }
     if($action === 'delete_user'){
         $target = intval($_POST['user_id'] ?? 0);
@@ -122,6 +125,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
             // prevent deleting self accidentally
             if($target === intval($_SESSION['user_id'])){
                 $_SESSION['notice'] = 'You cannot delete your own account from the admin panel.';
+                $_SESSION['notice_type'] = 'danger';
             } else {
                 // Prevent deleting protected user(s)
                 $safe = safe_prepare($conn, "SELECT username FROM users WHERE id = ? LIMIT 1");
@@ -133,18 +137,30 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
                     $safe->close();
                     if(isset($tusername) && ($tusername === 'adminpyx' || $tusername === 'kentanto' || $tusername === 'system' || $tusername === 'lokale-tjenester')){
                         $_SESSION['notice'] = 'This account is protected and cannot be deleted.';
+                        $_SESSION['notice_type'] = 'danger';
                     } else {
                         $stmt = safe_prepare($conn, "DELETE FROM users WHERE id = ?");
                         if($stmt){
                             $stmt->bind_param('i', $target);
-                            if($stmt->execute()) $_SESSION['notice'] = 'User deleted.'; else $_SESSION['notice'] = 'Failed to delete user.';
-                        } else { $_SESSION['notice'] = 'Database error.'; }
+                            if($stmt->execute()) {
+                                $_SESSION['notice'] = 'User deleted.';
+                                $_SESSION['notice_type'] = 'success';
+                            } else {
+                                $_SESSION['notice'] = 'Failed to delete user.';
+                                $_SESSION['notice_type'] = 'danger';
+                            }
+                        } else {
+                            $_SESSION['notice'] = 'Database error.';
+                            $_SESSION['notice_type'] = 'danger';
+                        }
                     }
-                } else { $_SESSION['notice'] = 'Database error.'; }
+                } else {
+                    $_SESSION['notice'] = 'Database error.';
+                    $_SESSION['notice_type'] = 'danger';
+                }
             }
         }
-        header('Location: admin.php');
-        exit;
+        if (!$is_ajax_request) { header('Location: admin.php'); exit; }
     }
     if($action === 'update_user'){
         $target = intval($_POST['user_id'] ?? 0);
@@ -217,8 +233,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
             $_SESSION['notice_type'] = 'danger';
             @file_put_contents(__DIR__ . '/debug_admin.log', date('c') . " - Invalid input: target=$target, username=$username, email=$email\n", FILE_APPEND);
         }
-        header('Location: admin.php');
-        exit;
+        if (!$is_ajax_request) { header('Location: admin.php'); exit; }
     }
     if($action === 'approve_post'){
         $post_id = intval($_POST['post_id'] ?? 0);
@@ -239,8 +254,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
                 $_SESSION['notice_type'] = 'danger';
             }
         }
-        header('Location: admin.php');
-        exit;
+        if (!$is_ajax_request) { header('Location: admin.php'); exit; }
     }
     if($action === 'reject_post'){
         $post_id = intval($_POST['post_id'] ?? 0);
@@ -261,8 +275,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
                 $_SESSION['notice_type'] = 'danger';
             }
         }
-        header('Location: admin.php');
-        exit;
+        if (!$is_ajax_request) { header('Location: admin.php'); exit; }
     }
 }
 
@@ -313,19 +326,48 @@ if($q !== ''){
     }
 }
 
-// Fetch pending posts/jobs
+// Fetch pending posts/jobs with images
 $pending_posts = [];
 $stmt = safe_prepare($conn, "SELECT p.id, p.title, p.description, p.category, p.budget, p.location, p.created_at, COALESCE(u.username,'Guest') AS username FROM posts p LEFT JOIN users u ON p.user_id = u.id WHERE p.status = 'pending' ORDER BY p.created_at ASC LIMIT 200");
 if($stmt){
     $stmt->execute();
     if(method_exists($stmt, 'get_result')){
         $res = $stmt->get_result();
-        while($r = $res->fetch_assoc()) $pending_posts[] = $r;
+        while($r = $res->fetch_assoc()) {
+            // Fetch first image for this post
+            $imageStmt = safe_prepare($conn, "SELECT image, image_type FROM post_images WHERE post_id = ? ORDER BY sort_order ASC LIMIT 1");
+            if($imageStmt){
+                $imageStmt->bind_param('i', $r['id']);
+                $imageStmt->execute();
+                $imageStmt->bind_result($image_data, $image_type);
+                if($imageStmt->fetch()){
+                    $r['image'] = 'data:image/' . ($image_type ?: 'jpeg') . ';base64,' . base64_encode($image_data);
+                } else {
+                    $r['image'] = null;
+                }
+                $imageStmt->close();
+            }
+            $pending_posts[] = $r;
+        }
     } else {
         $stmt->store_result();
         $stmt->bind_result($id,$title,$description,$category,$budget,$location,$created_at,$username);
         while($stmt->fetch()){
-            $pending_posts[] = ['id'=>$id,'title'=>$title,'description'=>$description,'category'=>$category,'budget'=>$budget,'location'=>$location,'created_at'=>$created_at,'username'=>$username];
+            $item = ['id'=>$id,'title'=>$title,'description'=>$description,'category'=>$category,'budget'=>$budget,'location'=>$location,'created_at'=>$created_at,'username'=>$username];
+            // Fetch first image for this post
+            $imageStmt = safe_prepare($conn, "SELECT image, image_type FROM post_images WHERE post_id = ? ORDER BY sort_order ASC LIMIT 1");
+            if($imageStmt){
+                $imageStmt->bind_param('i', $id);
+                $imageStmt->execute();
+                $imageStmt->bind_result($image_data, $image_type);
+                if($imageStmt->fetch()){
+                    $item['image'] = 'data:image/' . ($image_type ?: 'jpeg') . ';base64,' . base64_encode($image_data);
+                } else {
+                    $item['image'] = null;
+                }
+                $imageStmt->close();
+            }
+            $pending_posts[] = $item;
         }
     }
     $stmt->close();
@@ -397,6 +439,9 @@ if($stmt){
                 <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
                     <?php foreach($pending_posts as $p): ?>
                     <div class="service-card" style="border: 2px solid #ffc107;">
+                        <?php if(!empty($p['image'])): ?>
+                        <img src="<?php echo htmlspecialchars($p['image']); ?>" alt="<?php echo htmlspecialchars($p['title']); ?>" style="width:100%;height:200px;object-fit:cover;border-radius:6px;margin-bottom:12px;">
+                        <?php endif; ?>
                         <h3><?php echo htmlspecialchars($p['title']); ?></h3>
                         <p><small style="color: #666;">av <?php echo htmlspecialchars($p['username']); ?> • <?php echo htmlspecialchars($p['created_at']); ?></small></p>
                         <p><?php echo htmlspecialchars(substr($p['description'], 0, 100)); ?><?php if(strlen($p['description']) > 100) echo '...'; ?></p>
