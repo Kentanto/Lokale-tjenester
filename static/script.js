@@ -95,14 +95,14 @@ function formatRelativeTime(isoDate){
     if(diffMinutes < 60){
         // Up to 1 hour: 10 minute intervals
         const interval = Math.round(diffMinutes / 10) * 10;
-        if(interval === 0) return 'just now';
-        return interval + ' min ago';
+        if(interval === 0) return 'nettopp';
+        return interval + ' min siden';
     } else if(diffHours < 24){
         // 1-24 hours: every hour
-        return diffHours + ' hour' + (diffHours > 1 ? 's' : '') + ' ago';
+        return diffHours + ' time' + (diffHours > 1 ? 'r' : '') + ' siden';
     } else {
         // After 24 hours: every day
-        return diffDays + ' day' + (diffDays > 1 ? 's' : '') + ' ago';
+        return diffDays + ' dag' + (diffDays > 1 ? 'er' : '') + ' siden';
     }
 }
 
@@ -122,16 +122,17 @@ function renderJobs(jobs, container){
     let out = '';
     jobs.forEach(j=>{
         let imageHtml = j.image ? `<img src="${j.image}" alt="${escapeHtml(j.title)}" style="width:100%;height:200px;object-fit:cover;border-radius:6px;margin-bottom:12px;">` : '';
-        let profilePictureHtml = j.profile_picture ? `<img src="data:${j.profile_picture}" alt="${escapeHtml(j.username)}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;margin-right:8px;">` : `<div style="width:32px;height:32px;border-radius:50%;background:#ddd;display:flex;align-items:center;justify-content:center;font-weight:bold;margin-right:8px;font-size:14px;">${escapeHtml(j.username.charAt(0))}</div>`;
+        let profilePictureHtml = j.profile_picture ? `<img src="data:${j.profile_picture}" alt="${escapeHtml(j.username)}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;margin-right:8px;">` : `<div style="width:32px;height:32px;border-radius:50%;background:#ddd;display:none;align-items:center;justify-content:center;font-weight:bold;margin-right:8px;font-size:14px;">${escapeHtml(j.username.charAt(0))}</div>`;
         out += `<article class="service-card" style="margin-bottom:12px;cursor:pointer;" onclick="openJobDetail(${j.id})">
             ${imageHtml}
             <h3>${escapeHtml(j.title)}</h3>
             <p>${escapeHtml(j.description.substring(0,150)) + (j.description.length > 150 ? '...' : '')}</p>
             <p style="color:#666;font-size:13px;display:flex;align-items:center;">${profilePictureHtml}<span>${escapeHtml(j.username)} — ${escapeHtml(j.location||'')}</span></p>
-            <p style="font-weight:600;margin-top:6px">Budget: ${j.budget ? (parseInt(j.budget) + ' NOK') : 'Negotiable'}</p>
-            <div style="font-size:12px;color:#888;margin-top:6px">Posted: ${formatRelativeTime(j.created_at)}</div>
+            <p style="font-weight:600;margin-top:6px">Budsjett: ${j.budget ? (parseInt(j.budget) + ' NOK') : 'Forhandlingsbart'}</p>
+            <div style="font-size:12px;color:#888;margin-top:6px">Lagt ut: ${formatRelativeTime(j.created_at)}</div>
         </article>`;
     });
+    container.innerHTML = out;
     container.innerHTML = out;
 }
 
@@ -179,7 +180,7 @@ async function openJobDetail(postId){
                 const thumbs = p.images.map((src, idx) => `<button class="job-thumb" data-idx="${idx}" style="width:72px;height:72px;background-size:cover;background-position:center;border-radius:6px;border:1px solid #eee;" aria-label="Image ${idx+1}" data-src="${src}"></button>`).join('');
                 imageHtml = `<div class="job-detail-gallery" style="margin-bottom:16px;">
                     <div class="job-detail-main" style="margin-bottom:8px;"><img src="${main}" alt="${escapeHtml(p.title)}" style="width:100%;height:auto;max-height:400px;object-fit:cover;border-radius:8px;"></div>
-                    <div class="job-detail-thumbs" style="display:flex;gap:8px;flex-wrap:wrap;">${thumbs}</div>
+                    <div class="job-detail-thumbs" style="display:none;gap:8px;flex-wrap:wrap;">${thumbs}</div>
                 </div>`;
             } else if(p.image){
                 imageHtml = `<img src="${p.image}" alt="${escapeHtml(p.title)}" style="width:100%;max-height:400px;object-fit:cover;border-radius:8px;margin-bottom:16px;">`;
@@ -195,13 +196,13 @@ async function openJobDetail(postId){
                     </div>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
-                    <div><strong>Budget:</strong> <span style="font-size:18px;color:var(--green);">${p.budget ? (parseInt(p.budget) + ' NOK') : 'Negotiable'}</span></div>
-                    <div><strong>Category:</strong> ${escapeHtml(p.category||'Not specified')}</div>
-                    <div style="grid-column:1/-1;"><strong>Posted:</strong> ${formatRelativeTime(p.created_at)}</div>
+                    <div><strong>Budsjett:</strong> <span style="font-size:18px;color:var(--green);">${p.budget ? (parseInt(p.budget) + ' NOK') : 'Forhandlingsbart'}</span></div>
+                    <div><strong>Kategori:</strong> ${escapeHtml(p.category||'Ikke spesifisert')}</div>
+                    <div style="grid-column:1/-1;"><strong>Lagt ut:</strong> ${formatRelativeTime(p.created_at)}</div>
                 </div>
-                ${p.contact_info ? `<div style="background:#f5f5f5;padding:12px;border-radius:6px;margin-bottom:20px;border-left:4px solid var(--green);"><strong>Contact:</strong> ${escapeHtml(p.contact_info)}</div>` : ''}
+                ${p.contact_info ? `<div style="background:#f5f5f5;padding:12px;border-radius:6px;margin-bottom:20px;border-left:4px solid var(--green);"><strong>Kontakt:</strong> ${escapeHtml(p.contact_info)}</div>` : ''}
                 <hr style="margin:20px 0;border:none;border-top:1px solid var(--off-white);">
-                <h3 style="margin-top:0;">Description</h3>
+                <h3 style="margin-top:0;">Beskrivelse</h3>
                 <p style="line-height:1.6;white-space:pre-wrap;">${escapeHtml(p.description)}</p>
             `;
 
@@ -255,7 +256,7 @@ document.addEventListener('DOMContentLoaded',function(){
         document.body.appendChild(overlay);
     }
 
-    function showConfirmation(title, message, redirectUrl, autoMs=2000){
+    function showConfirmation(title, message, redirectUrl, autoMs=2000, verifyUrl=null, verifyText='Go now', closeText='Stay'){
         ensureConfirmModal();
         const overlay = document.getElementById('confirmOverlay');
         const titleEl = overlay.querySelector('#confirmTitle');
@@ -287,11 +288,19 @@ document.addEventListener('DOMContentLoaded',function(){
             nowBtn.onclick = ()=>{ clearTimeout(timeout); clearInterval(interval); overlay.classList.remove('active'); window.location.href = redirectUrl; };
             stayBtn.onclick = ()=>{ cancelled = true; clearTimeout(timeout); clearInterval(interval); overlay.classList.remove('active'); };
             stayBtn.style.display = 'block';
+        } else if(verifyUrl) {
+            // Show verification button and close button
+            countdownDiv.style.display = 'none';
+            stayBtn.style.display = 'block';
+            nowBtn.textContent = verifyText;
+            stayBtn.textContent = closeText;
+            nowBtn.onclick = ()=>{ overlay.classList.remove('active'); window.location.href = verifyUrl; };
+            stayBtn.onclick = ()=>{ overlay.classList.remove('active'); };
+            overlay.classList.add('active');
         } else {
             // No redirect, just show confirmation message with close button
             countdownDiv.style.display = 'none';
             stayBtn.style.display = 'none';
-            stayBtn.textContent = 'Close';
             nowBtn.textContent = 'Close';
             nowBtn.onclick = ()=>{ overlay.classList.remove('active'); };
             overlay.classList.add('active');
@@ -430,7 +439,6 @@ document.addEventListener('DOMContentLoaded',function(){
         
         let data = await parseJsonResponse(res);
         console.log('Server response:', data);
-        showFormMessage(form, data.message, data.status);
         disableForm(form, false);
         
         if(data.status === 'success'){
@@ -446,6 +454,12 @@ document.addEventListener('DOMContentLoaded',function(){
             }
             // redirect to job listings after successful creation
             showConfirmation('Jobb Publisert!','Din jobb har blitt sendt inn og venter på godkjenning fra moderator. Du vil bli varslet når den er publisert.');
+        } else if(data.message && (data.message.includes('verifisere') || data.message.includes('Verifisere'))){
+            // Show verification error popup with Verify and Close buttons
+            showConfirmation('Verifiser e-posten din', data.message, null, 2000, 'pages.php?page=profile', 'Verifiser', 'Lukk');
+        } else {
+            // Show other errors as form message
+            showFormMessage(form, data.message, data.status);
         }
     });
 
