@@ -26,9 +26,6 @@ try {
 }
 
 // Handle POST actions
-$notice = isset($_SESSION['notice']) ? $_SESSION['notice'] : '';
-unset($_SESSION['notice']);
-
 // Check if this is an AJAX request
 $is_ajax_request = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
@@ -36,89 +33,6 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
     $action = $_POST['action'];
     @file_put_contents(__DIR__ . '/debug_admin.log', date('c') . " - POST received: action=$action, is_ajax=$is_ajax_request\n", FILE_APPEND);
     
-    if($action === 'update_user'){
-        $target = intval($_POST['user_id'] ?? 0);
-        if($target > 0){
-            // Protect specific accounts from being demoted (server-side enforcement)
-            $safe = safe_prepare($conn, "SELECT username, COALESCE(is_admin,0) AS is_admin FROM users WHERE id = ? LIMIT 1");
-            if($safe){
-                $safe->bind_param('i', $target);
-                $safe->execute();
-                $safe->bind_result($tusername, $t_is_admin);
-                $safe->fetch();
-                $safe->close();
-
-                if(isset($tusername) && $tusername === 'adminpyx'){
-                    $_SESSION['notice'] = 'This account is protected and cannot be modified.';
-                    $_SESSION['notice_type'] = 'danger';
-                } else {
-                    $stmt = safe_prepare($conn, "UPDATE users SET is_admin = NOT COALESCE(is_admin,0) WHERE id = ?");
-                    if($stmt){
-                        $stmt->bind_param('i', $target);
-                        if($stmt->execute()){
-                            // Fetch the new admin status to determine if promoted or demoted
-                            $check = safe_prepare($conn, "SELECT COALESCE(is_admin,0) FROM users WHERE id = ? LIMIT 1");
-                            if($check){
-                                $check->bind_param('i', $target);
-                                $check->execute();
-                                $check->bind_result($new_status);
-                                $check->fetch();
-                                $check->close();
-                                if($new_status){
-                                    $_SESSION['notice'] = $tusername . ' promoted to admin';
-                                    $_SESSION['notice_type'] = 'success';
-                                } else {
-                                    $_SESSION['notice'] = $tusername . ' demoted from admin';
-                                    $_SESSION['notice_type'] = 'danger';
-                                }
-                            } else {
-                                $_SESSION['notice'] = 'Toggled admin status.';
-                                $_SESSION['notice_type'] = 'success';
-                            }
-                        } else {
-                            $_SESSION['notice'] = 'Failed to update admin status.';
-                            $_SESSION['notice_type'] = 'danger';
-                        }
-                    } else { 
-                        $_SESSION['notice'] = 'Database error.'; 
-                        $_SESSION['notice_type'] = 'danger';
-                    }
-                }
-            } else {
-                $_SESSION['notice'] = 'Database error.';
-                $_SESSION['notice_type'] = 'danger';
-            }
-        }
-        if (!$is_ajax_request) {
-            header('Location: admin.php');
-            exit;
-        }
-    }
-        $target = intval($_POST['user_id'] ?? 0);
-        $newpw = $_POST['new_password'] ?? '';
-        if($target > 0 && strlen($newpw) >= 6){
-            // Prevent changing password for protected accounts (server-side enforcement)
-            $safe = safe_prepare($conn, "SELECT username FROM users WHERE id = ? LIMIT 1");
-            if($safe){
-                $safe->bind_param('i', $target);
-                $safe->execute();
-                $safe->bind_result($tusername);
-                $safe->fetch();
-                $safe->close();
-                if(isset($tusername) && $tusername === 'system'){
-                    $_SESSION['notice'] = 'This account is protected and password cannot be changed here.';
-                } else {
-                    $hash = password_hash($newpw, PASSWORD_BCRYPT);
-                    $stmt = safe_prepare($conn, "UPDATE users SET password_hash = ? WHERE id = ?");
-                    if($stmt){
-                        $stmt->bind_param('si', $hash, $target);
-                        if($stmt->execute()) $_SESSION['notice'] = 'Password updated.'; else $_SESSION['notice'] = 'Failed to update password.';
-                    } else { $_SESSION['notice'] = 'Database error.'; }
-                }
-            } else { $_SESSION['notice'] = 'Database error.'; }
-        } else { $_SESSION['notice'] = 'Invalid target or password too short (min 6).'; }
-        if (!$is_ajax_request) { header('Location: admin.php'); exit; }
-    }
     if($action === 'delete_user'){
         $target = intval($_POST['user_id'] ?? 0);
         if($target > 0){
@@ -264,7 +178,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
                 $stmt->bind_param('i', $post_id);
                 if($stmt->execute()){
                     $_SESSION['notice'] = 'Job rejected.';
-                    $_SESSION['notice_type'] = 'danger';
+                    $_SESSION['notice_type'] = 'success';
                 } else {
                     $_SESSION['notice'] = 'Failed to reject job.';
                     $_SESSION['notice_type'] = 'danger';
@@ -278,6 +192,10 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
         if (!$is_ajax_request) { header('Location: admin.php'); exit; }
     }
 }
+
+// Re-read notice from session after action handlers have run
+$notice = isset($_SESSION['notice']) ? $_SESSION['notice'] : '';
+unset($_SESSION['notice']);
 
 // If this was an AJAX request, return a small JSON payload and exit
 if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'){
@@ -387,7 +305,8 @@ if($stmt){
     <div id="editUserModal" class="confirm-overlay">
         <div class="confirm-box" style="max-width: 500px;">
             <h3>Edit User</h3>
-            <form id="editUserForm" method="post" action="admin.php">
+            <form id="editUserForm" method="post" action="admin.php" novalidate>
+                <input type="hidden" name="action" id="formAction" value="update_user">
                 <input type="hidden" name="user_id" id="editUserId">
                 <div class="form-group">
                     <label for="editUsername">Username</label>
@@ -408,8 +327,8 @@ if($stmt){
                 </div>
                 <div class="confirm-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
-                    <button type="submit" name="action" value="update_user" class="btn btn-primary">Save Changes</button>
-                    <button type="submit" name="action" value="delete_user" class="btn delete-btn">Delete User</button>
+                    <button type="button" class="btn btn-primary" onclick="submitForm('update_user')">Save Changes</button>
+                    <button type="button" class="btn delete-btn" onclick="submitForm('delete_user')">Delete User</button>
                 </div>
             </form>
         </div>
