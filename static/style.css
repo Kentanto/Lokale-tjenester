@@ -1759,6 +1759,14 @@
     font-size: 14px;
 }
 
+/* user posts list on dashboard */
+.user-posts-container {
+    margin-top: 12px;
+}
+.user-posts-container .service-card {
+    cursor: default;
+}
+
 /* Responsive Pages */
 @media (max-width: 768px) {
     .page-header h1 {

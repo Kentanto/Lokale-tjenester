@@ -154,6 +154,61 @@ async function loadJobs(filters={}){
     else container.innerHTML = `<div class="note">${escapeHtml(data.message || 'Error')}</div>`;
 }
 
+// Render user posts on dashboard
+function renderUserPosts(posts, container){
+    if(!container) return;
+    if(!posts || posts.length === 0){
+        container.innerHTML = `
+            <div class="empty-state">
+                <h3>Ingen annonser funnet</h3>
+                <p>Du har ikke opprettet noen jobber ennå.</p>
+                <div style="margin-top:12px;">
+                    <a href="pages.php?page=create_job" class="btn btn-primary">Lag en jobbannonse</a>
+                </div>
+            </div>`;
+        return;
+    }
+    let out = '';
+    posts.forEach(p=>{
+        let imageHtml = p.image ? `<img src="${p.image}" alt="${escapeHtml(p.title)}" style="width:100%;height:150px;object-fit:cover;border-radius:6px;margin-bottom:8px;">` : '';
+        out += `<article class="service-card" style="margin-bottom:12px;position:relative;" data-post-id="${p.id}">
+            ${imageHtml}
+            <h3>${escapeHtml(p.title)}</h3>
+            <p>${escapeHtml(p.description.substring(0,150)) + (p.description.length>150?'...':'')}</p>
+            <p style="font-size:13px;color:#666;">Status: ${escapeHtml(p.status)}</p>
+            <div style="margin-top:8px;">
+                <button class="btn btn-secondary take-down-btn" data-id="${p.id}">Ta ned</button>
+                <button class="btn btn-danger delete-btn" data-id="${p.id}">Slett</button>
+            </div>
+        </article>`;
+    });
+    container.innerHTML = out;
+}
+
+// Load dashboard metrics and posts
+async function loadDashboard(){
+    const statActive = document.getElementById('statActive');
+    const statOrders = document.getElementById('statOrders');
+    const statRating = document.getElementById('statRating');
+    const postsContainer = document.getElementById('userPostsContainer');
+    if(!postsContainer) return;
+    const fd = new FormData();
+    fd.append('action','dashboard_data');
+    let res;
+    try{ res = await fetch('/display.php',{method:'POST',body:fd,credentials:'same-origin'}); }
+    catch(err){ postsContainer.innerHTML = '<div class="note">Network error</div>'; return; }
+    let data = await parseJsonResponse(res);
+    if(data.status==='success'){
+        const stats = data.stats || {};
+        if(statActive) statActive.textContent = stats.approved_posts ?? stats.total_posts ?? '0';
+        if(statOrders) statOrders.textContent = stats.total_orders ?? '0';
+        if(statRating) statRating.textContent = stats.rating ?? '0';
+        renderUserPosts(data.posts, postsContainer);
+    } else {
+        postsContainer.innerHTML = `<div class="note">${escapeHtml(data.message||'Feil')}</div>`;
+    }
+}
+
 // Open job detail modal
 async function openJobDetail(postId){
     const modal = document.getElementById('jobDetailModal');
@@ -587,6 +642,42 @@ document.addEventListener('DOMContentLoaded',function(){
 
     // auto-load jobs on page load when jobsList exists
     if(document.getElementById('jobsList')) loadJobs();
+    // auto-load dashboard if stats container present
+    if(document.getElementById('dashboardStats')) loadDashboard();
+
+    // event delegation for take-down / delete buttons in dashboard
+    document.addEventListener('click', async e=>{
+        if(e.target.matches('.take-down-btn')){
+            e.preventDefault();
+            const id = e.target.dataset.id;
+            if(!id) return;
+            if(!confirm('Er du sikker på at du vil ta ned denne annonsen?')) return;
+            const fd = new FormData();
+            fd.append('action','take_down_post');
+            fd.append('post_id', id);
+            let res = await fetch('/display.php',{method:'POST',body:fd,credentials:'same-origin'});
+            let data = await parseJsonResponse(res);
+            if(data.status==='success'){
+                loadDashboard();
+            } else {
+                alert(data.message || 'Feil');
+            }
+        }
+        if(e.target.matches('.delete-btn')){
+            e.preventDefault();
+            const id = e.target.dataset.id;
+            if(!id) return;
+            if(!confirm('Slette permanent denne annonsen?')) return;
+            const fd = new FormData();
+            fd.append('action','delete_post');
+            fd.append('post_id', id);
+            let res = await fetch('/display.php',{method:'POST',body:fd,credentials:'same-origin'});
+            let data = await parseJsonResponse(res);
+            if(data.status==='success'){
+                loadDashboard();
+            } else { alert(data.message || 'Feil'); }
+        }
+    });
 
     // Close job detail modal when clicking the overlay
     document.getElementById('jobDetailModal')?.addEventListener('click', function(e){

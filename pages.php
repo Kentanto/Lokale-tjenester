@@ -311,7 +311,7 @@ switch ($page) {
             <div class="job-detail-box">
                 <button class="job-detail-close" onclick="document.getElementById('jobDetailModal').style.display = 'none';">&times;</button>
                 <div class="job-detail-content" id="jobDetailContent">
-                    <p>Loading...</p>
+                    <p>Laster inn...</p>
                 </div>
             </div>
         </div>
@@ -618,26 +618,25 @@ switch ($page) {
             ?>
             <div class="dashboard-section">
                 <h2>Oversikt</h2>
-                <div class="dashboard-stats">
+                <div id="dashboardStats" class="dashboard-stats">
                     <div class="stat-card">
-                        <h3>5</h3>
+                        <h3 id="statActive">0</h3>
                         <p>Aktive tjenester</p>
                     </div>
                     <div class="stat-card">
-                        <h3>12</h3>
+                        <h3 id="statOrders">0</h3>
                         <p>Totale bestillinger</p>
                     </div>
                     <div class="stat-card">
-                        <h3>4.8</h3>
+                        <h3 id="statRating">0</h3>
                         <p>Din vurdering</p>
                     </div>
                 </div>
 
-                <h3 class="mt-20">Nylig aktivitet</h3>
-                <ul class="activity-list">
-                    <li>Bestilte rengjøringstjeneste — for 2 dager siden</li>
-                    <li>La igjen en vurdering av John — for 1 uke siden</li>
-                </ul>
+                <h3 class="mt-20">Dine annonser</h3>
+                <div id="userPostsContainer" class="user-posts-container">
+                    <p>Laster inn...</p>
+                </div>
             </div>
             <?php
         } else {

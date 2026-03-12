@@ -1209,6 +1209,116 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         exit;
     }
 
+    // dashboard API: stats + user's own posts
+    if($action === 'dashboard_data'){
+        if(empty($_SESSION['user_id'])){
+            echo json_encode(['status'=>'error','message'=>'Not logged in']); exit;
+        }
+        $uid = intval($_SESSION['user_id']);
+        $stats = ['total_posts'=>0,'approved_posts'=>0,'pending_posts'=>0,'total_orders'=>0,'rating'=>0];
+
+        $stmt = safe_prepare($conn, "SELECT COUNT(*) FROM posts WHERE user_id = ?");
+        if($stmt){
+            $stmt->bind_param('i',$uid);
+            if($stmt->execute()){
+                $stmt->bind_result($count);
+                if($stmt->fetch()) $stats['total_posts'] = intval($count);
+            }
+            $stmt->close();
+        }
+        $stmt = safe_prepare($conn, "SELECT COUNT(*) FROM posts WHERE user_id = ? AND status = 'approved'");
+        if($stmt){
+            $stmt->bind_param('i',$uid);
+            if($stmt->execute()){
+                $stmt->bind_result($count);
+                if($stmt->fetch()) $stats['approved_posts'] = intval($count);
+            }
+            $stmt->close();
+        }
+        $stmt = safe_prepare($conn, "SELECT COUNT(*) FROM posts WHERE user_id = ? AND status = 'pending'");
+        if($stmt){
+            $stmt->bind_param('i',$uid);
+            if($stmt->execute()){
+                $stmt->bind_result($count);
+                if($stmt->fetch()) $stats['pending_posts'] = intval($count);
+            }
+            $stmt->close();
+        }
+        // total_orders & rating currently not tracked - leave as defaults
+
+        // fetch posts for user
+        $rows = [];
+        $sql = "SELECT id,title,description,category,budget,location,status,created_at,IF(image, CONCAT('data:image/', COALESCE(image_type,'jpeg'), ';base64,', TO_BASE64(image)), NULL) AS image FROM posts WHERE user_id = ? ORDER BY created_at DESC";
+        $stmt = safe_prepare($conn,$sql);
+        if($stmt){
+            $stmt->bind_param('i',$uid);
+            if($stmt->execute()){
+                if(method_exists($stmt,'get_result')){
+                    $res = $stmt->get_result();
+                    while($r = $res->fetch_assoc()) $rows[] = $r;
+                } else {
+                    $stmt->store_result();
+                    $meta = $stmt->result_metadata();
+                    if($meta){
+                        $fields = [];
+                        while($f = $meta->fetch_field()) $fields[] = $f->name;
+                        $meta->free();
+                        $bindVars = [];
+                        $row = [];
+                        foreach($fields as $fld){ $row[$fld] = null; $bindVars[] = & $row[$fld]; }
+                        if(count($bindVars)){
+                            call_user_func_array([$stmt,'bind_result'],$bindVars);
+                            while($stmt->fetch()){
+                                $out=[];
+                                foreach($row as $k=>$v) $out[$k]=$v;
+                                $rows[]=$out;
+                            }
+                        }
+                    }
+                }
+            }
+            $stmt->close();
+        }
+        echo json_encode(['status'=>'success','stats'=>$stats,'posts'=>$rows]);
+        exit;
+    }
+
+    if($action === 'take_down_post'){
+        if(empty($_SESSION['user_id'])){ echo json_encode(['status'=>'error','message'=>'Not logged in']); exit; }
+        $pid = intval($_POST['post_id'] ?? 0);
+        if($pid <= 0){ echo json_encode(['status'=>'error','message'=>'Invalid post id']); exit; }
+        $uid = intval($_SESSION['user_id']);
+        $stmt = safe_prepare($conn, "UPDATE posts SET status='rejected' WHERE id = ? AND user_id = ?");
+        if($stmt){
+            $stmt->bind_param('ii',$pid,$uid);
+            $stmt->execute();
+            $affected = $stmt->affected_rows;
+            $stmt->close();
+            if($affected){ echo json_encode(['status'=>'success']); } else { echo json_encode(['status'=>'error','message'=>'Not allowed or already taken down']); }
+        } else {
+            echo json_encode(['status'=>'error','message'=>'Database error']);
+        }
+        exit;
+    }
+
+    if($action === 'delete_post'){
+        if(empty($_SESSION['user_id'])){ echo json_encode(['status'=>'error','message'=>'Not logged in']); exit; }
+        $pid = intval($_POST['post_id'] ?? 0);
+        if($pid <= 0){ echo json_encode(['status'=>'error','message'=>'Invalid post id']); exit; }
+        $uid = intval($_SESSION['user_id']);
+        $stmt = safe_prepare($conn, "DELETE FROM posts WHERE id = ? AND user_id = ?");
+        if($stmt){
+            $stmt->bind_param('ii',$pid,$uid);
+            $stmt->execute();
+            $affected = $stmt->affected_rows;
+            $stmt->close();
+            if($affected){ echo json_encode(['status'=>'success']); } else { echo json_encode(['status'=>'error','message'=>'Not allowed or not found']); }
+        } else {
+            echo json_encode(['status'=>'error','message'=>'Database error']);
+        }
+        exit;
+    }
+
     if($action === 'logout'){
         session_unset();
         session_destroy();
