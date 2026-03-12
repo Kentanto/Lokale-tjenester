@@ -824,8 +824,20 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             if(empty($_SESSION['user_id'])){ debug_log('create_post: No user_id in session'); echo json_encode(['status'=>'error','message'=>'You must be logged in to create a job']); exit; }
             $uid = intval($_SESSION['user_id']);
 
-            // Check if user's email is verified
-            if(!$email_verified){ debug_log('create_post: User ' . $uid . ' not verified'); echo json_encode(['status'=>'error','message'=>'Du må verifisere e-posten din før du kan publisere en jobb']); exit; }
+            // Check if user's email is verified - fetch directly from database
+            $verifyStmt = safe_prepare($conn, "SELECT email_verified FROM users WHERE id = ? LIMIT 1");
+            $user_verified = false;
+            if($verifyStmt) {
+                $verifyStmt->bind_param('i', $uid);
+                $verifyStmt->execute();
+                $verifyStmt->bind_result($db_verified);
+                if($verifyStmt->fetch()) {
+                    $user_verified = !empty($db_verified) ? true : false;
+                }
+                $verifyStmt->close();
+            }
+            
+            if(!$user_verified){ debug_log('create_post: User ' . $uid . ' not verified'); echo json_encode(['status'=>'error','message'=>'Du må verifisere e-posten din før du kan publisere en jobb']); exit; }
 
             // Check rate limit: 3 posts per day (resets at midnight)
             $postsToday = 0;
