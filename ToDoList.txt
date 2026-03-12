@@ -6,7 +6,7 @@
  
 -Poengsystem
     ratings får vi til; har allerede lagdt inn mesteparten
-    dynamicly working dashboard and star rating
+    dynamicly working dashboard and star rating (dashboard part implemented, rating still pending)
 
 -Dugnadsfunksjon/logge inn som en gruppe/idrettslag 
     vi skal se videre på det, men tror vi kan gjøre dette via et "admin må accepte gruppa" type system.
