@@ -1,4 +1,8 @@
 <?php
+// Temporary debug log to help diagnose 500 errors when browser shows no response.
+// The webserver must be able to write files in this directory for these logs to appear.
+@file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - display.php loaded\n", FILE_APPEND);
+
 // Increase PHP limits for file uploads (5MB + overhead)
 ini_set('upload_max_filesize', '5M');
 ini_set('post_max_size', '15M');
@@ -331,95 +335,83 @@ error_log("REMOTE_ADDR: " . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
 $action = $_POST['action'] ?? null;
 error_log("Action received: " . var_export($action, true));
 
-// Only handle resend_verification
-if ($action === 'resend_verification') {
-
-    $user_id = $_SESSION['user_id'] ?? null;
-    if (!$user_id) {
-        error_log("No user_id in session");
-        echo json_encode(['success'=>false,'message'=>'Not logged in']);
-        exit;
-    }
-
-    // Fetch email from DB
-    $stmt = $conn->prepare("SELECT email FROM users WHERE id=?");
-    $stmt->bind_param('i', $user_id);
-    $stmt->execute();
-    $user = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
-
-    $user_email = $user['email'] ?? null;
-    if (!$user_email) {
-        error_log("User email not found for ID $user_id");
-        echo json_encode(['success'=>false,'message'=>'Email not found']);
-        exit;
-    }
-
-    error_log("Sending verification email to $user_email for user ID $user_id");
-
-    $ok = send_verification_email($conn, $user_email, $user_id);
-
-    if ($ok) {
-        error_log("Mail sent successfully to $user_email");
-    } else {
-        error_log("Failed to send mail to $user_email");
-    }
-
-    echo json_encode([
-        'success' => $ok,
-        'message' => $ok ? 'Verification email resent!' : 'Failed to send verification email'
-    ]);
-    exit;
-} else {
-    error_log("Unknown action: " . var_export($action, true));
-}
-
 function send_verification_email(mysqli $conn, string $email, int $user_id): bool {
+    error_log("[EMAIL] Starting send_verification_email for user_id=$user_id, email=$email");
+    
     $token = bin2hex(random_bytes(32));
+    error_log("[EMAIL] Generated token: " . substr($token, 0, 8) . "...");
 
     // Remove old tokens
-    $stmt = safe_prepare($conn, "DELETE FROM email_tokens WHERE user_id=?");
-    if($stmt){
-        $stmt->bind_param('i', $user_id);
-        $stmt->execute();
-        $stmt->close();
+    error_log("[EMAIL] Deleting old tokens for user_id=$user_id");
+    $stmt = $conn->prepare("DELETE FROM email_tokens WHERE user_id=?");
+    if (!$stmt) {
+        error_log("[EMAIL] ERROR: Failed to prepare DELETE statement: " . $conn->error);
+        return false;
     }
-
-    // Insert new token
-    $stmt = safe_prepare($conn, "INSERT INTO email_tokens (user_id, token, created_at) VALUES (?, ?, NOW())");
-    if($stmt){
-        $stmt->bind_param('is', $user_id, $token);
-        $stmt->execute();
+    $stmt->bind_param('i', $user_id);
+    if (!$stmt->execute()) {
+        error_log("[EMAIL] ERROR: Failed to execute DELETE: " . $stmt->error);
         $stmt->close();
+        return false;
+    }
+    $stmt->close();
+    error_log("[EMAIL] Old tokens deleted");
+
+    // Insert new token (24 hour expiry)
+    error_log("[EMAIL] Inserting new token into email_tokens table");
+    $stmt = $conn->prepare(
+        "INSERT INTO email_tokens (user_id, token, created_at) VALUES (?, ?, NOW())"
+    );
+    if (!$stmt) {
+        error_log("[EMAIL] ERROR: Failed to prepare INSERT statement: " . $conn->error);
+        return false;
+    }
+    $stmt->bind_param('is', $user_id, $token);
+    if (!$stmt->execute()) {
+        error_log("[EMAIL] ERROR: Failed to execute INSERT: " . $stmt->error);
+        $stmt->close();
+        return false;
+    }
+    $stmt->close();
+    error_log("[EMAIL] Token inserted successfully");
+
+    $domain = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $verifyLink = "https://" . $domain . "/pages.php?page=verify&token=" . urlencode($token);
+    error_log("[EMAIL] Verify link: " . substr($verifyLink, 0, 50) . "...");
+
+    // Use PHP's built-in mail() function instead of PHPMailer
+    $subject = 'Verifiser din e-postadresse - Lokale Tjenester';
+    $fromEmail = 'noreply@lokale-tjenester.no';
+    $headers = "MIME-Version: 1.0\r\n";
+    $headers .= "Content-type: text/html; charset=UTF-8\r\n";
+    $headers .= "From: Lokale Tjenester <$fromEmail>\r\n";
+    
+    $htmlBody = "
+        <html>
+            <body style='font-family: Arial, sans-serif;'>
+                <h2>Verifiser din e-postadresse</h2>
+                <p>Hei,</p>
+                <p>Takk for at du registrerte deg på Lokale Tjenester UB. For å fullføre registreringen, vennligst verifiser din e-postadresse ved å klikke på lenken nedenfor:</p>
+                <p><a href='$verifyLink' style='background-color: #2C8C42; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>Verifiser e-postadresse</a></p>
+                <p>Eller kopier og lim inn denne lenken i nettleseren din:</p>
+                <p><code>$verifyLink</code></p>
+                <p>Lenken utløper om 24 timer.</p>
+                <p>Hvis du ikke opprettet denne kontoen, kan du ignorere denne e-posten.</p>
+                <p>Med vennlig hilsen,<br/>Lokale Tjenester UB</p>
+            </body>
+        </html>
+    ";
+    
+    error_log("[EMAIL] Attempting to send email using mail()...");
+    $sent = @mail($email, $subject, $htmlBody, $headers);
+    
+    if ($sent) {
+        error_log("[EMAIL] ✓ Email sent successfully to $email");
+        return true;
     } else {
+        error_log("[EMAIL] ✗ mail() returned false for $email");
         return false;
     }
-
-    $verifyLink = "https://" . getenv('DOMAIN') . "/pages.php?page=verify&token=" . urlencode($token);
-
-    error_log("Sending verification email to $email, link: $verifyLink");
-
-    $mail = new PHPMailer(false);
-    if(!$mail) {
-        error_log("PHPMailer creation failed");
-        return false;
-    }
-
-    $mail->CharSet = 'UTF-8';
-    $mail->Encoding = 'base64';
-    $mail->isSendmail();
-    $mail->setFrom(getenv('FROM_EMAIL'), getenv('FROM_NAME') ?: 'Lokale Tjenester');
-    $mail->addAddress($email);
-    $mail->isHTML(true);
-    $mail->Subject = 'Verify your email';
-    $mail->Body = "<p><a href='$verifyLink'>Verify Email</a></p>";
-
-    if(!$mail->send()){
-        error_log("Email send failed: " . $mail->ErrorInfo);
-        return false;
-    }
-    error_log("Email sent successfully to $email");
-    return true;
 }
 
 
@@ -490,10 +482,23 @@ function get_user_remaining_posts(mysqli $conn, int $user_id): int {
 // Only handle AJAX-style POST actions when this file is the requested endpoint
 // (i.e. avoid intercepting POSTs intended for pages that `require_once 'display.php'`).
 if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
+    // Start output buffering to prevent accidental output before JSON
+    ob_start();
+    
+    // Log the incoming POST request for debugging (temporary)
+    $post_log = date('c') . " - POST start: action=" . ($_POST['action'] ?? '(none)') . " method=" . ($_SERVER['REQUEST_METHOD'] ?? '') . " remote=" . ($_SERVER['REMOTE_ADDR'] ?? '') . "\n";
+    @file_put_contents(__DIR__ . '/debug_display_exec.log', $post_log, FILE_APPEND);
+
     $action = $_POST['action'] ?? null;
 
-
+    // Clear any buffered output and set correct headers
+    ob_clean();
     header('Content-Type: application/json; charset=utf-8');
+    header('X-Content-Type-Options: nosniff');
+    
+    // Also log POST keys and cookies briefly
+    @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - POST keys: " . implode(',', array_keys($_POST)) . "\n", FILE_APPEND);
+    @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - COOKIES: " . json_encode(array_keys($_COOKIE)) . "\n", FILE_APPEND);
 
     if($action === 'signup'){
         $username = trim($_POST['username'] ?? '');
@@ -507,8 +512,8 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         if(strlen($username) < 3 || strlen($username) > 32){ 
             echo json_encode(['status'=>'error','message'=>'Username must be 3-32 characters']); exit; 
         }
-        if(!preg_match('/^[A-Za-zæøåÆØÅ0-9\s_\-]+$/', $username)){ 
-            echo json_encode(['status'=>'error','message'=>'Username may only contain letters (including æøå), numbers, spaces, dash or underscore']); exit; 
+        if(!preg_match('/^[\p{L}0-9_\-\s]+$/u', $username)){ 
+            echo json_encode(['status'=>'error','message'=>'Username may only contain letters, numbers, dash, underscore or spaces']); exit; 
         }
         if(strlen($password) < 6){ 
             echo json_encode(['status'=>'error','message'=>'Password must be at least 6 characters']); exit; 
@@ -543,9 +548,11 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             $_SESSION['user_email'] = $email;
 
             // Send verification email
-            $email_sent = send_verification_email($conn, $email, $new_id);
-            error_log("Signup: email sent to $email for user $new_id: " . ($email_sent ? 'success' : 'failed'));
-            echo json_encode(['status'=>'success','message'=>'Signup successful!' . ($email_sent ? ' Verification email sent.' : ' (Email sending failed)')]);
+            if(send_verification_email($conn, $email, $new_id)){
+                echo json_encode(['status'=>'success','message'=>'Signup successful! Verification email sent.']);
+            } else {
+                echo json_encode(['status'=>'success','message'=>'Signup successful but failed to send verification email.']);
+            }
             exit;
         } else { 
             echo json_encode(['status'=>'error','message'=>'Database error']); exit; 
@@ -631,14 +638,55 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
     }
 
     if ($action === 'resend_verification') {
-        $user_email = $GLOBALS['user_email'] ?? null;
-        if (!empty($_SESSION['user_id']) && $user_email) {
-            send_verification_email($conn, $user_email, $_SESSION['user_id']);
-            echo json_encode(['success'=>true,'message'=>'Verification email resent!']);
-        } else {
-            echo json_encode(['success'=>false,'message'=>'Not logged in or email unknown']);
+        error_log("[RESEND_VERIFY] Action triggered");
+        
+        try {
+            $user_id = $_SESSION['user_id'] ?? null;
+            error_log("[RESEND_VERIFY] User ID from session: " . ($user_id ? $user_id : "NULL"));
+            
+            if (!$user_id) {
+                error_log("[RESEND_VERIFY] ERROR: No user_id in session");
+                echo json_encode(['success'=>false,'message'=>'Not logged in']);
+                exit;
+            }
+
+            // Fetch email from DB
+            error_log("[RESEND_VERIFY] Querying database for email, user_id=$user_id");
+            $stmt = $conn->prepare("SELECT email FROM users WHERE id=?");
+            if (!$stmt) {
+                error_log("[RESEND_VERIFY] ERROR: Failed to prepare statement: " . $conn->error);
+                echo json_encode(['success'=>false,'message'=>'Database error: ' . $conn->error]);
+                exit;
+            }
+            
+            $stmt->bind_param('i', $user_id);
+            $stmt->execute();
+            $user = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+
+            $user_email = $user['email'] ?? null;
+            error_log("[RESEND_VERIFY] Email from DB: " . ($user_email ? $user_email : "NULL"));
+            
+            if (!$user_email) {
+                error_log("[RESEND_VERIFY] ERROR: Email not found in database for user_id=$user_id");
+                echo json_encode(['success'=>false,'message'=>'Email not found']);
+                exit;
+            }
+
+            error_log("[RESEND_VERIFY] Calling send_verification_email for $user_email");
+            $ok = send_verification_email($conn, $user_email, $user_id);
+            error_log("[RESEND_VERIFY] send_verification_email returned: " . ($ok ? "TRUE" : "FALSE"));
+
+            echo json_encode([
+                'success' => $ok,
+                'message' => $ok ? 'Verification email resent!' : 'Failed to send verification email'
+            ]);
+            exit;
+        } catch (Exception $e) {
+            error_log("[RESEND_VERIFY] EXCEPTION CAUGHT: " . $e->getMessage());
+            echo json_encode(['success'=>false,'message'=>'Server error: ' . $e->getMessage()]);
+            exit;
         }
-        exit;
     }
     
     if($action === 'debug'){

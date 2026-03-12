@@ -519,6 +519,31 @@ document.addEventListener('DOMContentLoaded',function(){
         if(data.status === 'success'){
             // Clear signup form cache
             localStorage.removeItem('signupFormCache');
+            // Show email notification if email was sent
+            if(data.email_sent === true){
+                // Create and show notification popup
+                let notif = document.createElement('div');
+                notif.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    max-width: 400px;
+                    padding: 16px;
+                    background: #E8F5E9;
+                    border: 2px solid #388E3C;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                    z-index: 5000;
+                    font-family: Arial, sans-serif;
+                    color: #1B5E20;
+                `;
+                notif.innerHTML = `
+                    <strong style="font-size: 16px;">✓ Bekreftelsesmail sendt</strong><br/>
+                    <small style="color: #1B5E20;">En lenke har blitt sendt til din e-postadresse. Klikk på den for å bekrefte kontoen.</small>
+                `;
+                document.body.appendChild(notif);
+                setTimeout(() => notif.remove(), 5000);
+            }
             // show small confirmation and then redirect to profile
             showConfirmation('Signup successful','Welcome — your account was created.', 'pages.php?page=profile', 1800);
         }
@@ -892,12 +917,25 @@ document.addEventListener('DOMContentLoaded', function() {
         console.warn('Resend verification button not found!');
         return;
     }
+    console.log('✓ Resend verification button found and listener attached');
+
+    let cooldownActive = false;
+    let cooldownEnd = 0;
 
     btn.addEventListener('click', async e => {
         e.preventDefault();
+        
+        // Check if cooldown is still active
+        if (cooldownActive) {
+            const remaining = Math.ceil((cooldownEnd - Date.now()) / 1000);
+            alert(`Vennligst vent ${remaining} sekund før du prøver igjen.`);
+            return;
+        }
+        
+        console.log('🔘 Resend verification button clicked');
         btn.disabled = true;
 
-        console.log('Resend verification clicked — sending POST');
+        console.log('📤 Sending POST to /display.php with action=resend_verification');
 
         const fd = new FormData();
         fd.append('action', 'resend_verification');
@@ -909,30 +947,106 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: fd,
                 credentials: 'same-origin'
             });
+            console.log('📡 Fetch returned, status:', res.status, res.statusText);
         } catch (err) {
-            console.error('Network error:', err);
+            console.error('❌ Network error:', err);
+            alert('Network error: ' + err.message);
             btn.disabled = false;
             return;
         }
 
+        let responseText = '';
         let data;
         try {
-            data = await res.json();
+            responseText = await res.text();
+            console.log('📝 Raw response:', responseText);
+            data = JSON.parse(responseText);
+            console.log('✓ Parsed JSON:', data);
         } catch (err) {
-            console.error('Invalid JSON response:', err, await res.text());
+            console.error('❌ Failed to parse response:', err);
+            console.error('Raw response was:', responseText);
+            alert('Server error: Invalid response');
             btn.disabled = false;
             return;
         }
 
-        console.log('Server response:', data);
+        console.log('📦 Server response data:', data);
 
-        const profileForm = document.getElementById('settingsForm');
-        if (profileForm) {
-            showFormMessage(profileForm, data.message + (data.verification_url ? (' — ' + data.verification_url) : ''), data.status);
+        // Start 60-second cooldown
+        cooldownActive = true;
+        cooldownEnd = Date.now() + 60000;
+        const originalText = btn.textContent;
+        
+        const cooldownInterval = setInterval(() => {
+            const remaining = Math.ceil((cooldownEnd - Date.now()) / 1000);
+            if (remaining > 0) {
+                btn.textContent = `Vent ${remaining}s`;
+            } else {
+                clearInterval(cooldownInterval);
+                cooldownActive = false;
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }, 100);
+
+        if (data.success) {
+            console.log('✓ Email sent successfully');
+            // Show success notification (centered and prominent)
+            let notif = document.createElement('div');
+            notif.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                max-width: 500px;
+                padding: 32px;
+                background: #F0F8E8;
+                border: 4px solid #1B5E20;
+                border-radius: 12px;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+                z-index: 5000;
+                font-family: Arial, sans-serif;
+                color: #1B5E20;
+                text-align: center;
+            `;
+            notif.innerHTML = `
+                <div style="position: absolute; top: 10px; right: 10px; cursor: pointer; font-size: 24px; line-height: 1; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: rgba(27, 94, 32, 0.1); border-radius: 4px; user-select: none;" class="close-btn">✕</div>
+                <div style="font-size: 48px; margin-bottom: 16px;">✓</div>
+                <strong style="font-size: 20px; display: block; margin-bottom: 12px;">Bekreftelsesmail sendt!</strong>
+                <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #2C5F2D;">
+                    En bekreftelseslenke har blitt sendt til din e-postadresse.<br/>
+                    <strong>Sjekk også spam-mappen din hvis du ikke finner den i innboksen.</strong>
+                </p>
+            `;
+            document.body.appendChild(notif);
+            notif.querySelector('.close-btn').addEventListener('click', () => notif.remove());
         } else {
-            alert(data.message);
+            console.log('❌ Email send failed');
+            // Show error notification
+            let notif = document.createElement('div');
+            notif.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                max-width: 400px;
+                padding: 16px;
+                background: #FFEBEE;
+                border: 2px solid #C62828;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 5000;
+                font-family: Arial, sans-serif;
+                color: #B71C1C;
+            `;
+            notif.innerHTML = `
+                <strong style="font-size: 16px;">✗ Feil</strong><br/>
+                <small style="color: #B71C1C;">${data.message}</small>
+            `;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 5000);
         }
 
+        console.log('✓ Resend verification handler complete');
         btn.disabled = false;
     });
 });
