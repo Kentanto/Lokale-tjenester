@@ -1345,7 +1345,13 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             $stmt->execute();
             $affected = $stmt->affected_rows;
             $stmt->close();
-            if($affected){ echo json_encode(['status'=>'success']); } else { echo json_encode(['status'=>'error','message'=>'Not allowed or already taken down']); }
+            if($affected){ 
+                // Log the take-down for admin visibility
+                @file_put_contents(__DIR__ . '/debug_admin.log', date('c') . " - User $uid took down post $pid\n", FILE_APPEND);
+                echo json_encode(['status'=>'success']); 
+            } else { 
+                echo json_encode(['status'=>'error','message'=>'Not allowed or already taken down']); 
+            }
         } else {
             echo json_encode(['status'=>'error','message'=>'Database error']);
         }
