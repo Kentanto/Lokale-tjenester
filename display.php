@@ -1715,7 +1715,7 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])){
                     <button type="submit">Login</button>
                 </form>
                 <?php else: ?>
-                <form id="signupForm">
+                <form id="signupForm" autocomplete="off">
                     <input type="hidden" name="action" value="signup">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
                     <div id="signupMsg" style="color:red;margin-bottom:8px" aria-live="polite"></div>

@@ -42,7 +42,7 @@ global $conn, $user_id;
                 <div class="dropdown-divider"></div>
                 <button id="logoutBtn">Logg ut</button>
             <?php else: ?>
-                <form id="loginForm" class="auth-form">
+                <form id="loginForm" class="auth-form" >
                     <input type="hidden" name="action" value="login">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
                     <div class="form-message" aria-live="polite"></div>
@@ -51,7 +51,7 @@ global $conn, $user_id;
                     <button type="submit">Logg inn</button>
                 </form>
                 <div class="dropdown-divider"></div>
-                <form id="signupForm" class="auth-form">
+                <form id="signupForm" class="auth-form" autocomplete="off">
                     <input type="hidden" name="action" value="signup">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
                     <div class="form-message" aria-live="polite"></div>

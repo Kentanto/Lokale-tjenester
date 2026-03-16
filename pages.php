@@ -735,7 +735,7 @@ switch ($page) {
         ?>
         <div class="auth-section">
             <p>Opprett en konto for å begynne å bestille tjenester og administrere annonsene dine.</p>
-            <form id="signupPageForm" method="post" class="auth-form">
+            <form id="signupPageForm" method="post" class="auth-form" autocomplete="off">
                 <input type="hidden" name="action" value="signup">
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
                 <div class="form-message" aria-live="polite"></div>
