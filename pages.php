@@ -745,7 +745,7 @@ switch ($page) {
                 </div>
                 <div class="form-group">
                     <label for="email">E-post</label>
-                    <input id="email" name="email" type="email" required>
+                    <input id="email" name="email" type="email" title="Må bruke Gmail, iCloud, Hotmail, Outlook, Yahoo, eller norsk mail giver med .com as suffix" required>
                 </div>
                 <div class="form-group">
                     <label for="password">Passord</label>

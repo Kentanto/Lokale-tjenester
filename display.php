@@ -335,6 +335,46 @@ error_log("REMOTE_ADDR: " . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
 $action = $_POST['action'] ?? null;
 error_log("Action received: " . var_export($action, true));
 
+// Periodically clean up unverified accounts (roughly every 5% of requests)
+if(rand(1, 100) <= 5 && $conn && !$conn->connect_error) {
+    cleanup_unverified_accounts($conn);
+}
+
+// Email validation: Check domain and suffix (.com or .no from standard providers)
+function validate_email_domain(string $email): array {
+    // List of allowed email providers with .com and .no support
+    $allowed_domains = [
+        // Global providers
+        'gmail.com',
+        'icloud.com',
+        'hotmail.com',
+        'outlook.com',
+        'yahoo.com',
+        'protonmail.com',
+        'mail.com',
+        'yandex.com',
+    ];
+
+    // Extract domain from email
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        return ['valid' => false, 'message' => 'Invalid email format'];
+    }
+
+    $domain = strtolower(substr(strrchr($email, '@'), 1));
+    
+    // Check if domain is in whitelist
+    if (!in_array($domain, $allowed_domains, true)) {
+        return ['valid' => false, 'message' => "mail giver er ikke støttet. vennligst bruk en av disse: Gmail, iCloud, Hotmail, Outlook, Yahoo, Protonmail"];
+    }
+
+    // Check if TLD is .com or .no
+    if (!preg_match('/\.(com|no)$/', $domain)) {
+        return ['valid' => false, 'message' => 'Mail må bruker .com suffix'];
+    }
+
+    return ['valid' => true, 'message' => ''];
+}
+
 function send_verification_email(mysqli $conn, string $email, int $user_id): bool {
     error_log("[EMAIL] Starting send_verification_email for user_id=$user_id, email=$email");
     
@@ -476,6 +516,22 @@ function get_user_remaining_posts(mysqli $conn, int $user_id): int {
     return max(0, $POST_LIMIT - $postsToday);
 }
 
+// Clean up unverified accounts older than 24 hours
+function cleanup_unverified_accounts(mysqli $conn): void {
+    $stmt = safe_prepare($conn, "DELETE FROM users WHERE email_verified = 0 AND created_at < NOW() - INTERVAL 24 HOUR");
+    if($stmt) {
+        if($stmt->execute()) {
+            $deletedCount = $conn->affected_rows;
+            if ($deletedCount > 0) {
+                error_log("[CLEANUP] Deleted $deletedCount unverified accounts older than 24 hours");
+            }
+        } else {
+            error_log("[CLEANUP] ERROR: Failed to clean up unverified accounts: " . $stmt->error);
+        }
+        $stmt->close();
+    }
+}
+
 
 
 // AJAX POST handlers for login/signup (mirrors the backup behavior)
@@ -509,6 +565,13 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
             echo json_encode(['status'=>'error','message'=>'Invalid email']); exit;
         }
+
+        // Validate email domain and suffix
+        $emailValidation = validate_email_domain($email);
+        if (!$emailValidation['valid']) {
+            echo json_encode(['status'=>'error','message'=>$emailValidation['message']]); exit;
+        }
+
         if(strlen($username) < 3 || strlen($username) > 32){ 
             echo json_encode(['status'=>'error','message'=>'Username must be 3-32 characters']); exit; 
         }
@@ -1720,7 +1783,7 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])){
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
                     <div id="signupMsg" style="color:red;margin-bottom:8px" aria-live="polite"></div>
                     <input type="text" name="username" placeholder="Username" required style="display:block;margin:8px 0;padding:8px;width:100%">
-                    <input type="email" name="email" placeholder="Email" required style="display:block;margin:8px 0;padding:8px;width:100%">
+                    <input type="email" name="email" placeholder="Email" title="Must use Gmail, iCloud, Hotmail, Outlook, Yahoo, or Norwegian email provider with .com or .no suffix" required style="display:block;margin:8px 0;padding:8px;width:100%">
                     <input type="password" name="password" placeholder="Password" required style="display:block;margin:8px 0;padding:8px;width:100%">
                     <button type="submit">Sign Up</button>
                 </form>
