@@ -122,17 +122,25 @@ function renderJobs(jobs, container){
     let out = '';
     jobs.forEach(j=>{
         let imageHtml = j.image ? `<img src="${j.image}" alt="${escapeHtml(j.title)}" style="width:100%;height:200px;object-fit:cover;border-radius:6px;margin-bottom:12px;">` : '';
-        let profilePictureHtml = j.profile_picture ? `<img src="data:${j.profile_picture}" alt="${escapeHtml(j.username)}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;margin-right:8px;">` : `<div style="width:32px;height:32px;border-radius:50%;background:#ddd;display:none;align-items:center;justify-content:center;font-weight:bold;margin-right:8px;font-size:14px;">${escapeHtml(j.username.charAt(0))}</div>`;
+        let profilePictureHtml = '';
+        if(j.profile_picture){
+            profilePictureHtml = `<img src="data:${j.profile_picture}" alt="${escapeHtml(j.username)}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;margin-right:8px;">`;
+        } else {
+            profilePictureHtml = `<div style="width:32px;height:32px;border-radius:50%;background:#ddd;display:flex;align-items:center;justify-content:center;font-weight:bold;margin-right:8px;font-size:14px;">${escapeHtml(j.username.charAt(0))}</div>`;
+        }
         out += `<article class="service-card" style="margin-bottom:12px;cursor:pointer;" onclick="openJobDetail(${j.id})">
             ${imageHtml}
             <h3>${escapeHtml(j.title)}</h3>
             <p>${escapeHtml(j.description.substring(0,150)) + (j.description.length > 150 ? '...' : '')}</p>
-            <p style="color:#666;font-size:13px;display:flex;align-items:center;">${profilePictureHtml}<span>${escapeHtml(j.username)} — ${escapeHtml(j.location||'')}</span></p>
+            <div style="display:flex;align-items:center;color:#666;font-size:13px;margin-bottom:12px;">
+                ${profilePictureHtml}
+                <span>${escapeHtml(j.username)}</span>
+            </div>
+            <p style="color:#666;font-size:13px;"> — ${escapeHtml(j.location||'')}</p>
             <p style="font-weight:600;margin-top:6px">Budsjett: ${j.budget ? (parseInt(j.budget) + ' NOK') : 'Forhandlingsbart'}</p>
             <div style="font-size:12px;color:#888;margin-top:6px">Lagt ut: ${formatRelativeTime(j.created_at)}</div>
         </article>`;
     });
-    container.innerHTML = out;
     container.innerHTML = out;
 }
 
@@ -243,12 +251,9 @@ async function openJobDetail(postId){
 
             detailContent.innerHTML = `
                 ${imageHtml}
-                <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-                    ${p.profile_picture ? `<img src="${p.profile_picture}" alt="${escapeHtml(p.username)}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">` : `<div style="width:40px;height:40px;border-radius:50%;background:#ddd;display:flex;align-items:center;justify-content:center;font-weight:bold;">${escapeHtml(p.username.charAt(0))}</div>`}
-                    <div>
-                        <h3 style="margin:0;">${escapeHtml(p.username)}</h3>
-                        <p style="color:#666;font-size:13px;margin:4px 0 0 0;">${escapeHtml(p.location||'Not specified')}</p>
-                    </div>
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;cursor:pointer;" id="jobDetailProfileSection" data-user-id="${p.user_id}" onclick="openUserProfile(parseInt(this.getAttribute('data-user-id')));">
+                    ${p.profile_picture ? `<img src="${p.profile_picture}" alt="${escapeHtml(p.username)}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;flex-shrink:0;">` : `<div style="width:50px;height:50px;border-radius:50%;background:#ddd;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:20px;flex-shrink:0;">${escapeHtml(p.username.charAt(0))}</div>`}
+                    <h3 style="margin:0;cursor:pointer;">${escapeHtml(p.username)}</h3>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
                     <div><strong>Budsjett:</strong> <span style="font-size:18px;color:var(--green);">${p.budget ? (parseInt(p.budget) + ' NOK') : 'Forhandlingsbart'}</span></div>
@@ -288,6 +293,81 @@ function disableForm(form, disabled){
         if(el.tagName === 'BUTTON') el.setAttribute('aria-disabled', disabled);
     });
 }
+
+// View user profile with bio and all their jobs
+async function openUserProfile(userId){
+    // Create profile page overlay
+    let profilePage = document.getElementById('userProfilePage');
+    if(!profilePage){
+        profilePage = document.createElement('div');
+        profilePage.id = 'userProfilePage';
+        profilePage.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:white;z-index:1000;overflow-y:auto;';
+        profilePage.innerHTML = `
+            <div style="padding:20px;max-width:900px;margin:0 auto;">
+                <button style="position:fixed;top:20px;right:20px;background:none;border:none;font-size:28px;cursor:pointer;z-index:1001;" onclick="document.getElementById('userProfilePage').remove();">&times;</button>
+                <div id="userProfileContent" style="padding-top:40px;">
+                    <p>Loading profile...</p>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(profilePage);
+    }
+
+    const profileContent = document.getElementById('userProfileContent');
+    profileContent.innerHTML = '<p>Loading profile...</p>';
+    
+    const fd = new FormData();
+    fd.append('action', 'view_user_profile');
+    fd.append('user_id', userId);
+    
+    try {
+        const res = await fetch('/display.php', {method:'POST', body:fd, credentials:'same-origin'});
+        const data = await res.json();
+        
+        if(data.status === 'success'){
+            const user = data.user;
+            const jobs = data.jobs || [];
+            console.log('User profile data:', user);
+            
+            let profilePicHtml = '';
+            if(user.profile_picture){
+                profilePicHtml = `<img src="${user.profile_picture}" alt="${escapeHtml(user.username)}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid #ddd;">`;
+            } else {
+                profilePicHtml = `<div style="width:100px;height:100px;border-radius:50%;background:#ddd;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:bold;border:3px solid #ddd;">${escapeHtml(user.username.charAt(0))}</div>`;
+            }
+            
+            let jobsHtml = '';
+            if(jobs.length > 0){
+                jobsHtml = '<h3 style="margin-top:24px;">Andre jobber av ' + escapeHtml(user.username) + '</h3>';
+                jobs.forEach(job => {
+                    jobsHtml += `<div class="service-card" style="margin-bottom:12px;cursor:pointer;" onclick="document.getElementById('userProfilePage').remove(); openJobDetail(${job.id});">
+                        <h4>${escapeHtml(job.title)}</h4>
+                        <p style="font-size:13px;color:#666;margin:4px 0;">${escapeHtml(job.category || 'Ikke spesifisert')} • ${escapeHtml(job.location || 'Sted ikke spesifisert')}</p>
+                        <p style="font-size:13px;margin:4px 0;"><strong>${job.budget ? (parseInt(job.budget) + ' NOK') : 'Forhandlingsbart'}</strong></p>
+                        <p style="font-size:13px;color:#999;">${formatRelativeTime(job.created_at)}</p>
+                    </div>`;
+                });
+            } else {
+                jobsHtml = '<p style="margin-top:24px;color:#666;"><em>Ingen andre jobber fra denne brukeren.</em></p>';
+            }
+            
+            profileContent.innerHTML = `
+                <div style="text-align:center;padding-bottom:24px;border-bottom:1px solid var(--off-white);">
+                    ${profilePicHtml}
+                    <h2 style="margin:12px 0 4px 0;">${escapeHtml(user.username)}</h2>
+                </div>
+                ${user.bio ? `<div style="margin:20px 0;padding:16px;background:#f9f9f9;border-radius:6px;border-left:4px solid var(--green);"><h3 style="margin:0 0 12px 0;">Om</h3><p style="margin:0;white-space:pre-wrap;line-height:1.6;">${escapeHtml(user.bio)}</p></div>` : '<p style="margin:20px 0;color:#999;"><em>Ingen bio ennå.</em></p>'}
+                ${jobsHtml}
+            `;
+        } else {
+            profileContent.innerHTML = `<p style="color:red;">Error: ${escapeHtml(data.message)}</p>`;
+        }
+    } catch(err){
+        profileContent.innerHTML = `<p style="color:red;">Network error loading profile</p>`;
+    }
+}
+
+
 
 document.addEventListener('DOMContentLoaded',function(){
     // Confirmation modal helper

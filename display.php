@@ -1140,7 +1140,7 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         $max = isset($_POST['max_budget']) ? intval($_POST['max_budget']) : null;
         $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 50;
 
-        $sql = "SELECT p.id, p.title, p.description, p.category, p.budget, p.location, p.created_at, p.user_id, COALESCE(u.username,'Guest') AS username, IF(p.image, CONCAT('data:image/', COALESCE(p.image_type, 'jpeg'), ';base64,', TO_BASE64(p.image)), NULL) AS image, IF(u.profile_picture, CONCAT(COALESCE(u.profile_picture_type, 'image/jpeg'), ';base64,', TO_BASE64(u.profile_picture)), NULL) AS profile_picture FROM posts p LEFT JOIN users u ON p.user_id = u.id";
+        $sql = "SELECT p.id, p.title, p.description, p.category, p.budget, p.location, p.created_at, p.user_id, COALESCE(u.username,'Guest') AS username, IF(p.image, CONCAT('data:image/', COALESCE(p.image_type, 'jpeg'), ';base64,', TO_BASE64(p.image)), NULL) AS image, u.profile_picture, u.profile_picture_type FROM posts p LEFT JOIN users u ON p.user_id = u.id";
         $where = [];
         $types = '';
         $params = [];
@@ -1232,6 +1232,18 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             $imgStmt->close();
         }
 
+        // Encode profile pictures to data URIs
+        foreach($rows as $i => $r){
+            if(!empty($r['profile_picture'])){
+                $picType = $r['profile_picture_type'] ?: 'image/jpeg';
+                $rows[$i]['profile_picture'] = $picType . ';base64,' . base64_encode($r['profile_picture']);
+                unset($rows[$i]['profile_picture_type']);
+            } else {
+                $rows[$i]['profile_picture'] = null;
+                unset($rows[$i]['profile_picture_type']);
+            }
+        }
+
         echo json_encode(['status'=>'success','jobs'=>$rows]); 
         exit;
     }
@@ -1312,6 +1324,83 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         }
 
         echo json_encode(['status'=>'success','post'=>$row]);
+        exit;
+    }
+
+    // View user profile: get bio, profile picture, and all their approved jobs
+    if($action === 'view_user_profile'){
+        $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;
+        if($user_id <= 0){ echo json_encode(['status'=>'error','message'=>'Invalid user ID']); exit; }
+        
+        // Get user info
+        $stmt = safe_prepare($conn, "SELECT username, bio FROM users WHERE id = ? LIMIT 1");
+        if(!$stmt){ echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
+        $stmt->bind_param('i', $user_id);
+        if(!$stmt->execute()){ echo json_encode(['status'=>'error','message'=>'Query failed']); exit; }
+        
+        $user = null;
+        if(method_exists($stmt, 'get_result')){
+            $res = $stmt->get_result();
+            $user = $res->fetch_assoc();
+        } else {
+            $stmt->store_result();
+            if($stmt->num_rows > 0){
+                $meta = $stmt->result_metadata();
+                if($meta){
+                    $fields = [];
+                    while($f = $meta->fetch_field()) $fields[] = $f->name;
+                    $meta->free();
+                    
+                    $bindVars = [];
+                    $user = [];
+                    foreach($fields as $fld){ $user[$fld] = null; $bindVars[] = & $user[$fld]; }
+                    if(count($bindVars)){
+                        call_user_func_array([$stmt, 'bind_result'], $bindVars);
+                        if($stmt->fetch()){ $out = []; foreach($user as $k => $v) $out[$k] = $v; $user = $out; }
+                    }
+                }
+            }
+        }
+        $stmt->close();
+        
+        if(!$user){ echo json_encode(['status'=>'error','message'=>'User not found']); exit; }
+        
+        // Get profile picture
+        $user['profile_picture'] = get_profile_picture_url($conn, $user_id);
+        
+        // Get user's approved jobs
+        $jobs = [];
+        $jobStmt = safe_prepare($conn, "SELECT id, title, description, category, budget, location, created_at FROM posts WHERE user_id = ? AND status = 'approved' ORDER BY created_at DESC");
+        if($jobStmt){
+            $jobStmt->bind_param('i', $user_id);
+            if($jobStmt->execute()){
+                if(method_exists($jobStmt, 'get_result')){
+                    $res = $jobStmt->get_result();
+                    while($row = $res->fetch_assoc()){ $jobs[] = $row; }
+                } else {
+                    $jobStmt->store_result();
+                    $meta = $jobStmt->result_metadata();
+                    if($meta){
+                        $fields = [];
+                        while($f = $meta->fetch_field()) $fields[] = $f->name;
+                        $meta->free();
+                        
+                        while(true){
+                            $row = [];
+                            $bindVars = [];
+                            foreach($fields as $fld){ $row[$fld] = null; $bindVars[] = & $row[$fld]; }
+                            if(count($bindVars)){
+                                call_user_func_array([$jobStmt, 'bind_result'], $bindVars);
+                                if($jobStmt->fetch()){ $out = []; foreach($row as $k => $v) $out[$k] = $v; $jobs[] = $out; } else break;
+                            } else break;
+                        }
+                    }
+                }
+            }
+            $jobStmt->close();
+        }
+        
+        echo json_encode(['status'=>'success','user'=>$user,'jobs'=>$jobs]);
         exit;
     }
 

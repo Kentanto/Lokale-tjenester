@@ -16,3 +16,7 @@ change password should be more sophisticated and only available througha forgot 
 meaning, no willy nilly password change
 
 proper user settings with functionality
+
+make it so admins can delete everyones post
+
+drop down list for category
