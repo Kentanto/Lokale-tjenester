@@ -1458,11 +1458,12 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         if(!filter_var($email, FILTER_VALIDATE_EMAIL)){ echo json_encode(['status'=>'error','message'=>'Invalid email']); exit; }
         if(strlen($username) < 3 || strlen($username) > 32){ echo json_encode(['status'=>'error','message'=>'Username must be 3-32 characters']); exit; }
         if(!preg_match('/^[A-Za-z0-9_\-]+$/', $username)){ echo json_encode(['status'=>'error','message'=>'Username may only contain letters, numbers, dash or underscore']); exit; }
-        if(strlen($bio) > 500){ echo json_encode(['status'=>'error','message'=>'Bio must be 500 characters or less']); exit; }
+        if(strlen($bio) > 800){ echo json_encode(['status'=>'error','message'=>'Bio must be 800 characters or less']); exit; }
         
-        // Sanitize bio: remove HTML tags and trim excessive whitespace
+        // Sanitize bio: remove HTML tags but preserve newlines for paragraphs
         $bio = strip_tags($bio);
-        $bio = preg_replace('/\s+/', ' ', $bio);
+        $bio = preg_replace('/[ \t]+/', ' ', $bio); // Collapse spaces and tabs only
+        $bio = preg_replace('/\n\n+/', '\n\n', $bio); // Collapse multiple newlines to max 2
         $bio = trim($bio);
         
         // Check if new username/email already exists for OTHER users
@@ -1475,15 +1476,35 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             $stmt->close();
         } else { echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
         
-        // Update username, email, and bio
-        $stmt = safe_prepare($conn, "UPDATE users SET username=?, email=?, bio=? WHERE id=?");
-        if($stmt){
-            $stmt->bind_param('sssi', $username, $email, $bio, $uid);
-            if(!$stmt->execute()){ echo json_encode(['status'=>'error','message'=>'Failed to update settings']); exit; }
-            $_SESSION['user_name'] = $username;
-            $_SESSION['user_email'] = $email;
-            echo json_encode(['status'=>'success','message'=>'Settings updated']); exit;
-        } else { echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
+        // Check if bio column exists before trying to update it
+        $has_bio_column = false;
+        try {
+            $res = $conn->query("SHOW COLUMNS FROM users LIKE 'bio'");
+            if($res && $res->num_rows > 0) $has_bio_column = true;
+        } catch (Exception $e) {
+            $has_bio_column = false;
+        }
+        
+        // Update username, email, and optionally bio
+        if($has_bio_column){
+            $stmt = safe_prepare($conn, "UPDATE users SET username=?, email=?, bio=? WHERE id=?");
+            if($stmt){
+                $stmt->bind_param('sssi', $username, $email, $bio, $uid);
+                if(!$stmt->execute()){ echo json_encode(['status'=>'error','message'=>'Failed to update settings']); exit; }
+                $_SESSION['user_name'] = $username;
+                $_SESSION['user_email'] = $email;
+                echo json_encode(['status'=>'success','message'=>'Settings updated']); exit;
+            } else { echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
+        } else {
+            $stmt = safe_prepare($conn, "UPDATE users SET username=?, email=? WHERE id=?");
+            if($stmt){
+                $stmt->bind_param('ssi', $username, $email, $uid);
+                if(!$stmt->execute()){ echo json_encode(['status'=>'error','message'=>'Failed to update settings']); exit; }
+                $_SESSION['user_name'] = $username;
+                $_SESSION['user_email'] = $email;
+                echo json_encode(['status'=>'success','message'=>'Settings updated']); exit;
+            } else { echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
+        }
     }
 
     if($action === 'change_password'){

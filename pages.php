@@ -516,7 +516,7 @@ switch ($page) {
 
                 <!-- Bio Section -->
                 <div class="profile-verification-card">
-                    <h3>� Om meg</h3>
+                    <h3>👤 Om meg</h3>
                     <form id="bioForm" class="settings-form" style="margin-top: 12px;">
                         <input type="hidden" name="action" value="update_settings">
                         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
@@ -526,10 +526,10 @@ switch ($page) {
                         <div class="form-group">
                             <label for="profile-bio" style="display: flex; justify-content: space-between; align-items: center;">
                                 Bio
-                                <span class="char-counter"><span id="bio-char-count">0</span>/500</span>
+                                <span class="char-counter"><span id="bio-char-count">0</span>/800</span>
                             </label>
-                            <textarea id="profile-bio" name="bio" rows="5" placeholder="Fortell litt om deg selv..." maxlength="500" style="width: 100%; resize: vertical; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap;"><?php echo htmlspecialchars($user_bio ?? ''); ?></textarea>
-                            <small style="display: block; margin-top: 6px; color: var(--muted);">Maks 500 tegn</small>
+                            <textarea id="profile-bio" name="bio" rows="5" placeholder="Fortell litt om deg selv..." maxlength="800" style="width: 100%; resize: vertical; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap;"><?php echo htmlspecialchars($user_bio ?? ''); ?></textarea>
+                            <small style="display: block; margin-top: 6px; color: var(--muted);">Maks 800 tegn</small>
                         </div>
                         <button class="btn btn-primary" type="submit">Lagre</button>
                     </form>

@@ -1,40 +1,51 @@
 <?php
-// Simple migration runner — reads migrations/create_tables.sql and executes via mysqli->multi_query
-// Usage (CLI): php scripts/run_migrations.php
-// Usage (browser): visit http://your-server/scripts/run_migrations.php (only for local dev)
+// Simple migration runner — reads migrations/*.sql and executes via mysqli->multi_query
+
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 $host = 'localhost';
 $user = 'lokale-tjenester';
 $pass = 'pwlt01!';
 $db   = 'lokale-tjenester';
 
+echo "Migration Runner Started\n\n";
+
 $migrationsDir = __DIR__ . '/../migrations';
+echo "Looking for migrations in: $migrationsDir\n";
+
 if(!is_dir($migrationsDir)){
-    echo "Migrations directory not found: $migrationsDir\n";
+    echo "ERROR: Migrations directory not found!\n";
     exit(1);
 }
 
 $files = glob($migrationsDir . '/*.sql');
 if(!$files){
-    echo "No migration files found in: $migrationsDir\n";
+    echo "No migration files found.\n";
     exit(0);
 }
 
-// sort to ensure deterministic order
+echo "Found " . count($files) . " migration file(s):\n";
+foreach($files as $f) echo "  - " . basename($f) . "\n";
+echo "\n";
+
 sort($files, SORT_STRING);
 
 $mysqli = new mysqli($host, $user, $pass, $db);
 if($mysqli->connect_error){
-    echo "DB connection failed: " . $mysqli->connect_error . "\n";
+    echo "ERROR: DB connection failed: " . $mysqli->connect_error . "\n";
     exit(1);
 }
+echo "Connected to database successfully.\n\n";
 
 $allSuccess = true;
 foreach($files as $path){
-    echo "Running migration: " . basename($path) . "\n";
+    $filename = basename($path);
+    echo "Running: $filename ... ";
+    
     $sql = file_get_contents($path);
     if($sql === false){
-        echo "Unable to read migration file: $path\n";
+        echo "FAILED (could not read file)\n";
         $allSuccess = false;
         continue;
     }
@@ -45,15 +56,20 @@ foreach($files as $path){
                 $res->free();
             }
         } while ($mysqli->more_results() && $mysqli->next_result());
-        echo "  OK\n";
+        echo "OK\n";
     } else {
-        echo "  Failed: " . $mysqli->error . "\n";
+        echo "FAILED: " . $mysqli->error . "\n";
         $allSuccess = false;
     }
 }
 
 $mysqli->close();
 
-if($allSuccess) echo "All migrations executed.\n";
+echo "\n";
+if($allSuccess) {
+    echo "✓ All migrations completed successfully!\n";
+} else {
+    echo "✗ Some migrations failed.\n";
+}
 
 ?>
