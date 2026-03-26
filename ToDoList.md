@@ -20,3 +20,9 @@ dyrestell
 handling / ærender
 barnepass
 vedlikehold
+
+proper user settings with functionality
+
+make it so admins can delete everyones post
+
+drop down list for category
