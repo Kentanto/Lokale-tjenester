@@ -182,7 +182,19 @@ switch ($page) {
                                     <div class="form-col">
                                         <div class="form-group">
                                             <label for="job-category">Kategori</label>
-                                            <input id="job-category" name="category" type="text" placeholder="f.eks. renhold">
+                                            <select id="job-category" name="category" required>
+                                                <option value="not specified" selected>Ikke spesifisert</option>
+                                                <option value="husarbeid">Husarbeid</option>
+                                                <option value="kjøkkenarbeid">Kjøkkenarbeid</option>
+                                                <option value="utearbeid">Utearbeid</option>
+                                                <option value="hagearbeid">Hagearbeid</option>
+                                                <option value="vinterarbeid">Vinterarbeid</option>
+                                                <option value="dyrestell">Dyrestell</option>
+                                                <option value="handling / ærender">Handling / ærender</option>
+                                                <option value="barnepass">Barnepass</option>
+                                                <option value="vedlikehold">Vedlikehold</option>
+                                                <option value="andre">Andre</option>
+                                            </select>
                                         </div>
                                     </div>
                                     <div class="form-col form-col-narrow">
@@ -266,7 +278,19 @@ switch ($page) {
                                 
                                 <div class="form-group">
                                     <label for="search-category">Kategori</label>
-                                    <input name="category" id="search-category" type="text" placeholder="f.eks. renhold">
+                                    <select name="category" id="search-category">
+                                        <option value="not specified" selected>Ikke spesifisert</option>
+                                        <option value="husarbeid">Husarbeid</option>
+                                        <option value="kjøkkenarbeid">Kjøkkenarbeid</option>
+                                        <option value="utearbeid">Utearbeid</option>
+                                        <option value="hagearbeid">Hagearbeid</option>
+                                        <option value="vinterarbeid">Vinterarbeid</option>
+                                        <option value="dyrestell">Dyrestell</option>
+                                        <option value="handling / ærender">Handling / ærender</option>
+                                        <option value="barnepass">Barnepass</option>
+                                        <option value="vedlikehold">Vedlikehold</option>
+                                        <option value="andre">Andre</option>
+                                    </select>
                                 </div>
                                 
                                 <div class="form-group">

@@ -82,6 +82,45 @@ function showFormMessage(form, message, status){
 // Helper: escape HTML special characters
 function escapeHtml(s){ if(!s && s!==0) return ''; return String(s).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];}); }
 
+// Helper: render star rating display (read-only)
+function renderStarDisplay(rating, count = 0) {
+    const fullStars = Math.floor(rating);
+    const hasHalf = rating % 1 >= 0.5;
+    let html = '<div class="star-display">';
+    for(let i = 0; i < 5; i++) {
+        if(i < fullStars) html += '<span class="star filled">★</span>';
+        else if(i === fullStars && hasHalf) html += '<span class="star half">★</span>';
+        else html += '<span class="star empty">★</span>';
+    }
+    html += `<span class="rating-text"> ${rating.toFixed(1)} (${count})</span></div>`;
+    return html;
+}
+
+// Helper: render star rating input (for submitting ratings)
+function renderStarInput(onStarClick) {
+    let html = '<div class="star-input" id="starInput">';
+    for(let i = 1; i <= 5; i++) {
+        html += `<span class="star-btn" data-rating="${i}" style="cursor:pointer;font-size:24px;color:#ddd;margin:0 4px;">★</span>`;
+    }
+    html += '</div>';
+    const container = document.createElement('div');
+    container.innerHTML = html;
+    const stars = container.querySelectorAll('.star-btn');
+    stars.forEach(star => {
+        star.addEventListener('click', () => onStarClick(parseInt(star.getAttribute('data-rating'))));
+        star.addEventListener('mouseover', () => {
+            const rating = parseInt(star.getAttribute('data-rating'));
+            stars.forEach((s, idx) => {
+                s.style.color = idx < rating ? '#FFA400' : '#ddd';
+            });
+        });
+    });
+    container.addEventListener('mouseout', () => {
+        stars.forEach(s => s.style.color = '#ddd');
+    });
+    return container.innerHTML;
+}
+
 // Render jobs list
 // Helper: format relative time with specific intervals
 function formatRelativeTime(isoDate){
@@ -253,7 +292,10 @@ async function openJobDetail(postId){
                 ${imageHtml}
                 <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;cursor:pointer;" id="jobDetailProfileSection" data-user-id="${p.user_id}" onclick="openUserProfile(parseInt(this.getAttribute('data-user-id')));">
                     ${p.profile_picture ? `<img src="${p.profile_picture}" alt="${escapeHtml(p.username)}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;flex-shrink:0;">` : `<div style="width:50px;height:50px;border-radius:50%;background:#ddd;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:20px;flex-shrink:0;">${escapeHtml(p.username.charAt(0))}</div>`}
-                    <h3 style="margin:0;cursor:pointer;">${escapeHtml(p.username)}</h3>
+                    <div>
+                        <h3 style="margin:0;cursor:pointer;">${escapeHtml(p.username)}</h3>
+                        <div style="margin-top:4px;">${renderStarDisplay(p.creator_rating || 0, p.creator_rating_count || 0)}</div>
+                    </div>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
                     <div><strong>Budsjett:</strong> <span style="font-size:18px;color:var(--green);">${p.budget ? (parseInt(p.budget) + ' NOK') : 'Forhandlingsbart'}</span></div>
@@ -264,6 +306,10 @@ async function openJobDetail(postId){
                 <hr style="margin:20px 0;border:none;border-top:1px solid var(--off-white);">
                 <h3 style="margin-top:0;">Beskrivelse</h3>
                 <p style="line-height:1.6;white-space:pre-wrap;">${escapeHtml(p.description)}</p>
+                <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--off-white);">
+                    <div id="ratingFormSection"></div>
+                    ${p.viewer_is_admin ? `<div style="margin-top:16px;"><button id="deletePostBtn" class="btn btn-primary" style="background:#d32f2f;" data-post-id="${p.id}">Slett post (Admin)</button></div>` : ''}
+                </div>
             `;
 
             // Wire thumbnail clicks to swap main image
@@ -276,6 +322,112 @@ async function openJobDetail(postId){
                     const src = btn.getAttribute('data-src');
                     if(mainImg && src) mainImg.src = src;
                 });
+            }
+
+            // Wire delete button click for admins
+            const deleteBtn = detailContent.querySelector('#deletePostBtn');
+            if(deleteBtn){
+                deleteBtn.addEventListener('click', async function(){
+                    if(!confirm('Are you sure you want to delete this post?')) return;
+                    
+                    const postId = this.getAttribute('data-post-id');
+                    const fd = new FormData();
+                    fd.append('action', 'delete_post');
+                    fd.append('post_id', postId);
+                    
+                    try{
+                        const res = await fetch('/display.php', {method:'POST', body:fd, credentials:'same-origin'});
+                        const data = await res.json();
+                        
+                        if(data.status === 'success'){
+                            modal.style.display = 'none';
+                            // Reload jobs list if it exists
+                            if(document.getElementById('jobsList')){
+                                loadJobs();
+                            }
+                            alert('Post deleted successfully');
+                        } else {
+                            alert('Error: ' + (data.message || 'Failed to delete post'));
+                        }
+                    } catch(err){
+                        alert('Error: ' + err.message);
+                    }
+                });
+            }
+
+            // Add rating form if user is logged in (fetch to check isLoggedIn status from DOM or session)
+            const ratingFormSection = detailContent.querySelector('#ratingFormSection');
+            if(ratingFormSection && p.user_id) {
+                // Check if there's a user element in navbar to detect logged-in state
+                const userBtn = document.querySelector('.user-btn');
+                if(userBtn && userBtn.textContent.trim() !== '') {
+                    // User is logged in, show rating form
+                    let selectedRating = 0;
+                    const formHtml = `
+                        <h4 style="margin-bottom:12px;">Vurdèr denne personen</h4>
+                        <div id="ratingStarsContainer" style="margin-bottom:12px;"></div>
+                        <textarea id="reviewText" placeholder="Valgfritt: legg til en kommentar" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;font-size:14px;font-family:inherit;margin-bottom:12px;" maxlength="500" rows="3"></textarea>
+                        <button id="submitRatingBtn" class="btn btn-primary" style="width:100%;opacity:0.5;cursor:not-allowed;" disabled>Lagre vurdering</button>
+                        <div class="form-message" aria-live="polite" style="margin-top:12px;"></div>
+                    `;
+                    ratingFormSection.innerHTML = formHtml;
+                    
+                    // Render star input
+                    const starsContainer = ratingFormSection.querySelector('#ratingStarsContainer');
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = renderStarInput((rating) => {
+                        selectedRating = rating;
+                        // Update UI
+                        const stars = starsContainer.querySelectorAll('.star-btn');
+                        stars.forEach((s, idx) => {
+                            s.style.color = idx < rating ? '#FFA400' : '#ddd';
+                        });
+                        // Enable submit button
+                        document.getElementById('submitRatingBtn').disabled = false;
+                        document.getElementById('submitRatingBtn').style.opacity = '1';
+                        document.getElementById('submitRatingBtn').style.cursor = 'pointer';
+                    });
+                    starsContainer.innerHTML = tempDiv.innerHTML;
+                    
+                    // Submit rating
+                    const submitBtn = ratingFormSection.querySelector('#submitRatingBtn');
+                    if(submitBtn) {
+                        submitBtn.addEventListener('click', async () => {
+                            if(selectedRating === 0) {
+                                alert('Please select a rating');
+                                return;
+                            }
+                            
+                            const review = ratingFormSection.querySelector('#reviewText').value;
+                            const fd = new FormData();
+                            fd.append('action', 'submit_rating');
+                            fd.append('csrf_token', document.querySelector('input[name="csrf_token"]')?.value || '');
+                            fd.append('ratee_id', p.user_id);
+                            fd.append('rating', selectedRating);
+                            fd.append('review', review);
+                            
+                            try {
+                                const res = await fetch('/display.php', {method:'POST', body:fd, credentials:'same-origin'});
+                                const data = await res.json();
+                                const msgDiv = ratingFormSection.querySelector('.form-message');
+                                
+                                if(data.status === 'success') {
+                                    msgDiv.textContent = 'Vurderingen ble lagret!';
+                                    msgDiv.classList.add('success');
+                                    submitBtn.disabled = true;
+                                    submitBtn.style.opacity = '0.5';
+                                } else {
+                                    msgDiv.textContent = 'Feil: ' + (data.message || 'Kunne ikke lagre vurdering');
+                                    msgDiv.classList.add('error');
+                                }
+                            } catch(err) {
+                                const msgDiv = ratingFormSection.querySelector('.form-message');
+                                msgDiv.textContent = 'Nettverksfeil';
+                                msgDiv.classList.add('error');
+                            }
+                        });
+                    }
+                }
             }
         } else {
             detailContent.innerHTML = `<p style="color:red;">Error: ${escapeHtml(data.message)}</p>`;

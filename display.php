@@ -278,6 +278,22 @@ $conn->query("CREATE TABLE IF NOT EXISTS post_images (
     KEY (sort_order)
 )");
 
+// Create ratings table for user-to-user ratings
+$conn->query("CREATE TABLE IF NOT EXISTS ratings (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    rater_id INT UNSIGNED NOT NULL,
+    ratee_id INT UNSIGNED NOT NULL,
+    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    review VARCHAR(500),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (rater_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (ratee_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_rater_ratee (rater_id, ratee_id),
+    KEY (ratee_id),
+    KEY (created_at)
+)");
+
 // Check if user has a valid remember token in cookie
 if(!$is_logged_in && isset($_COOKIE['remember_token'])){
     $token = $_COOKIE['remember_token'];
@@ -1323,6 +1339,38 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             $row['profile_picture'] = get_profile_picture_url($conn, $row['user_id']);
         }
 
+        // Add admin flag for the current user
+        $row['viewer_is_admin'] = false;
+        if(!empty($_SESSION['user_id'])) {
+            $stmt = safe_prepare($conn, "SELECT is_admin FROM users WHERE id = ? LIMIT 1");
+            if($stmt){
+                $stmt->bind_param('i', $_SESSION['user_id']);
+                $stmt->execute();
+                $res = $stmt->get_result();
+                if($res && $admin_row = $res->fetch_assoc()){
+                    $row['viewer_is_admin'] = !empty($admin_row['is_admin']);
+                }
+                $stmt->close();
+            }
+        }
+
+        // Add post creator's average rating
+        $row['creator_rating'] = 0;
+        $row['creator_rating_count'] = 0;
+        if(!empty($row['user_id'])) {
+            $stmt = safe_prepare($conn, "SELECT ROUND(AVG(rating), 1) as avg_rating, COUNT(*) as count FROM ratings WHERE ratee_id = ? LIMIT 1");
+            if($stmt){
+                $stmt->bind_param('i', $row['user_id']);
+                $stmt->execute();
+                $res = $stmt->get_result();
+                if($res && $rating_row = $res->fetch_assoc()){
+                    $row['creator_rating'] = floatval($rating_row['avg_rating'] ?? 0);
+                    $row['creator_rating_count'] = intval($rating_row['count'] ?? 0);
+                }
+                $stmt->close();
+            }
+        }
+
         echo json_encode(['status'=>'success','post'=>$row]);
         exit;
     }
@@ -1404,6 +1452,71 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         exit;
     }
 
+    // Submit a rating for another user
+    if($action === 'submit_rating'){
+        if(empty($_SESSION['user_id'])){ echo json_encode(['status'=>'error','message'=>'Not logged in']); exit; }
+        if (!validate_csrf_token()) { echo json_encode(['status'=>'error','message'=>'Invalid request token']); exit; }
+        
+        $rater_id = intval($_SESSION['user_id']);
+        $ratee_id = intval($_POST['ratee_id'] ?? 0);
+        $rating = intval($_POST['rating'] ?? 0);
+        $review = trim($_POST['review'] ?? '');
+        
+        if($rater_id === $ratee_id){ echo json_encode(['status'=>'error','message'=>'Cannot rate yourself']); exit; }
+        if($ratee_id <= 0){ echo json_encode(['status'=>'error','message'=>'Invalid user to rate']); exit; }
+        if($rating < 1 || $rating > 5){ echo json_encode(['status'=>'error','message'=>'Rating must be between 1 and 5']); exit; }
+        if(strlen($review) > 500){ echo json_encode(['status'=>'error','message'=>'Review too long']); exit; }
+        
+        // Insert or update rating
+        $stmt = safe_prepare($conn, "INSERT INTO ratings (rater_id, ratee_id, rating, review) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE rating=?, review=?, updated_at=NOW()");
+        if($stmt){
+            $stmt->bind_param('iiisss', $rater_id, $ratee_id, $rating, $review, $rating, $review);
+            if($stmt->execute()){
+                echo json_encode(['status'=>'success','message'=>'Rating saved']);
+            } else {
+                echo json_encode(['status'=>'error','message'=>'Failed to save rating']);
+            }
+            $stmt->close();
+        } else {
+            echo json_encode(['status'=>'error','message'=>'Database error']);
+        }
+        exit;
+    }
+
+    // Get ratings for a user (to display on their profile)
+    if($action === 'get_user_ratings'){
+        $user_id = intval($_POST['user_id'] ?? 0);
+        if($user_id <= 0){ echo json_encode(['status'=>'error','message'=>'Invalid user ID']); exit; }
+        
+        // Get average rating and total count
+        $stmt = safe_prepare($conn, "SELECT ROUND(AVG(rating), 1) as avg_rating, COUNT(*) as rating_count FROM ratings WHERE ratee_id = ?");
+        $avg_rating = 0;
+        $rating_count = 0;
+        if($stmt){
+            $stmt->bind_param('i', $user_id);
+            $stmt->execute();
+            $stmt->bind_result($avg_rating, $rating_count);
+            $stmt->fetch();
+            $stmt->close();
+        }
+        
+        // Get recent ratings
+        $ratings = [];
+        $stmt = safe_prepare($conn, "SELECT r.rating, r.review, r.created_at, u.username FROM ratings r JOIN users u ON r.rater_id = u.id WHERE r.ratee_id = ? ORDER BY r.created_at DESC LIMIT 10");
+        if($stmt){
+            $stmt->bind_param('i', $user_id);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            if($res){
+                while($row = $res->fetch_assoc()){ $ratings[] = $row; }
+            }
+            $stmt->close();
+        }
+        
+        echo json_encode(['status'=>'success','avg_rating'=>$avg_rating??0,'rating_count'=>$rating_count??0,'ratings'=>$ratings]);
+        exit;
+    }
+
     // dashboard API: stats + user's own posts
     if($action === 'dashboard_data'){
         if(empty($_SESSION['user_id'])){
@@ -1439,7 +1552,17 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             }
             $stmt->close();
         }
-        // total_orders & rating currently not tracked - leave as defaults
+        
+        // Calculate user's average rating
+        $stmt = safe_prepare($conn, "SELECT ROUND(AVG(rating), 1) FROM ratings WHERE ratee_id = ?");
+        if($stmt){
+            $stmt->bind_param('i',$uid);
+            if($stmt->execute()){
+                $stmt->bind_result($avg_rating);
+                if($stmt->fetch() && $avg_rating) $stats['rating'] = floatval($avg_rating);
+            }
+            $stmt->close();
+        }
 
         // fetch posts for user
         $rows = [];
@@ -1501,15 +1624,41 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         $pid = intval($_POST['post_id'] ?? 0);
         if($pid <= 0){ echo json_encode(['status'=>'error','message'=>'Invalid post id']); exit; }
         $uid = intval($_SESSION['user_id']);
-        $stmt = safe_prepare($conn, "DELETE FROM posts WHERE id = ? AND user_id = ?");
+        
+        // Check if user is admin
+        $stmt = safe_prepare($conn, "SELECT id FROM users WHERE id = ? AND is_admin = 1 LIMIT 1");
+        $isAdmin = false;
         if($stmt){
-            $stmt->bind_param('ii',$pid,$uid);
+            $stmt->bind_param('i', $uid);
             $stmt->execute();
-            $affected = $stmt->affected_rows;
+            $stmt->store_result();
+            $isAdmin = $stmt->num_rows > 0;
             $stmt->close();
-            if($affected){ echo json_encode(['status'=>'success']); } else { echo json_encode(['status'=>'error','message'=>'Not allowed or not found']); }
+        }
+        
+        // Admin can delete any post; users can only delete their own
+        if($isAdmin){
+            $stmt = safe_prepare($conn, "DELETE FROM posts WHERE id = ?");
+            if($stmt){
+                $stmt->bind_param('i',$pid);
+                $stmt->execute();
+                $affected = $stmt->affected_rows;
+                $stmt->close();
+                if($affected){ echo json_encode(['status'=>'success']); } else { echo json_encode(['status'=>'error','message'=>'Post not found']); }
+            } else {
+                echo json_encode(['status'=>'error','message'=>'Database error']);
+            }
         } else {
-            echo json_encode(['status'=>'error','message'=>'Database error']);
+            $stmt = safe_prepare($conn, "DELETE FROM posts WHERE id = ? AND user_id = ?");
+            if($stmt){
+                $stmt->bind_param('ii',$pid,$uid);
+                $stmt->execute();
+                $affected = $stmt->affected_rows;
+                $stmt->close();
+                if($affected){ echo json_encode(['status'=>'success']); } else { echo json_encode(['status'=>'error','message'=>'Not allowed or not found']); }
+            } else {
+                echo json_encode(['status'=>'error','message'=>'Database error']);
+            }
         }
         exit;
     }
