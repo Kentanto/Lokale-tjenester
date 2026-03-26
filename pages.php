@@ -514,6 +514,27 @@ switch ($page) {
                     </div>
                 </div>
 
+                <!-- Bio Section -->
+                <div class="profile-verification-card">
+                    <h3>� Om meg</h3>
+                    <form id="bioForm" class="settings-form" style="margin-top: 12px;">
+                        <input type="hidden" name="action" value="update_settings">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
+                        <input type="hidden" name="username" value="<?php echo htmlspecialchars($user_name); ?>">
+                        <input type="hidden" name="email" value="<?php echo htmlspecialchars($user_email ?? ''); ?>">
+                        <div class="form-message" aria-live="polite"></div>
+                        <div class="form-group">
+                            <label for="profile-bio" style="display: flex; justify-content: space-between; align-items: center;">
+                                Bio
+                                <span class="char-counter"><span id="bio-char-count">0</span>/500</span>
+                            </label>
+                            <textarea id="profile-bio" name="bio" rows="5" placeholder="Fortell litt om deg selv..." maxlength="500" style="width: 100%; resize: vertical; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap;"><?php echo htmlspecialchars($user_bio ?? ''); ?></textarea>
+                            <small style="display: block; margin-top: 6px; color: var(--muted);">Maks 500 tegn</small>
+                        </div>
+                        <button class="btn btn-primary" type="submit">Lagre</button>
+                    </form>
+                </div>
+
                 <!-- Email Verification Section (Only if not verified) -->
                 <?php if (!$email_verified): ?>
                 <div class="profile-verification-card">
@@ -569,6 +590,14 @@ switch ($page) {
                         <label for="display-name">Visningsnavn</label>
                         <input id="display-name" name="username" type="text" value="<?php echo htmlspecialchars($user_name); ?>">
                     </div>
+                    
+                    <!-- Bio/Description field -->
+                    <div class="form-group">
+                        <label for="bio">Bio</label>
+                        <textarea id="bio" name="bio" rows="4" placeholder="Fortell litt om deg selv..." maxlength="500"></textarea>
+                        <small class="text-muted">Maks 500 tegn</small>
+                    </div>
+                    
                     <button class="btn btn-primary" type="submit">Lagre endringer</button>
                     <label style="margin-left:12px;">
                         <input type="checkbox" checked> Motta e-postvarsler

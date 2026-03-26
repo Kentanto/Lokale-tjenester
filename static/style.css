@@ -2298,6 +2298,45 @@ html.dark-mode h6 {
     color: #ffffff;
 }
 
+#bioForm {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+}
+
+#bioForm .form-group {
+    margin-bottom: 16px;
+}
+
+#bioForm .form-group:last-of-type {
+    margin-bottom: 12px;
+}
+
+#bioForm textarea {
+    resize: vertical;
+    min-height: 120px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+#bioForm .btn {
+    width: auto;
+}
+
+/* Character counter for bio */
+#bioForm .char-counter {
+    display: inline-block;
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 400;
+    margin-left: 8px;
+}
+
 body.dark-mode label {
     color: #e0e0e0;
 }

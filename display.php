@@ -171,6 +171,7 @@ $user_email = '';
 $user_id = null;
 $user_created = null;
 $email_verified = false;
+$user_bio = '';
 
 // Database credentials (same as other files)
 // Use environment variables for database credentials, fallback to defaults for dev
@@ -775,27 +776,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         ];
         echo json_encode(['status'=>'success','debug'=>$info]);
         exit;
-    }
-
-    if($action === 'login'){
-        $identifier = $_POST['username'] ?? '';
-        $password = $_POST['password'] ?? '';
-        $stmt = safe_prepare($conn, "SELECT id, password_hash FROM users WHERE username=? OR email=? LIMIT 1");
-        if($stmt){
-            $stmt->bind_param('ss', $identifier, $identifier);
-            $stmt->execute();
-            $stmt->store_result();
-            $stmt->bind_result($id, $hash);
-            $stmt->fetch();
-            if($stmt->num_rows === 1 && password_verify($password, $hash)){
-                session_regenerate_id(true);
-                $_SESSION['user_id'] = $id;
-                echo json_encode(['status'=>'success','message'=>'Login successful']);
-                exit;
-            } else {
-                echo json_encode(['status'=>'error','message'=>'Invalid credentials']); exit;
-            }
-        } else { echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
     }
 
     if($action === 'reset_post_limit'){
@@ -1471,12 +1451,19 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         
         $username = trim($_POST['username'] ?? '');
         $email = trim($_POST['email'] ?? '');
+        $bio = trim($_POST['bio'] ?? '');
         
         // Validate inputs
         if(!$username){ echo json_encode(['status'=>'error','message'=>'Username cannot be empty']); exit; }
         if(!filter_var($email, FILTER_VALIDATE_EMAIL)){ echo json_encode(['status'=>'error','message'=>'Invalid email']); exit; }
         if(strlen($username) < 3 || strlen($username) > 32){ echo json_encode(['status'=>'error','message'=>'Username must be 3-32 characters']); exit; }
         if(!preg_match('/^[A-Za-z0-9_\-]+$/', $username)){ echo json_encode(['status'=>'error','message'=>'Username may only contain letters, numbers, dash or underscore']); exit; }
+        if(strlen($bio) > 500){ echo json_encode(['status'=>'error','message'=>'Bio must be 500 characters or less']); exit; }
+        
+        // Sanitize bio: remove HTML tags and trim excessive whitespace
+        $bio = strip_tags($bio);
+        $bio = preg_replace('/\s+/', ' ', $bio);
+        $bio = trim($bio);
         
         // Check if new username/email already exists for OTHER users
         $stmt = safe_prepare($conn, "SELECT id FROM users WHERE (username=? OR email=?) AND id != ?");
@@ -1488,10 +1475,10 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             $stmt->close();
         } else { echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
         
-        // Update username and email
-        $stmt = safe_prepare($conn, "UPDATE users SET username=?, email=? WHERE id=?");
+        // Update username, email, and bio
+        $stmt = safe_prepare($conn, "UPDATE users SET username=?, email=?, bio=? WHERE id=?");
         if($stmt){
-            $stmt->bind_param('ssi', $username, $email, $uid);
+            $stmt->bind_param('sssi', $username, $email, $bio, $uid);
             if(!$stmt->execute()){ echo json_encode(['status'=>'error','message'=>'Failed to update settings']); exit; }
             $_SESSION['user_name'] = $username;
             $_SESSION['user_email'] = $email;
@@ -1707,15 +1694,26 @@ $is_admin = false;
 if(isset($_SESSION['user_id']) && $conn){
     // Detect whether the users table has an is_admin column.
     $has_is_admin = false;
+    $has_bio = false;
     try {
         $res = $conn->query("SHOW COLUMNS FROM users LIKE 'is_admin'");
         if($res && $res->num_rows > 0) $has_is_admin = true;
     } catch (Exception $e) {
         $has_is_admin = false;
     }
+    try {
+        $res = $conn->query("SHOW COLUMNS FROM users LIKE 'bio'");
+        if($res && $res->num_rows > 0) $has_bio = true;
+    } catch (Exception $e) {
+        $has_bio = false;
+    }
 
-    if($has_is_admin){
+    if($has_is_admin && $has_bio){
+        $stmt = safe_prepare($conn, "SELECT username, email, created_at, email_verified, COALESCE(is_admin,0) AS is_admin, bio FROM users WHERE id = ? LIMIT 1");
+    } elseif($has_is_admin){
         $stmt = safe_prepare($conn, "SELECT username, email, created_at, email_verified, COALESCE(is_admin,0) AS is_admin FROM users WHERE id = ? LIMIT 1");
+    } elseif($has_bio){
+        $stmt = safe_prepare($conn, "SELECT username, email, created_at, email_verified, bio FROM users WHERE id = ? LIMIT 1");
     } else {
         $stmt = safe_prepare($conn, "SELECT username, email, created_at, email_verified FROM users WHERE id = ? LIMIT 1");
     }
@@ -1723,14 +1721,26 @@ if(isset($_SESSION['user_id']) && $conn){
         $sessUid = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : 0;
         $stmt->bind_param('i', $sessUid);
         $stmt->execute();
-        if($has_is_admin){
+        if($has_is_admin && $has_bio){
+            $stmt->bind_result($username, $email, $created_at, $email_verified, $is_admin_flag, $bio);
+            $stmt->fetch();
+            $is_admin = !empty($is_admin_flag) ? true : false;
+            $user_bio = $bio ?? '';
+        } elseif($has_is_admin){
             $stmt->bind_result($username, $email, $created_at, $email_verified, $is_admin_flag);
             $stmt->fetch();
             $is_admin = !empty($is_admin_flag) ? true : false;
+            $user_bio = '';
+        } elseif($has_bio){
+            $stmt->bind_result($username, $email, $created_at, $email_verified, $bio);
+            $stmt->fetch();
+            $is_admin = false;
+            $user_bio = $bio ?? '';
         } else {
             $stmt->bind_result($username, $email, $created_at, $email_verified);
             $stmt->fetch();
             $is_admin = false;
+            $user_bio = '';
         }
 
         if($username){

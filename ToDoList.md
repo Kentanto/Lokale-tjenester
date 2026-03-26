@@ -11,7 +11,6 @@
 -Dugnadsfunksjon/logge inn som en gruppe/idrettslag 
     vi skal se videre på det, men tror vi kan gjøre dette via et "admin må accepte gruppa" type system.
 
-make sure users use .com or .no as their mail suffix
 
 change password should be more sophisticated and only available througha forgot password option and mailing verification.
 meaning, no willy nilly password change

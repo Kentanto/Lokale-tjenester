@@ -828,6 +828,36 @@ document.addEventListener('DOMContentLoaded',function(){
         }
     });
 
+    // Bio form handler
+    document.getElementById('bioForm')?.addEventListener('submit', async e=>{
+        e.preventDefault();
+        let form = e.target;
+        let fd = new FormData(form);
+        disableForm(form, true);
+        let res;
+        try{ res = await fetch('/display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
+        catch(err){ showFormMessage(form,'Network error','error'); disableForm(form,false); return; }
+        let data = await parseJsonResponse(res);
+        showFormMessage(form, data.message, data.status);
+        disableForm(form, false);
+        if(data.status === 'success'){
+            setTimeout(()=> location.reload(), 700);
+        }
+    });
+
+    // Bio character counter
+    document.getElementById('profile-bio')?.addEventListener('input', function(){
+        const counter = document.getElementById('bio-char-count');
+        if(counter) counter.textContent = this.value.length;
+    });
+
+    // Initialize bio character counter on page load
+    const bioTextarea = document.getElementById('profile-bio');
+    if(bioTextarea){
+        const counter = document.getElementById('bio-char-count');
+        if(counter) counter.textContent = bioTextarea.value.length;
+    }
+
     // Profile picture upload form
     document.getElementById('profilePictureForm')?.addEventListener('submit', async e=>{
         e.preventDefault();
