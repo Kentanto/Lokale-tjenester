@@ -1013,6 +1013,106 @@
         .job-detail-content {
             padding: 32px;
         }
+
+        /* Donation Modal */
+        .donation-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+            padding: 20px;
+        }
+
+        .donation-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            cursor: pointer;
+        }
+
+        .donation-box {
+            background: white;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 10;
+            overflow: hidden;
+        }
+
+        .donation-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--muted);
+            z-index: 20;
+            transition: color 0.2s ease;
+            padding: 4px 8px;
+            line-height: 1;
+        }
+
+        .donation-close:hover {
+            color: var(--jet);
+        }
+
+        .donation-content {
+            padding: 32px;
+        }
+
+        .donation-content h2 {
+            color: var(--jet);
+            margin-bottom: 16px;
+            font-size: 24px;
+        }
+
+        .donation-content p {
+            color: #555;
+            line-height: 1.6;
+            margin: 12px 0;
+        }
+
+        .donation-vipps {
+            border: 2px solid #ff5b24 !important;
+        }
+
+        .donation-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+        .donation-buttons .btn {
+            flex: 1;
+            min-width: 140px;
+        }
+
+        @media (max-width: 640px) {
+            .donation-buttons {
+                flex-direction: column;
+            }
+
+            .donation-buttons .btn {
+                width: 100%;
+            }
+
+            .donation-content {
+                padding: 24px;
+            }
+        }
         
 
         /* Form accessibility improvements */

@@ -247,6 +247,29 @@ switch ($page) {
                     </aside>
                 </div>
             </section>
+
+            <!-- Donation Modal -->
+            <div id="donationModal" class="donation-modal" style="display: none;">
+                <div class="donation-overlay"></div>
+                <div class="donation-box">
+                    <button class="donation-close" onclick="document.getElementById('donationModal').style.display = 'none';">&times;</button>
+                    <div class="donation-content">
+                        <h2>💚 Støtt Lokale Tjenester</h2>
+                        <p><strong>Takk for at du bruker plattformen vår!</strong></p>
+                        <p>Vi er en liten ideell organisasjon som driver Lokale Tjenester. Din annonse er nå opp under evaluering av admin-teamet, og vi håper det finner den riktige personen.</p>
+                        <p style="margin-top: 20px; font-size: 16px;">Hvis du har lyst til å støtte oss og hjelpe oss, tar vi gjerne imot en donasjon.</p>
+                        <div class="donation-vipps" style="background: #ff5b24; color: white; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
+                            <p style="margin: 0 0 10px 0; font-size: 14px; color: #fff5f0;">Doner via Vipps:</p>
+                            <p style="margin: 0; font-size: 28px; font-weight: bold;">41789</p>
+                            <p style="margin: 10px 0 0 0; font-size: 12px; color: #ffe6d5;">Vipps-kode: 41789</p>
+                        </div>
+                        <p style="font-size: 14px; color: #666;">100% av donasjonen går til vedlikehold og utvikling av plattformen.</p>
+                        <div class="donation-buttons">
+                            <button class="btn btn-secondary" onclick="document.getElementById('donationModal').style.display = 'none';">Lukk</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <?php
             render_footer();
             break;

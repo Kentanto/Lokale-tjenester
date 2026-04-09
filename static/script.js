@@ -739,6 +739,11 @@ document.addEventListener('DOMContentLoaded',function(){
                 let previewArea = document.getElementById('job-image-preview');
                 if(previewArea) previewArea.innerHTML = '';
             }
+            // Show donation modal
+            let donationModal = document.getElementById('donationModal');
+            if(donationModal) {
+                donationModal.style.display = 'flex';
+            }
             // redirect to job listings after successful creation
             showConfirmation('Jobb Publisert!','Din jobb har blitt sendt inn og venter på godkjenning fra moderator. Du vil bli varslet når den er publisert.');
         } else if(data.message && (data.message.includes('verifisere') || data.message.includes('Verifisere'))){
