@@ -2,14 +2,6 @@
 require_once 'display.php';
 $user_id = $_SESSION['user_id'] ?? null;
 
-
-//Temp error code stack below
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-//Temp error code stack above
-
-
 // Simple pages router: pages.php?page=about|services|contact|profile|settings|dashboard|login|signup
 $page = isset($_GET['page']) ? $_GET['page'] : 'about';
 $allowed = ['about','services','contact','profile','settings','dashboard','login','signup','create_job','jobs', 'verify','resend_verification'];

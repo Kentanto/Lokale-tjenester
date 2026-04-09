@@ -150,10 +150,10 @@ function renderJobs(jobs, container){
     if(!jobs || jobs.length === 0){
         container.innerHTML = `
             <div class="empty-state">
-                <h3>No jobs found</h3>
-                <p>Try widening your search or create a new job to attract local providers.</p>
+                <h3>Ingen jobber funnet</h3>
+                <p>Prøv å utvide søket ditt eller opprett en ny jobb for å tiltrekke lokale leverandører.</p>
                 <div style="margin-top:12px;">
-                    <a href="pages.php?page=create_job" class="btn btn-primary">Post a Job</a>
+                    <a href="pages.php?page=create_job" class="btn btn-primary">Legg ut en jobb</a>
                 </div>
             </div>`;
         return;
@@ -479,7 +479,6 @@ async function openUserProfile(userId){
         if(data.status === 'success'){
             const user = data.user;
             const jobs = data.jobs || [];
-            console.log('User profile data:', user);
             
             let profilePicHtml = '';
             if(user.profile_picture){
@@ -702,15 +701,7 @@ document.addEventListener('DOMContentLoaded',function(){
     document.getElementById("createPostForm")?.addEventListener("submit",async e=>{
         e.preventDefault();
         let form = e.target;
-        
-        // Debug: log files being sent
         let fd = new FormData(form);
-        let hasImage = false;
-        for(let [key,val] of fd){
-            if(key === 'image'){ console.log('Form has image field:', val.name || 'file', val.size || 'no size'); hasImage = true; }
-        }
-        if(!hasImage) console.log('WARNING: No image field in FormData!');
-        
         fd.append('action','create_post');
         disableForm(form, true);
         
@@ -718,14 +709,12 @@ document.addEventListener('DOMContentLoaded',function(){
         try{ 
             res = await fetch('/display.php',{method:'POST',body:fd, credentials:'same-origin'}); 
         } catch(err){ 
-            console.error('Fetch error:', err);
             showFormMessage(form,'Network error: ' + err.message,'error'); 
             disableForm(form,false); 
             return; 
         }
         
         let data = await parseJsonResponse(res);
-        console.log('Server response:', data);
         disableForm(form, false);
         
         if(data.status === 'success'){
@@ -833,7 +822,7 @@ document.addEventListener('DOMContentLoaded',function(){
                 });
             }
         } catch(e) {
-            console.error('Error restoring form cache:', e);
+            // Silently handle cache restore errors
         }
         
         // Save data on input change
@@ -849,7 +838,7 @@ document.addEventListener('DOMContentLoaded',function(){
                     });
                     localStorage.setItem(cacheKey, JSON.stringify(data));
                 } catch(e) {
-                    console.error('Error saving form cache:', e);
+                    // Silently handle cache save errors
                 }
             }
         });
@@ -1193,10 +1182,8 @@ document.addEventListener('DOMContentLoaded',function(){
 document.addEventListener('DOMContentLoaded', function() {
     const btn = document.getElementById('resendVerifyBtn');
     if (!btn) {
-        console.warn('Resend verification button not found!');
         return;
     }
-    console.log('✓ Resend verification button found and listener attached');
 
     let cooldownActive = false;
     let cooldownEnd = 0;
@@ -1211,10 +1198,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        console.log('🔘 Resend verification button clicked');
         btn.disabled = true;
-
-        console.log('📤 Sending POST to /display.php with action=resend_verification');
 
         const fd = new FormData();
         fd.append('action', 'resend_verification');
@@ -1226,9 +1210,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: fd,
                 credentials: 'same-origin'
             });
-            console.log('📡 Fetch returned, status:', res.status, res.statusText);
         } catch (err) {
-            console.error('❌ Network error:', err);
             alert('Network error: ' + err.message);
             btn.disabled = false;
             return;
@@ -1238,18 +1220,12 @@ document.addEventListener('DOMContentLoaded', function() {
         let data;
         try {
             responseText = await res.text();
-            console.log('📝 Raw response:', responseText);
             data = JSON.parse(responseText);
-            console.log('✓ Parsed JSON:', data);
         } catch (err) {
-            console.error('❌ Failed to parse response:', err);
-            console.error('Raw response was:', responseText);
             alert('Server error: Invalid response');
             btn.disabled = false;
             return;
         }
-
-        console.log('📦 Server response data:', data);
 
         // Start 60-second cooldown
         cooldownActive = true;
@@ -1269,7 +1245,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 100);
 
         if (data.success) {
-            console.log('✓ Email sent successfully');
             // Show success notification (centered and prominent)
             let notif = document.createElement('div');
             notif.style.cssText = `
@@ -1300,7 +1275,6 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.appendChild(notif);
             notif.querySelector('.close-btn').addEventListener('click', () => notif.remove());
         } else {
-            console.log('❌ Email send failed');
             // Show error notification
             let notif = document.createElement('div');
             notif.style.cssText = `
@@ -1325,7 +1299,6 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => notif.remove(), 5000);
         }
 
-        console.log('✓ Resend verification handler complete');
         btn.disabled = false;
     });
 });
