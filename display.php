@@ -100,7 +100,7 @@ function validate_csrf_token($token = null) {
     return true;
 }
 
-// ===== LOGIN RATE LIMITING (5 attempts in 15 min, then 1 hour lockout) =====
+// ===== LOGIN RATE LIMITING (5 attempts in 15 min, then 1 hour lockout) ===== this doesnt really work :)
 function check_login_rate_limit($identifier) {
     $key = 'login_attempts_' . md5($identifier);
     $lockout_key = $key . '_locked_until';
@@ -109,28 +109,24 @@ function check_login_rate_limit($identifier) {
     $locked_until = $_SESSION[$lockout_key] ?? 0;
     $now = time();
     
-    // Check if still in lockout period
     if ($locked_until > $now) {
-        $remaining = ceil(($locked_until - $now) / 60); // Minutes remaining
+        $remaining = ceil(($locked_until - $now) / 60);
         return ['allowed' => false, 'minutes_remaining' => $remaining];
     }
     
-    // Lockout expired, reset everything
     if ($locked_until > 0 && $locked_until <= $now) {
         unset($_SESSION[$key], $_SESSION[$key . '_time'], $_SESSION[$lockout_key]);
         return ['allowed' => true, 'minutes_remaining' => 0];
     }
     
-    // Reset counter if more than 15 minutes have passed since last attempt
     if ($now - $last_attempt > 900) {
         $_SESSION[$key] = 0;
         $_SESSION[$key . '_time'] = $now;
         return ['allowed' => true, 'minutes_remaining' => 0];
     }
     
-    // Block after 5 attempts in 15 minutes (start 1-hour lockout)
     if ($attempts >= 5) {
-        $_SESSION[$lockout_key] = $now + 3600; // 1 hour from now
+        $_SESSION[$lockout_key] = $now + 3600;
         return ['allowed' => false, 'minutes_remaining' => 60];
     }
     
