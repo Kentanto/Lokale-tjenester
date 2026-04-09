@@ -1,29 +1,23 @@
 
 // ============================================
-// Terms of Service Modal - localStorage control
+// Terms of Service poppup - localStorage control
 // ============================================
 document.addEventListener('DOMContentLoaded', function() {
     const termsModal = document.getElementById('termsModal');
     const acceptTermsBtn = document.getElementById('acceptTermsBtn');
     
     if (termsModal && acceptTermsBtn) {
-        // Check if user has already accepted terms
         const hasAcceptedTerms = localStorage.getItem('termsAccepted');
         
         if (!hasAcceptedTerms) {
-            // Show the modal if not accepted
             termsModal.classList.add('active');
         }
         
-        // Handle accept button click
         acceptTermsBtn.addEventListener('click', function() {
-            // Save to localStorage that user accepted
             localStorage.setItem('termsAccepted', 'true');
-            // Hide the modal
             termsModal.classList.remove('active');
         });
         
-        // Prevent closing modal by clicking outside (modal must be explicitly accepted)
         termsModal.addEventListener('click', function(e) {
             if (e.target === termsModal) {
                 e.preventDefault();
@@ -37,7 +31,6 @@ function toggleDropdown(){
     if(dropdownMenu) dropdownMenu.classList.toggle('active');
 }
 
-// Use event delegation so the listener works even if button is replaced
 document.addEventListener('click',function(e){
     if(e.target.closest('.user-btn')){
         e.stopPropagation();
@@ -56,7 +49,6 @@ document.addEventListener('click',function(e){
 
 
 async function parseJsonResponse(res){
-    // read text and try to parse JSON; return object with status and message on failure
     let text = '';
     try{ text = await res.text(); }catch(e){ return {status:'error', message:'No response from server'}; }
     if(!text) return {status:'error', message:'Empty server response'};
@@ -79,10 +71,9 @@ function showFormMessage(form, message, status){
     container.classList.add(status === 'success' ? 'success' : 'error');
 }
 
-// Helper: escape HTML special characters
 function escapeHtml(s){ if(!s && s!==0) return ''; return String(s).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];}); }
 
-// Helper: render star rating display (read-only)
+// this stil wont work byut has to stay since i dont want to clean up every single file ever 
 function renderStarDisplay(rating, count = 0) {
     const fullStars = Math.floor(rating);
     const hasHalf = rating % 1 >= 0.5;
@@ -96,7 +87,6 @@ function renderStarDisplay(rating, count = 0) {
     return html;
 }
 
-// Helper: render star rating input (for submitting ratings)
 function renderStarInput(onStarClick) {
     let html = '<div class="star-input" id="starInput">';
     for(let i = 1; i <= 5; i++) {
@@ -121,8 +111,6 @@ function renderStarInput(onStarClick) {
     return container.innerHTML;
 }
 
-// Render jobs list
-// Helper: format relative time with specific intervals
 function formatRelativeTime(isoDate){
     const now = new Date();
     const date = new Date(isoDate);
@@ -132,15 +120,12 @@ function formatRelativeTime(isoDate){
     const diffDays = Math.floor(diffMs / 86400000);
     
     if(diffMinutes < 60){
-        // Up to 1 hour: 10 minute intervals
         const interval = Math.round(diffMinutes / 10) * 10;
         if(interval === 0) return 'nettopp';
         return interval + ' min siden';
     } else if(diffHours < 24){
-        // 1-24 hours: every hour
         return diffHours + ' time' + (diffHours > 1 ? 'r' : '') + ' siden';
     } else {
-        // After 24 hours: every day
         return diffDays + ' dag' + (diffDays > 1 ? 'er' : '') + ' siden';
     }
 }
@@ -183,7 +168,7 @@ function renderJobs(jobs, container){
     container.innerHTML = out;
 }
 
-// Load jobs from server
+// Load jobs
 async function loadJobs(filters={}){
     const container = document.getElementById('jobsList');
     if(!container) return;
@@ -233,7 +218,6 @@ function renderUserPosts(posts, container){
     container.innerHTML = out;
 }
 
-// Load dashboard metrics and posts
 async function loadDashboard(){
     const statActive = document.getElementById('statActive');
     const statOrders = document.getElementById('statOrders');
@@ -257,7 +241,6 @@ async function loadDashboard(){
     }
 }
 
-// Open job detail modal
 async function openJobDetail(postId){
     const modal = document.getElementById('jobDetailModal');
     const detailContent = document.getElementById('jobDetailContent');
@@ -312,7 +295,6 @@ async function openJobDetail(postId){
                 </div>
             `;
 
-            // Wire thumbnail clicks to swap main image
             const thumbContainer = detailContent.querySelector('.job-detail-thumbs');
             if(thumbContainer){
                 const mainImg = detailContent.querySelector('.job-detail-main img');
@@ -324,7 +306,6 @@ async function openJobDetail(postId){
                 });
             }
 
-            // Wire delete button click for admins
             const deleteBtn = detailContent.querySelector('#deletePostBtn');
             if(deleteBtn){
                 deleteBtn.addEventListener('click', async function(){
@@ -341,7 +322,6 @@ async function openJobDetail(postId){
                         
                         if(data.status === 'success'){
                             modal.style.display = 'none';
-                            // Reload jobs list if it exists
                             if(document.getElementById('jobsList')){
                                 loadJobs();
                             }
@@ -354,14 +334,11 @@ async function openJobDetail(postId){
                     }
                 });
             }
-
-            // Add rating form if user is logged in (fetch to check isLoggedIn status from DOM or session)
+            // no ratings, cant clean up. afraid to brick site
             const ratingFormSection = detailContent.querySelector('#ratingFormSection');
             if(ratingFormSection && p.user_id) {
-                // Check if there's a user element in navbar to detect logged-in state
                 const userBtn = document.querySelector('.user-btn');
                 if(userBtn && userBtn.textContent.trim() !== '') {
-                    // User is logged in, show rating form
                     let selectedRating = 0;
                     const formHtml = `
                         <h4 style="margin-bottom:12px;">Vurdèr denne personen</h4>
@@ -372,24 +349,20 @@ async function openJobDetail(postId){
                     `;
                     ratingFormSection.innerHTML = formHtml;
                     
-                    // Render star input
                     const starsContainer = ratingFormSection.querySelector('#ratingStarsContainer');
                     const tempDiv = document.createElement('div');
                     tempDiv.innerHTML = renderStarInput((rating) => {
                         selectedRating = rating;
-                        // Update UI
                         const stars = starsContainer.querySelectorAll('.star-btn');
                         stars.forEach((s, idx) => {
                             s.style.color = idx < rating ? '#FFA400' : '#ddd';
                         });
-                        // Enable submit button
                         document.getElementById('submitRatingBtn').disabled = false;
                         document.getElementById('submitRatingBtn').style.opacity = '1';
                         document.getElementById('submitRatingBtn').style.cursor = 'pointer';
                     });
                     starsContainer.innerHTML = tempDiv.innerHTML;
                     
-                    // Submit rating
                     const submitBtn = ratingFormSection.querySelector('#submitRatingBtn');
                     if(submitBtn) {
                         submitBtn.addEventListener('click', async () => {
@@ -438,6 +411,7 @@ async function openJobDetail(postId){
 }
 
 // Helper: disable/enable form (buttons and inputs)
+// p.s. i dont know what this means
 function disableForm(form, disabled){
     [...form.querySelectorAll('input,button,textarea')].forEach(el=>{
         if(el.type === 'hidden') return;
@@ -446,9 +420,7 @@ function disableForm(form, disabled){
     });
 }
 
-// View user profile with bio and all their jobs
 async function openUserProfile(userId){
-    // Create profile page overlay
     let profilePage = document.getElementById('userProfilePage');
     if(!profilePage){
         profilePage = document.createElement('div');
@@ -521,7 +493,6 @@ async function openUserProfile(userId){
 
 
 document.addEventListener('DOMContentLoaded',function(){
-    // Confirmation modal helper
     function ensureConfirmModal(){
         if(document.getElementById('confirmOverlay')) return;
         const overlay = document.createElement('div');
@@ -541,7 +512,7 @@ document.addEventListener('DOMContentLoaded',function(){
             </div>`;
         document.body.appendChild(overlay);
     }
-
+    // job listin confirmation
     function showConfirmation(title, message, redirectUrl, autoMs=2000, verifyUrl=null, verifyText='Go now', closeText='Stay'){
         ensureConfirmModal();
         const overlay = document.getElementById('confirmOverlay');
@@ -555,7 +526,6 @@ document.addEventListener('DOMContentLoaded',function(){
         titleEl.textContent = title || 'Success';
         msgEl.textContent = message || '';
         
-        // Only show countdown and redirect if redirectUrl is provided
         if(redirectUrl) {
             let remaining = Math.ceil(autoMs/1000);
             countEl.textContent = remaining;
@@ -575,7 +545,6 @@ document.addEventListener('DOMContentLoaded',function(){
             stayBtn.onclick = ()=>{ cancelled = true; clearTimeout(timeout); clearInterval(interval); overlay.classList.remove('active'); };
             stayBtn.style.display = 'block';
         } else if(verifyUrl) {
-            // Show verification button and close button
             countdownDiv.style.display = 'none';
             stayBtn.style.display = 'block';
             nowBtn.textContent = verifyText;
@@ -584,7 +553,6 @@ document.addEventListener('DOMContentLoaded',function(){
             stayBtn.onclick = ()=>{ overlay.classList.remove('active'); };
             overlay.classList.add('active');
         } else {
-            // No redirect, just show confirmation message with close button
             countdownDiv.style.display = 'none';
             stayBtn.style.display = 'none';
             nowBtn.textContent = 'Close';
@@ -592,8 +560,7 @@ document.addEventListener('DOMContentLoaded',function(){
             overlay.classList.add('active');
         }
     }
-
-    // Handle reset limit button (for admins) - use event delegation
+    // ur just a good admin and have free reign over how many posts you can do ahh funcion
     document.addEventListener("click", async e => {
         if(e.target.id !== "resetLimitBtn") return;
         
@@ -615,12 +582,10 @@ document.addEventListener('DOMContentLoaded',function(){
         }
     });
 
-    // Initialize create job form with form data caching
     let createPostForm = document.getElementById("createPostForm");
     if(createPostForm) {
         const cacheKey = 'createPostFormCache';
         
-        // Restore from localStorage on page load
         try {
             const cached = localStorage.getItem(cacheKey);
             if(cached) {
@@ -636,7 +601,6 @@ document.addEventListener('DOMContentLoaded',function(){
             }
         } catch(e) {}
         
-        // Save to localStorage on input
         let saveTimeout;
         createPostForm.addEventListener('input', function(e) {
             if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
@@ -654,11 +618,9 @@ document.addEventListener('DOMContentLoaded',function(){
                 }, 300);
             }
         });
-        
-        // Clear cache on successful submit
+        // yup i definitely know what this is... so what is this? well its a function that clears the form cache when the form is submitted, so that when you create a post it doesnt keep the old info in the form. its very important to have this function otherwise the form would be very annoying to use and would keep your old info in there until you manually cleared it. so yeah its a good function to have and i definitely know what it does and why its there.
         const originalHandler = createPostForm.onsubmit;
         createPostForm.addEventListener('submit', function(e) {
-            // This will run after form submission completes
             if(e.target.clearFormCache) {
                 e.target.clearFormCache = function() {
                     try { localStorage.removeItem(cacheKey); } catch(e) {}
@@ -668,7 +630,7 @@ document.addEventListener('DOMContentLoaded',function(){
         
         let remainingPosts = parseInt(createPostForm.dataset.remainingPosts || '3');
         let submitBtn = createPostForm.querySelector('button[type="submit"]');
-        
+        // boring stuff, cant even post in this house smh
         if(remainingPosts <= 0 && submitBtn) {
             submitBtn.disabled = true;
             submitBtn.title = 'Daglig grense nådd. Prøv igjen i morgen!';
@@ -676,7 +638,6 @@ document.addEventListener('DOMContentLoaded',function(){
             submitBtn.style.cursor = 'not-allowed';
         }
         
-        // Add character counter for description
         let descField = createPostForm.querySelector('#job-desc');
         let descCounter = createPostForm.querySelector('#desc-counter');
         if(descField && descCounter) {
@@ -686,7 +647,6 @@ document.addEventListener('DOMContentLoaded',function(){
             descCounter.textContent = descField.value.length + '/2000';
         }
         
-        // Add character counter for contact info
         let contactField = createPostForm.querySelector('#job-contact');
         let contactCounter = createPostForm.querySelector('#contact-counter');
         if(contactField && contactCounter) {
@@ -718,30 +678,24 @@ document.addEventListener('DOMContentLoaded',function(){
         disableForm(form, false);
         
         if(data.status === 'success'){
-            // Clear form cache from localStorage
             try { localStorage.removeItem('createPostFormCache'); } catch(e) {}
-            // Clear form fields
             form.reset();
-            // Reset file input display
             let fileInput = form.querySelector('input[name="image"]');
             if(fileInput){
                 let previewArea = document.getElementById('job-image-preview');
                 if(previewArea) previewArea.innerHTML = '';
             }
-            // Show combined job success & donation modal
             let donationModal = document.getElementById('donationModal');
             if(donationModal) {
                 donationModal.style.display = 'flex';
             }
         } else if(data.message && (data.message.includes('verifisere') || data.message.includes('Verifisere'))){
-            // Show verification error popup with Verify and Close buttons
             showConfirmation('Verifiser e-posten din', data.message, null, 2000, 'pages.php?page=profile', 'Verifiser', 'Lukk');
         } else {
-            // Show other errors as form message
             showFormMessage(form, data.message, data.status);
         }
     });
-
+    //signup time!!!
     document.getElementById("signupForm")?.addEventListener("submit",async e=>{
         e.preventDefault();
         let fd=new FormData(e.target);
@@ -755,11 +709,8 @@ document.addEventListener('DOMContentLoaded',function(){
         showFormMessage(form, data.message, data.status);
         disableForm(form, false);
         if(data.status === 'success'){
-            // Clear signup form cache
             localStorage.removeItem('signupFormCache');
-            // Show email notification if email was sent
             if(data.email_sent === true){
-                // Create and show notification popup
                 let notif = document.createElement('div');
                 notif.style.cssText = `
                     position: fixed;
@@ -782,7 +733,6 @@ document.addEventListener('DOMContentLoaded',function(){
                 document.body.appendChild(notif);
                 setTimeout(() => notif.remove(), 5000);
             }
-            // show small confirmation and then redirect to profile
             showConfirmation('Signup successful','Welcome — your account was created.', 'pages.php?page=profile', 1800);
         }
     });
@@ -800,18 +750,15 @@ document.addEventListener('DOMContentLoaded',function(){
         showFormMessage(form, data.message, data.status);
         disableForm(form, false);
         if(data.status === 'success'){
-            // Clear login form cache
             localStorage.removeItem('loginFormCache');
             location.reload();
         }
     });
-    
-    // Setup form data caching for login and signup forms
+    //singup and login cache
     function setupFormCache(formId, cacheKey) {
         const form = document.getElementById(formId);
         if(!form) return;
         
-        // Restore cached data
         try {
             const cached = localStorage.getItem(cacheKey);
             if(cached) {
@@ -822,10 +769,8 @@ document.addEventListener('DOMContentLoaded',function(){
                 });
             }
         } catch(e) {
-            // Silently handle cache restore errors
         }
         
-        // Save data on input change
         form.addEventListener('input', function(e) {
             if(e.target.tagName === 'INPUT') {
                 try {
@@ -838,7 +783,6 @@ document.addEventListener('DOMContentLoaded',function(){
                     });
                     localStorage.setItem(cacheKey, JSON.stringify(data));
                 } catch(e) {
-                    // Silently handle cache save errors
                 }
             }
         });
@@ -853,12 +797,10 @@ document.addEventListener('DOMContentLoaded',function(){
         const form = this.closest('form');
         let previewContainer = form.querySelector('.image-preview-container');
         
-        // Remove existing preview if present
         if(previewContainer) previewContainer.remove();
         
         if(!file) return;
         
-        // Create preview container
         previewContainer = document.createElement('div');
         previewContainer.className = 'image-preview-container';
         
@@ -881,7 +823,6 @@ document.addEventListener('DOMContentLoaded',function(){
         reader.readAsDataURL(file);
     });
 
-    // wire jobs search form
     document.getElementById('jobsSearchForm')?.addEventListener('submit', async function(e){
         e.preventDefault();
         const f = e.target;
@@ -895,7 +836,6 @@ document.addEventListener('DOMContentLoaded',function(){
         loadJobs(filters);
     });
 
-    // Reset filters button: clear inputs and reload jobs
     document.getElementById('jobsResetBtn')?.addEventListener('click', function(e){
         const form = document.getElementById('jobsSearchForm');
         if(!form) return;
@@ -903,12 +843,9 @@ document.addEventListener('DOMContentLoaded',function(){
         loadJobs();
     });
 
-    // auto-load jobs on page load when jobsList exists
     if(document.getElementById('jobsList')) loadJobs();
-    // auto-load dashboard if stats container present
     if(document.getElementById('dashboardStats')) loadDashboard();
 
-    // event delegation for take-down / delete buttons in dashboard
     document.addEventListener('click', async e=>{
         if(e.target.matches('.take-down-btn')){
             e.preventDefault();
@@ -942,20 +879,17 @@ document.addEventListener('DOMContentLoaded',function(){
         }
     });
 
-    // Close job detail modal when clicking the overlay
     document.getElementById('jobDetailModal')?.addEventListener('click', function(e){
         if(e.target === this || e.target.classList.contains('job-detail-overlay')){
             this.style.display = 'none';
         }
     });
 
-    // Page (full-page) signup form
     document.getElementById("signupPageForm")?.addEventListener("submit",async e=>{
         e.preventDefault();
         let fd=new FormData(e.target);
         let form = e.target;
         disableForm(form, true);
-        // forms in pages.php include a hidden input 'action'
         let res;
         try{ res = await fetch('/display.php',{method:'POST',body:fd, credentials:'same-origin'}); }
         catch(err){ showFormMessage(form,'Network error','error'); disableForm(form,false); return; }
@@ -967,7 +901,6 @@ document.addEventListener('DOMContentLoaded',function(){
         }
     });
 
-    // Page (full-page) login form
     document.getElementById("loginPageForm")?.addEventListener("submit",async e=>{
         e.preventDefault();
         let fd=new FormData(e.target);
@@ -980,7 +913,6 @@ document.addEventListener('DOMContentLoaded',function(){
         showFormMessage(form, data.message, data.status);
         disableForm(form, false);
         if(data.status==='success'){
-            // On login success, silently reload the current page (no popup)
             location.reload();
         }
     });
@@ -995,7 +927,6 @@ document.addEventListener('DOMContentLoaded',function(){
         if(data.status==='success') location.reload();
     });
 
-    // Navbar signup form handler
     document.getElementById('signupForm')?.addEventListener('submit', async e=>{
         e.preventDefault();
         let fd=new FormData(e.target);
@@ -1008,13 +939,11 @@ document.addEventListener('DOMContentLoaded',function(){
         showFormMessage(form, data.message, data.status);
         disableForm(form, false);
         if(data.status==='success'){
-            // Close dropdown and reload to show logged in state
             document.getElementById('dropdownMenu')?.classList.remove('active');
             location.reload();
         }
     });
 
-    // Navbar login form handler
     document.getElementById('loginForm')?.addEventListener('submit', async e=>{
         e.preventDefault();
         let fd=new FormData(e.target);
@@ -1027,13 +956,11 @@ document.addEventListener('DOMContentLoaded',function(){
         showFormMessage(form, data.message, data.status);
         disableForm(form, false);
         if(data.status==='success'){
-            // Close dropdown and reload
             document.getElementById('dropdownMenu')?.classList.remove('active');
             location.reload();
         }
     });
-
-    // Settings form handler (profile page)
+    // this is all in profile, will mostly be changing small stuff
     document.getElementById('settingsForm')?.addEventListener('submit', async e=>{
         e.preventDefault();
         let form = e.target;
@@ -1047,12 +974,10 @@ document.addEventListener('DOMContentLoaded',function(){
         showFormMessage(form, data.message, data.status);
         disableForm(form, false);
         if(data.status === 'success'){
-            // refresh to show updated profile info
             setTimeout(()=> location.reload(), 700);
         }
     });
 
-    // Bio form handler
     document.getElementById('bioForm')?.addEventListener('submit', async e=>{
         e.preventDefault();
         let form = e.target;
@@ -1069,20 +994,17 @@ document.addEventListener('DOMContentLoaded',function(){
         }
     });
 
-    // Bio character counter
     document.getElementById('profile-bio')?.addEventListener('input', function(){
         const counter = document.getElementById('bio-char-count');
         if(counter) counter.textContent = this.value.length;
     });
 
-    // Initialize bio character counter on page load
     const bioTextarea = document.getElementById('profile-bio');
     if(bioTextarea){
         const counter = document.getElementById('bio-char-count');
         if(counter) counter.textContent = bioTextarea.value.length;
     }
 
-    // Profile picture upload form
     document.getElementById('profilePictureForm')?.addEventListener('submit', async e=>{
         e.preventDefault();
         let form = e.target;
@@ -1095,12 +1017,10 @@ document.addEventListener('DOMContentLoaded',function(){
         showFormMessage(form, data.message, data.status);
         disableForm(form, false);
         if(data.status === 'success'){
-            // refresh to show new profile picture
             setTimeout(()=> location.reload(), 700);
         }
     });
 
-    // Contact form (AJAX)
     document.getElementById('contactForm')?.addEventListener('submit', async e=>{
         e.preventDefault();
         const form = e.target;
@@ -1118,7 +1038,6 @@ document.addEventListener('DOMContentLoaded',function(){
         }
     });
 
-    // Client-side validation helpers
     function setFieldError(fieldId, msg){
         const el = document.getElementById(fieldId);
         const err = document.querySelector('.field-error[data-for="'+fieldId+'"]');
@@ -1129,12 +1048,10 @@ document.addEventListener('DOMContentLoaded',function(){
         if(err) err.textContent = msg || '';
     }
 
-    // Simple email check
     function isValidEmail(email){
         return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
     }
 
-    // validate settings form before submit
     document.getElementById('settingsForm')?.addEventListener('input', e=>{
         const name = e.target.name;
         if(name === 'email'){
@@ -1147,14 +1064,12 @@ document.addEventListener('DOMContentLoaded',function(){
         }
     });
 
-    // Password change handler
     document.getElementById('passwordForm')?.addEventListener('submit', async e=>{
         e.preventDefault();
         const form = e.target;
         const current = form.querySelector('[name="current_password"]').value || '';
         const nw = form.querySelector('[name="new_password"]').value || '';
         const conf = form.querySelector('[name="confirm_password"]').value || '';
-        // client validation
         let ok = true;
         setFieldError('current-password',''); setFieldError('new-password',''); setFieldError('confirm-password','');
         if(current.length < 1){ setFieldError('current-password','Enter current password'); ok=false; }
@@ -1178,7 +1093,6 @@ document.addEventListener('DOMContentLoaded',function(){
         }
     });
 });
-    // Resend verification
 document.addEventListener('DOMContentLoaded', function() {
     const btn = document.getElementById('resendVerifyBtn');
     if (!btn) {
@@ -1191,7 +1105,6 @@ document.addEventListener('DOMContentLoaded', function() {
     btn.addEventListener('click', async e => {
         e.preventDefault();
         
-        // Check if cooldown is still active
         if (cooldownActive) {
             const remaining = Math.ceil((cooldownEnd - Date.now()) / 1000);
             alert(`Vennligst vent ${remaining} sekund før du prøver igjen.`);
@@ -1227,7 +1140,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Start 60-second cooldown
         cooldownActive = true;
         cooldownEnd = Date.now() + 60000;
         const originalText = btn.textContent;
@@ -1245,7 +1157,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 100);
 
         if (data.success) {
-            // Show success notification (centered and prominent)
             let notif = document.createElement('div');
             notif.style.cssText = `
                 position: fixed;
@@ -1275,7 +1186,6 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.appendChild(notif);
             notif.querySelector('.close-btn').addEventListener('click', () => notif.remove());
         } else {
-            // Show error notification
             let notif = document.createElement('div');
             notif.style.cssText = `
                 position: fixed;

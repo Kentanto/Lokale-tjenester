@@ -60,15 +60,11 @@ if(defined('PHP_VERSION_ID') && PHP_VERSION_ID >= 70300){
 session_start();
 
 // ===== SECURITY HEADERS =====
-// Prevent MIME type sniffing
+// Prevent 
 header('X-Content-Type-Options: nosniff');
-// Prevent clickjacking
 header('X-Frame-Options: SAMEORIGIN');
-// Legacy XSS protection
 header('X-XSS-Protection: 1; mode=block');
-// Force HTTPS (uncomment when on production)
-// header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
-// Content Security Policy
+header('Strict-Transport-Security: max-age=31536000; includeSubDomains');// Recomment this if site bricks itself
 header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:;");
 
 
@@ -149,7 +145,6 @@ function clear_session_cookie(){
     }
 }
 
-// Defaults exposed to pages that `require_once 'display.php'.
 $is_logged_in = false;
 $user_name = "Guest";
 $user_email = '';
@@ -158,8 +153,6 @@ $user_created = null;
 $email_verified = false;
 $user_bio = '';
 
-// Database credentials (same as other files)
-// Use environment variables for database credentials, fallback to defaults for dev
 $DB_HOST = getenv('DB_HOST') ?: 'localhost';
 $DB_NAME = getenv('DB_NAME') ?: 'lokale-tjenester';
 $DB_USER = getenv('DB_USER') ?: 'lokale-tjenester';
@@ -175,7 +168,6 @@ if ($conn && $conn->connect_error) {
 
 function safe_prepare($conn, $sql){
     try {
-        // suppress warnings but allow exceptions to be caught
         $stmt = $conn->prepare($sql);
         if(!$stmt){
             error_log('display.php: prepare failed: ' . $conn->error . ' -- SQL: ' . $sql);
@@ -188,7 +180,7 @@ function safe_prepare($conn, $sql){
     }
 }
 
-// Helper: get human-readable upload error message
+// error logging for human reading pls
 function getUploadErrorMessage($code){
     $messages = [
         UPLOAD_ERR_OK => 'OK',
@@ -203,7 +195,7 @@ function getUploadErrorMessage($code){
     return $messages[$code] ?? 'Unknown error (' . $code . ')';
 }
 
-// Create email_tokens table if it doesn't exist
+
 $conn->query("CREATE TABLE IF NOT EXISTS email_tokens (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id INT UNSIGNED NOT NULL,
@@ -214,7 +206,6 @@ $conn->query("CREATE TABLE IF NOT EXISTS email_tokens (
     KEY (token)
 )");
 
-// Create remember_tokens table if it doesn't exist
 $conn->query("CREATE TABLE IF NOT EXISTS remember_tokens (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -226,7 +217,6 @@ $conn->query("CREATE TABLE IF NOT EXISTS remember_tokens (
     KEY (expires_at)
 )");
 
-// Create posts table if it doesn't exist
 $conn->query("CREATE TABLE IF NOT EXISTS posts (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
@@ -247,10 +237,8 @@ $conn->query("CREATE TABLE IF NOT EXISTS posts (
     KEY (status)
 )");
 
-// Add status column if it doesn't exist (for existing databases)
 $conn->query("ALTER TABLE posts ADD COLUMN IF NOT EXISTS status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending'");
 
-// Create post_images table for multiple images per post
 $conn->query("CREATE TABLE IF NOT EXISTS post_images (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     post_id INT UNSIGNED NOT NULL,
@@ -263,7 +251,6 @@ $conn->query("CREATE TABLE IF NOT EXISTS post_images (
     KEY (sort_order)
 )");
 
-// Create ratings table for user-to-user ratings
 $conn->query("CREATE TABLE IF NOT EXISTS ratings (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     rater_id INT UNSIGNED NOT NULL,
@@ -288,7 +275,6 @@ if(!$is_logged_in && isset($_COOKIE['remember_token'])){
         $stmt->execute();
         $stmt->bind_result($uid, $uname, $uemail);
         if($stmt->fetch()){
-            // Token is valid, log user in
             $is_logged_in = true;
             $user_name = $uname;
             $user_email = $uemail;
@@ -300,12 +286,11 @@ if(!$is_logged_in && isset($_COOKIE['remember_token'])){
     }
 }
 
-// Logout via GET (link uses display.php?action=logout)
+// Logout handler
 if(isset($_GET['action']) && $_GET['action'] === 'logout'){
     session_unset();
     session_destroy();
     clear_session_cookie();
-    // If requested via XHR, return JSON; otherwise redirect back to home.
     if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'){
         header('Content-Type: application/json');
         echo json_encode(['status'=>'success','message'=>'Logged out']);
@@ -319,7 +304,6 @@ require_once __DIR__ . '/vendor/autoload.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-// Populate variables from session (now that session_start() has been called)
 if(!empty($_SESSION['user_id'])){
     $is_logged_in = true;
     $user_id = intval($_SESSION['user_id']);
@@ -327,26 +311,22 @@ if(!empty($_SESSION['user_id'])){
     $user_email = $_SESSION['user_email'] ?? '';
 }
 
-// ---- DEBUGGING: log every POST ----
+// error log every POST ----
 error_log("=== display.php hit ===");
 error_log("POST keys: " . implode(',', array_keys($_POST)));
 error_log("SESSION keys: " . implode(',', array_keys($_SESSION)));
 error_log("REMOTE_ADDR: " . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
 
-// Make sure $action exists
 $action = $_POST['action'] ?? null;
 error_log("Action received: " . var_export($action, true));
 
-// Periodically clean up unverified accounts (roughly every 5% of requests)
+// Periodically clean up unverified accounts 
 if(rand(1, 100) <= 5 && $conn && !$conn->connect_error) {
     cleanup_unverified_accounts($conn);
 }
-
-// Email validation: Check domain and suffix (.com or .no from standard providers)
+// allow only certain domains
 function validate_email_domain(string $email): array {
-    // List of allowed email providers with .com and .no support
     $allowed_domains = [
-        // Global providers
         'gmail.com',
         'icloud.com',
         'hotmail.com',
@@ -357,19 +337,16 @@ function validate_email_domain(string $email): array {
         'yandex.com',
     ];
 
-    // Extract domain from email
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         return ['valid' => false, 'message' => 'Invalid email format'];
     }
 
     $domain = strtolower(substr(strrchr($email, '@'), 1));
     
-    // Check if domain is in whitelist
     if (!in_array($domain, $allowed_domains, true)) {
         return ['valid' => false, 'message' => "mail giver er ikke støttet. vennligst bruk en av disse: Gmail, iCloud, Hotmail, Outlook, Yahoo, Protonmail"];
     }
 
-    // Check if TLD is .com or .no
     if (!preg_match('/\.(com|no)$/', $domain)) {
         return ['valid' => false, 'message' => 'Mail må bruker .com suffix'];
     }
@@ -377,13 +354,13 @@ function validate_email_domain(string $email): array {
     return ['valid' => true, 'message' => ''];
 }
 
+// mail sending function
 function send_verification_email(mysqli $conn, string $email, int $user_id): bool {
     error_log("[EMAIL] Starting send_verification_email for user_id=$user_id, email=$email");
     
     $token = bin2hex(random_bytes(32));
     error_log("[EMAIL] Generated token: " . substr($token, 0, 8) . "...");
 
-    // Remove old tokens
     error_log("[EMAIL] Deleting old tokens for user_id=$user_id");
     $stmt = $conn->prepare("DELETE FROM email_tokens WHERE user_id=?");
     if (!$stmt) {
@@ -399,7 +376,6 @@ function send_verification_email(mysqli $conn, string $email, int $user_id): boo
     $stmt->close();
     error_log("[EMAIL] Old tokens deleted");
 
-    // Insert new token (24 hour expiry)
     error_log("[EMAIL] Inserting new token into email_tokens table");
     $stmt = $conn->prepare(
         "INSERT INTO email_tokens (user_id, token, created_at) VALUES (?, ?, NOW())"
@@ -421,7 +397,6 @@ function send_verification_email(mysqli $conn, string $email, int $user_id): boo
     $verifyLink = "https://" . $domain . "/pages.php?page=verify&token=" . urlencode($token);
     error_log("[EMAIL] Verify link: " . substr($verifyLink, 0, 50) . "...");
 
-    // Use PHP's built-in mail() function instead of PHPMailer
     $subject = 'Verifiser din e-postadresse - Lokale Tjenester';
     $fromEmail = 'noreply@lokale-tjenester.no';
     $headers = "MIME-Version: 1.0\r\n";
@@ -467,7 +442,6 @@ function get_profile_picture_url(mysqli $conn, int $user_id): string {
     $imgData = null;
     $imgType = null;
     
-    // Use get_result() for proper BLOB handling when available
     if(method_exists($stmt, 'get_result')){
         $res = $stmt->get_result();
         if($row = $res->fetch_assoc()){
@@ -475,7 +449,6 @@ function get_profile_picture_url(mysqli $conn, int $user_id): string {
             $imgType = $row['profile_picture_type'];
         }
     } else {
-        // Fallback for older MySQL drivers
         $stmt->bind_result($imgData, $imgType);
         $stmt->fetch();
     }
@@ -487,10 +460,10 @@ function get_profile_picture_url(mysqli $conn, int $user_id): string {
     $base64 = base64_encode($imgData);
     return "data:{$imgType};base64,{$base64}";
 }
-
+// max 3 posts per day per user
 function get_user_remaining_posts(mysqli $conn, int $user_id): int {
     $stmt = safe_prepare($conn, "SELECT posts_today, last_reset_date FROM user_posts_daily WHERE user_id = ?");
-    if(!$stmt) return 3; // Default to 3 if error
+    if(!$stmt) return 3; 
     
     $stmt->bind_param('i', $user_id);
     $stmt->execute();
@@ -502,10 +475,8 @@ function get_user_remaining_posts(mysqli $conn, int $user_id): int {
     $postsToday = intval($postsToday ?? 0);
     $lastResetDate = $lastResetDate ?? '1970-01-01';
     
-    // Reset counter if it's a new day AND update database
     if($lastResetDate !== $today) {
         $postsToday = 0;
-        // Update or create database row to reflect the reset
         $resetStmt = safe_prepare($conn, "INSERT INTO user_posts_daily (user_id, posts_today, last_reset_date) VALUES (?, 0, ?) ON DUPLICATE KEY UPDATE posts_today = 0, last_reset_date = ?");
         if($resetStmt) {
             $resetStmt->bind_param('iss', $user_id, $today, $today);
@@ -518,7 +489,7 @@ function get_user_remaining_posts(mysqli $conn, int $user_id): int {
     return max(0, $POST_LIMIT - $postsToday);
 }
 
-// Clean up unverified accounts older than 24 hours
+// Clean up unverified accounts handler
 function cleanup_unverified_accounts(mysqli $conn): void {
     $stmt = safe_prepare($conn, "DELETE FROM users WHERE email_verified = 0 AND created_at < NOW() - INTERVAL 24 HOUR");
     if($stmt) {
@@ -538,14 +509,11 @@ function cleanup_unverified_accounts(mysqli $conn): void {
 
 // AJAX POST handlers for login/signup (mirrors the backup behavior)
 // Only handle AJAX-style POST actions when this file is the requested endpoint
-// (i.e. avoid intercepting POSTs intended for pages that `require_once 'display.php'`).
 if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
-    // Start output buffering to prevent accidental output before JSON
     ob_start();
     
     $action = $_POST['action'] ?? null;
 
-    // Clear any buffered output and set correct headers
     ob_clean();
     header('Content-Type: application/json; charset=utf-8');
     header('X-Content-Type-Options: nosniff');
@@ -555,12 +523,10 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         $email = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
 
-        // Validate input
         if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
             echo json_encode(['status'=>'error','message'=>'Invalid email']); exit;
         }
 
-        // Validate email domain and suffix
         $emailValidation = validate_email_domain($email);
         if (!$emailValidation['valid']) {
             echo json_encode(['status'=>'error','message'=>$emailValidation['message']]); exit;
@@ -576,7 +542,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             echo json_encode(['status'=>'error','message'=>'Password must be at least 6 characters']); exit; 
         }
 
-        // Check if username or email already exists
         $stmt = safe_prepare($conn, "SELECT id FROM users WHERE username=? OR email=?");
         if($stmt){
             $stmt->bind_param('ss', $username, $email);
@@ -590,7 +555,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             echo json_encode(['status'=>'error','message'=>'Database error']); exit; 
         }
 
-        // Create user account
         $hash = password_hash($password, PASSWORD_BCRYPT);
         $stmt = safe_prepare($conn, "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)");
         if($stmt){
@@ -604,7 +568,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             $_SESSION['user_name'] = $username;
             $_SESSION['user_email'] = $email;
 
-            // Send verification email
             if(send_verification_email($conn, $email, $new_id)){
                 echo json_encode(['status'=>'success','message'=>'Signup successful! Verification email sent.']);
             } else {
@@ -617,7 +580,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
     }
 
     if($action === 'login'){
-        // CSRF validation
         if (!validate_csrf_token()) {
             echo json_encode(['status'=>'error','message'=>'Invalid request token']); exit;
         }
@@ -630,7 +592,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             echo json_encode(['status'=>'error','message'=>'Username and password are required']); exit;
         }
         
-        // Rate limiting: check login attempts for this username
         $rate_check = check_login_rate_limit($username);
         if (!$rate_check['allowed']) {
             $minutes = $rate_check['minutes_remaining'];
@@ -649,14 +610,12 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             $stmt->bind_result($user_id, $user_name, $user_email, $password_hash);
             if($stmt->fetch()){
                 if(password_verify($password, $password_hash)){
-                    // Clear rate limit on successful login
                     clear_login_attempts($username);
                     session_regenerate_id(true);
                     $_SESSION['user_id'] = $user_id;
                     $_SESSION['user_name'] = $user_name;
                     $_SESSION['user_email'] = $user_email;
                     
-                    // If "remember me" is checked, create a token with expiry
                     if($remember){
                         $token = bin2hex(random_bytes(32));
                         $expires = date('Y-m-d H:i:s', time() + (30 * 24 * 60 * 60)); // 30 days
@@ -664,7 +623,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
                         if($stmt2){
                             $stmt2->bind_param('iss', $user_id, $token, $expires);
                             if($stmt2->execute()){
-                                // Set secure cookie for 30 days (httponly, secure in production)
                                 $isSecure = request_is_secure();
                                 setcookie('remember_token', $token, time() + (30 * 24 * 60 * 60), '/', '', $isSecure, true);
                             }
@@ -701,7 +659,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
                 exit;
             }
 
-            // Fetch email from DB
             error_log("[RESEND_VERIFY] Querying database for email, user_id=$user_id");
             $stmt = $conn->prepare("SELECT email FROM users WHERE id=?");
             if (!$stmt) {
@@ -741,13 +698,12 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
     }
 
     if($action === 'reset_post_limit'){
-        // Admin-only endpoint to reset daily post limit for current user (for testing)
         if(empty($_SESSION['user_id'])){ 
             echo json_encode(['status'=>'error','message'=>'Not logged in']); 
             exit; 
         }
         
-        // Verify admin status by checking database
+        // Verify admin status
         $uid = intval($_SESSION['user_id']);
         $adminCheckStmt = safe_prepare($conn, "SELECT COALESCE(is_admin,0) AS is_admin FROM users WHERE id = ? LIMIT 1");
         $is_admin_user = false;
@@ -760,7 +716,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             $is_admin_user = !empty($admin_flag) ? true : false;
         }
         
-        // Also check protected runtime admins
         $user_name = $_SESSION['user_name'] ?? '';
         $protected_runtime_admins = array('pyxis', 'adminpyx', 'kentanto65', 'lokale-tjenester');
         if(!$is_admin_user && in_array($user_name, $protected_runtime_admins, true)){
@@ -791,14 +746,12 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
 
     if($action === 'create_post'){
         try {
-            // CSRF validation
             if (!validate_csrf_token()) {
                 echo json_encode(['status'=>'error','message'=>'Invalid request token']); exit;
             }
             
             // create a job/post supporting multiple images; convert uploads to web-friendly format (webp/jpeg)
             
-            // Log file upload errors explicitly
             if(!empty($_FILES['image'])){
                 if(is_array($_FILES['image']['error'])){
                     foreach($_FILES['image']['error'] as $idx => $err){
@@ -821,7 +774,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             if(empty($_SESSION['user_id'])){ echo json_encode(['status'=>'error','message'=>'You must be logged in to create a job']); exit; }
             $uid = intval($_SESSION['user_id']);
 
-            // Check if user's email is verified - fetch directly from database
             $verifyStmt = safe_prepare($conn, "SELECT email_verified FROM users WHERE id = ? LIMIT 1");
             $user_verified = false;
             if($verifyStmt) {
@@ -836,7 +788,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             
             if(!$user_verified){ echo json_encode(['status'=>'error','message'=>'Du må verifisere e-posten din før du kan publisere en jobb']); exit; }
 
-            // Check rate limit: 3 posts per day (resets at midnight)
             $postsToday = 0;
             $lastResetDate = date('Y-m-d');
             $rateCheckStmt = safe_prepare($conn, "SELECT posts_today, last_reset_date FROM user_posts_daily WHERE user_id = ?");
@@ -853,19 +804,16 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             $postsToday = intval($postsToday ?? 0);
             $lastResetDate = $lastResetDate ?? '1970-01-01';
 
-            // Reset counter if it's a new day
             if($lastResetDate !== $today){
                 $postsToday = 0;
             }
 
-            // Enforce 3 posts per day limit
             $POST_LIMIT = 3;
             if($postsToday >= $POST_LIMIT){
                 echo json_encode(['status'=>'error','message'=>'Du har nådd maksimalt antall poster (3) per dag. Prøv igjen i morgen!', 'remaining' => 0]);
                 exit;
             }
 
-            // Insert post record first (no image columns relied on here)
             $stmt = safe_prepare($conn, "INSERT INTO posts (title, description, category, budget, location, contact_info, user_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', NOW())");
             if(!$stmt){ error_log('create_post: safe_prepare posts insert failed - ' . ($conn ? $conn->error : 'No connection')); echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
             $stmt->bind_param('sssissi', $title, $desc, $category, $budget, $location, $contact_info, $uid);
@@ -874,7 +822,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             error_log('create_post: Successfully created post with id=' . $post_id);
             $stmt->close();
 
-            // Update daily post count for this user
             $newCount = $postsToday + 1;
             $updateCountStmt = safe_prepare($conn, "INSERT INTO user_posts_daily (user_id, posts_today, last_reset_date) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE posts_today = ?, last_reset_date = ?");
             if(!$updateCountStmt){ error_log('create_post: safe_prepare update post count failed'); }
@@ -884,19 +831,16 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
                 $updateCountStmt->close();
             }
 
-            // Normalize uploaded files (support single or multiple inputs)
             $files = [];
             $allowed_mime_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
             
             if(isset($_FILES['image'])){
                 if(is_array($_FILES['image']['name'])){
                     for($i=0;$i<count($_FILES['image']['name']);$i++){
-                        // Skip if no file uploaded at this index
                         if($_FILES['image']['error'][$i] == UPLOAD_ERR_NO_FILE) continue;
-                        // Validate MIME type against whitelist
                         $file_mime = mime_content_type($_FILES['image']['tmp_name'][$i] ?? '');
                         if (!in_array($file_mime, $allowed_mime_types)) {
-                            continue; // Skip invalid files
+                            continue;
                         }
                         $files[] = [
                             'name' => $_FILES['image']['name'][$i] ?? '',
@@ -906,10 +850,8 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
                         ];
                     }
                 } else {
-                    // Skip if no file uploaded
                     if($_FILES['image']['error'] === UPLOAD_ERR_NO_FILE) {
                     } else {
-                        // Validate MIME type against whitelist
                         $file_mime = mime_content_type($_FILES['image']['tmp_name'] ?? '');
                         if (in_array($file_mime, $allowed_mime_types)) {
                             $files[] = [ 'name'=>$_FILES['image']['name'],'tmp_name'=>$_FILES['image']['tmp_name'],'size'=>$_FILES['image']['size'],'error'=>$_FILES['image']['error'] ];
@@ -918,12 +860,11 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
                 }
             }
 
-            // Helper: convert an uploaded file to webp (if available) or jpeg and return [data, type] or false
+            // Transform uploaded images to something usable
             $convertImage = function(string $tmpPath){
                 $raw = @file_get_contents($tmpPath);
                 if($raw === false){ return false; }
                 
-                // Detect image type from magic bytes
                 $img = null;
                 if(strpos($raw, "\x89PNG") === 0){
                     $tempFile = tempnam(sys_get_temp_dir(), 'img_');
@@ -954,7 +895,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
                 if(!$img){ error_log('convertImage: all image load methods failed'); return false; }
                 error_log('convertImage: image resource created');
                 
-                // For PNG with transparency, create a white background to avoid transparency issues
                 $width = imagesx($img);
                 $height = imagesy($img);
                 $bg = imagecreatetruecolor($width, $height);
@@ -966,14 +906,12 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
                 
                 ob_start();
                 if(function_exists('imagewebp')){
-                    // WebP at quality 80
                     error_log('convertImage: using imagewebp');
                     $result = @imagewebp($img, NULL, 80);
                     if(!$result) error_log('convertImage: imagewebp output failed');
                     $data = ob_get_clean();
                     $type = 'webp';
                 } else {
-                    // Fallback to JPEG
                     error_log('convertImage: using imagejpeg (fallback)');
                     $result = @imagejpeg($img, NULL, 85);
                     if(!$result) error_log('convertImage: imagejpeg output failed');
@@ -985,7 +923,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
                 return [$data, $type];
             };
 
-            // Insert images into post_images (if any)
             if(count($files) > 0){
                 $sort = 0;
                 $firstImage = null;
@@ -1002,11 +939,9 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
                     
                     if($binSize <= 0){ error_log('create_post: WARNING - converted image is empty!'); continue; }
                     
-                    // RE-PREPARE statement for each BLOB insert (required by some drivers)
                     $imgStmt = safe_prepare($conn, "INSERT INTO post_images (post_id, image, image_type, sort_order, created_at) VALUES (?, ?, ?, ?, NOW())");
                     if(!$imgStmt){ error_log('create_post: safe_prepare failed on iteration - ' . ($conn ? $conn->error : 'No connection')); continue; }
                     
-                    // Bind parameters for BLOB
                     $null = NULL;
                     if(!$imgStmt->bind_param('ibsi', $post_id, $null, $itype, $sort)){ 
                         error_log('create_post: bind_param failed - ' . $imgStmt->error); 
@@ -1037,11 +972,10 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
                     $imgStmt->close();
                 }
 
-                // Update posts.image and posts.image_type for backward compatibility (if columns exist)
+                // place the handled image in database
                 if($firstImage !== null){
                     $upd = safe_prepare($conn, "UPDATE posts SET image = ?, image_type = ? WHERE id = ?");
                     if($upd){
-                        // Bind: 'b'=image (BLOB, passed as NULL then via send_long_data), 's'=image_type, 'i'=id
                         $null = NULL;
                         if(!$upd->bind_param('bsi', $null, $firstImage['type'], $post_id)){ 
                             error_log('create_post: update bind_param failed - ' . $upd->error); 
@@ -1073,7 +1007,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
     }
 
     if($action === 'list_jobs'){
-        // list jobs with optional filters
         $q = trim($_POST['q'] ?? '');
         $category = trim($_POST['category'] ?? '');
         $location = trim($_POST['location'] ?? '');
@@ -1086,7 +1019,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         $types = '';
         $params = [];
 
-        // Always filter for approved posts only
         $where[] = "p.status = 'approved'";
 
         if($q !== ''){ $where[] = "(p.title LIKE ? OR p.description LIKE ? )"; $params[] = "%$q%"; $params[] = "%$q%"; $types .= 'ss'; }
@@ -1106,7 +1038,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         }
 
         if($types !== ''){
-            // bind dynamically
             $bindNames = [];
             $bindNames[] = $types;
             foreach($params as $i => $v) $bindNames[] = &$params[$i];
@@ -1120,12 +1051,10 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         }
 
         $rows = [];
-        // Prefer get_result() when available (requires mysqlnd). Fall back to bind_result() otherwise.
         if(method_exists($stmt, 'get_result')){
             $res = $stmt->get_result();
             while($r = $res->fetch_assoc()) $rows[] = $r;
         } else {
-            // Fallback: fetch results via metadata + bind_result
             $stmt->store_result();
             $meta = $stmt->result_metadata();
             if($meta){
@@ -1152,7 +1081,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
 
         $stmt->close();
 
-        // Attach first image (from post_images) to each row when available (prefer post_images over posts.image)
         $imgStmt = $conn->prepare("SELECT image, image_type FROM post_images WHERE post_id = ? ORDER BY sort_order ASC LIMIT 1");
         if($imgStmt){
             foreach($rows as $i => $r){
@@ -1188,9 +1116,8 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         echo json_encode(['status'=>'success','jobs'=>$rows]); 
         exit;
     }
-
+    // get job details
     if($action === 'get_post_detail'){
-        // fetch full details of a single job post
         $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
         if($post_id <= 0){ echo json_encode(['status'=>'error','message'=>'Invalid post ID']); exit; }
         
@@ -1253,18 +1180,15 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             }
             $imgQ->close();
         }
-
-        // Provide images array and keep legacy `image` field if present
+        // some stupid functions idk... we never developed some of these. 
         $row['images'] = $images;
         if(empty($row['image']) && count($images) > 0) $row['image'] = $images[0];
 
-        // Fetch user profile picture if user_id is available
         $row['profile_picture'] = null;
         if(!empty($row['user_id'])) {
             $row['profile_picture'] = get_profile_picture_url($conn, $row['user_id']);
         }
 
-        // Add admin flag for the current user
         $row['viewer_is_admin'] = false;
         if(!empty($_SESSION['user_id'])) {
             $stmt = safe_prepare($conn, "SELECT is_admin FROM users WHERE id = ? LIMIT 1");
@@ -1279,7 +1203,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             }
         }
 
-        // Add post creator's average rating
         $row['creator_rating'] = 0;
         $row['creator_rating_count'] = 0;
         if(!empty($row['user_id'])) {
@@ -1300,12 +1223,11 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         exit;
     }
 
-    // View user profile: get bio, profile picture, and all their approved jobs
+    // View user profiles
     if($action === 'view_user_profile'){
         $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;
         if($user_id <= 0){ echo json_encode(['status'=>'error','message'=>'Invalid user ID']); exit; }
         
-        // Get user info
         $stmt = safe_prepare($conn, "SELECT username, bio FROM users WHERE id = ? LIMIT 1");
         if(!$stmt){ echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
         $stmt->bind_param('i', $user_id);
@@ -1338,10 +1260,8 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         
         if(!$user){ echo json_encode(['status'=>'error','message'=>'User not found']); exit; }
         
-        // Get profile picture
         $user['profile_picture'] = get_profile_picture_url($conn, $user_id);
         
-        // Get user's approved jobs
         $jobs = [];
         $jobStmt = safe_prepare($conn, "SELECT id, title, description, category, budget, location, created_at FROM posts WHERE user_id = ? AND status = 'approved' ORDER BY created_at DESC");
         if($jobStmt){
@@ -1376,8 +1296,8 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         echo json_encode(['status'=>'success','user'=>$user,'jobs'=>$jobs]);
         exit;
     }
-
-    // Submit a rating for another user
+    
+    // this hasnt be developed, probably never will. keeping it to not cause any site problems.
     if($action === 'submit_rating'){
         if(empty($_SESSION['user_id'])){ echo json_encode(['status'=>'error','message'=>'Not logged in']); exit; }
         if (!validate_csrf_token()) { echo json_encode(['status'=>'error','message'=>'Invalid request token']); exit; }
@@ -1392,7 +1312,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         if($rating < 1 || $rating > 5){ echo json_encode(['status'=>'error','message'=>'Rating must be between 1 and 5']); exit; }
         if(strlen($review) > 500){ echo json_encode(['status'=>'error','message'=>'Review too long']); exit; }
         
-        // Insert or update rating
         $stmt = safe_prepare($conn, "INSERT INTO ratings (rater_id, ratee_id, rating, review) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE rating=?, review=?, updated_at=NOW()");
         if($stmt){
             $stmt->bind_param('iiisss', $rater_id, $ratee_id, $rating, $review, $rating, $review);
@@ -1408,12 +1327,10 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         exit;
     }
 
-    // Get ratings for a user (to display on their profile)
     if($action === 'get_user_ratings'){
         $user_id = intval($_POST['user_id'] ?? 0);
         if($user_id <= 0){ echo json_encode(['status'=>'error','message'=>'Invalid user ID']); exit; }
         
-        // Get average rating and total count
         $stmt = safe_prepare($conn, "SELECT ROUND(AVG(rating), 1) as avg_rating, COUNT(*) as rating_count FROM ratings WHERE ratee_id = ?");
         $avg_rating = 0;
         $rating_count = 0;
@@ -1425,7 +1342,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             $stmt->close();
         }
         
-        // Get recent ratings
         $ratings = [];
         $stmt = safe_prepare($conn, "SELECT r.rating, r.review, r.created_at, u.username FROM ratings r JOIN users u ON r.rater_id = u.id WHERE r.ratee_id = ? ORDER BY r.created_at DESC LIMIT 10");
         if($stmt){
@@ -1442,7 +1358,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         exit;
     }
 
-    // dashboard API: stats + user's own posts
     if($action === 'dashboard_data'){
         if(empty($_SESSION['user_id'])){
             echo json_encode(['status'=>'error','message'=>'Not logged in']); exit;
@@ -1478,7 +1393,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             $stmt->close();
         }
         
-        // Calculate user's average rating
         $stmt = safe_prepare($conn, "SELECT ROUND(AVG(rating), 1) FROM ratings WHERE ratee_id = ?");
         if($stmt){
             $stmt->bind_param('i',$uid);
@@ -1489,7 +1403,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             $stmt->close();
         }
 
-        // fetch posts for user
         $rows = [];
         $sql = "SELECT id,title,description,category,budget,location,status,created_at,IF(image, CONCAT('data:image/', COALESCE(image_type,'jpeg'), ';base64,', TO_BASE64(image)), NULL) AS image FROM posts WHERE user_id = ? ORDER BY created_at DESC";
         $stmt = safe_prepare($conn,$sql);
@@ -1550,7 +1463,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         if($pid <= 0){ echo json_encode(['status'=>'error','message'=>'Invalid post id']); exit; }
         $uid = intval($_SESSION['user_id']);
         
-        // Check if user is admin
         $stmt = safe_prepare($conn, "SELECT id FROM users WHERE id = ? AND is_admin = 1 LIMIT 1");
         $isAdmin = false;
         if($stmt){
@@ -1597,16 +1509,14 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
     }
 
     if($action === 'update_settings'){
-        // CSRF validation
         if (!validate_csrf_token()) {
             echo json_encode(['status'=>'error','message'=>'Invalid request token']); exit;
         }
         
-        // allow logged-in users to change settings: username, email, session duration
+        // settings permissions if you're logged inn
         if(empty($_SESSION['user_id'])){ echo json_encode(['status'=>'error','message'=>'Not authenticated']); exit; }
         $uid = intval($_SESSION['user_id']);
         
-        // Authorization check: can only update own settings
         $target_user_id = intval($_POST['user_id'] ?? $uid);
         if ($target_user_id !== $uid && empty($_SESSION['is_admin'])) {
             echo json_encode(['status'=>'error','message'=>'Unauthorized: cannot modify other users']); exit;
@@ -1616,20 +1526,18 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         $email = trim($_POST['email'] ?? '');
         $bio = trim($_POST['bio'] ?? '');
         
-        // Validate inputs
         if(!$username){ echo json_encode(['status'=>'error','message'=>'Username cannot be empty']); exit; }
         if(!filter_var($email, FILTER_VALIDATE_EMAIL)){ echo json_encode(['status'=>'error','message'=>'Invalid email']); exit; }
         if(strlen($username) < 3 || strlen($username) > 32){ echo json_encode(['status'=>'error','message'=>'Username must be 3-32 characters']); exit; }
         if(!preg_match('/^[A-Za-z0-9_\-]+$/', $username)){ echo json_encode(['status'=>'error','message'=>'Username may only contain letters, numbers, dash or underscore']); exit; }
         if(strlen($bio) > 800){ echo json_encode(['status'=>'error','message'=>'Bio must be 800 characters or less']); exit; }
         
-        // Sanitize bio: remove HTML tags but preserve newlines for paragraphs
+        // we love ourselves some bio action
         $bio = strip_tags($bio);
-        $bio = preg_replace('/[ \t]+/', ' ', $bio); // Collapse spaces and tabs only
-        $bio = preg_replace('/\n\n+/', '\n\n', $bio); // Collapse multiple newlines to max 2
+        $bio = preg_replace('/[ \t]+/', ' ', $bio);
+        $bio = preg_replace('/\n\n+/', '\n\n', $bio);
         $bio = trim($bio);
         
-        // Check if new username/email already exists for OTHER users
         $stmt = safe_prepare($conn, "SELECT id FROM users WHERE (username=? OR email=?) AND id != ?");
         if($stmt){
             $stmt->bind_param('ssi', $username, $email, $uid);
@@ -1639,7 +1547,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             $stmt->close();
         } else { echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
         
-        // Check if bio column exists before trying to update it
         $has_bio_column = false;
         try {
             $res = $conn->query("SHOW COLUMNS FROM users LIKE 'bio'");
@@ -1648,7 +1555,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             $has_bio_column = false;
         }
         
-        // Update username, email, and optionally bio
         if($has_bio_column){
             $stmt = safe_prepare($conn, "UPDATE users SET username=?, email=?, bio=? WHERE id=?");
             if($stmt){
@@ -1671,12 +1577,10 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
     }
 
     if($action === 'change_password'){
-        // CSRF validation
         if (!validate_csrf_token()) {
             echo json_encode(['status'=>'error','message'=>'Invalid request token']); exit;
         }
         
-        // Check authentication
         if(empty($_SESSION['user_id'])){ echo json_encode(['status'=>'error','message'=>'Not authenticated']); exit; }
         $uid = intval($_SESSION['user_id']);
         
@@ -1684,13 +1588,11 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         $new_password = $_POST['new_password'] ?? '';
         $confirm_password = $_POST['confirm_password'] ?? '';
         
-        // Validate inputs
         if(!$current_password){ echo json_encode(['status'=>'error','message'=>'Current password is required']); exit; }
         if(!$new_password){ echo json_encode(['status'=>'error','message'=>'New password is required']); exit; }
         if($new_password !== $confirm_password){ echo json_encode(['status'=>'error','message'=>'Passwords do not match']); exit; }
         if(strlen($new_password) < 6){ echo json_encode(['status'=>'error','message'=>'Password must be at least 6 characters']); exit; }
         
-        // Get current password hash
         $stmt = safe_prepare($conn, "SELECT password_hash FROM users WHERE id=? LIMIT 1");
         if(!$stmt){ echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
         $stmt->bind_param('i', $uid);
@@ -1702,15 +1604,12 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         }
         $stmt->close();
         
-        // Verify current password
         if(!password_verify($current_password, $password_hash)) {
             echo json_encode(['status'=>'error','message'=>'Current password is incorrect']); exit;
         }
         
-        // Hash new password
         $new_hash = password_hash($new_password, PASSWORD_BCRYPT);
         
-        // Update password
         $stmt = safe_prepare($conn, "UPDATE users SET password_hash=? WHERE id=?");
         if(!$stmt){ echo json_encode(['status'=>'error','message'=>'Database error']); exit; }
         $stmt->bind_param('si', $new_hash, $uid);
@@ -1724,12 +1623,10 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
     }
 
     if($action === 'upload_profile_picture'){
-        // CSRF validation
         if (!validate_csrf_token()) {
             echo json_encode(['status'=>'error','message'=>'Invalid request token']); exit;
         }
         
-        // Handle profile picture upload
         if(empty($_SESSION['user_id'])){ echo json_encode(['status'=>'error','message'=>'Not authenticated']); exit; }
         
         if(empty($_FILES['profile_picture'])){ echo json_encode(['status'=>'error','message'=>'No file uploaded']); exit; }
@@ -1737,7 +1634,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         $file = $_FILES['profile_picture'];
         $uid = intval($_SESSION['user_id']);
         
-        // Validate MIME type
         $allowed_mime = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         $file_mime = mime_content_type($file['tmp_name']);
         if (!in_array($file_mime, $allowed_mime)) {
@@ -1745,7 +1641,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             exit;
         }
         
-        // Validate file
         if($file['error'] !== UPLOAD_ERR_OK){ 
             echo json_encode(['status'=>'error','message'=>'Upload error: ' . getUploadErrorMessage($file['error'])]); 
             exit; 
@@ -1756,20 +1651,18 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             exit; 
         }
         
-        // Check if GD library is available for image processing
         if(!extension_loaded('gd')){ 
             echo json_encode(['status'=>'error','message'=>'Image processing not available']); 
             exit; 
         }
         
-        // Load and validate image
         $img = @imagecreatefromstring(file_get_contents($file['tmp_name']));
         if(!$img){ 
             echo json_encode(['status'=>'error','message'=>'Invalid image file']); 
             exit; 
         }
         
-        // Resize to 200x200 (square profile pic)
+        // some extra processing for pictures
         $size = 200;
         $thumb = imagecreatetruecolor($size, $size);
         $srcW = imagesx($img);
@@ -1781,7 +1674,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         imagecopyresampled($thumb, $img, 0, 0, $srcX, $srcY, $size, $size, $minDim, $minDim);
         imagedestroy($img);
         
-        // Convert to WEBP
         ob_start();
         imagewebp($thumb, null, 80);
         $imgData = ob_get_clean();
@@ -1792,7 +1684,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             exit; 
         }
         
-        // Save to database
         $stmt = safe_prepare($conn, "UPDATE users SET profile_picture=?, profile_picture_type='image/webp' WHERE id=?");
         if(!$stmt){ 
             echo json_encode(['status'=>'error','message'=>'Database error']); 
@@ -1815,27 +1706,22 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         $stmt->close();
         exit;
     }
-
+    // mail to owners handling i think...
     if($action === 'contact'){
-        // CSRF validation
         if (!validate_csrf_token()) {
             echo json_encode(['status'=>'error','message'=>'Invalid request token']); exit;
         }
         
-        // Handle contact form submission
         $name = trim($_POST['name'] ?? '');
         $email = trim($_POST['email'] ?? '');
         $message = trim($_POST['message'] ?? '');
 
-        // Validate inputs
         if(!$name){ echo json_encode(['status'=>'error','message'=>'Name is required']); exit; }
         if(!filter_var($email, FILTER_VALIDATE_EMAIL)){ echo json_encode(['status'=>'error','message'=>'Invalid email address']); exit; }
         if(!$message){ echo json_encode(['status'=>'error','message'=>'Message cannot be empty']); exit; }
 
-        // Send contact email to site admin
         $mail = new PHPMailer(true);
         try {
-            // Ensure outgoing mail uses UTF-8 charset so Norwegian characters are preserved
             $mail->CharSet = 'UTF-8';
             $mail->Encoding = 'base64';
             $mail->isSendmail();
@@ -1844,7 +1730,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             $mail->isHTML(true);
             $mail->Subject = 'Ny kontaktmelding fra ' . htmlspecialchars($name);
             
-            // Format the email body
             $mail->Body = "
                 <h2>Ny kontaktmelding mottatt</h2>
                 <p><strong>Fra:</strong> " . htmlspecialchars($name) . "</p>
@@ -1863,20 +1748,16 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         }
     }
 
-    // Unknown action
     echo json_encode(['status'=>'error','message'=>'Unknown action']);
     exit;
 }
 
-// If included by other pages, expose logged-in state below.
 $is_logged_in = false;
 $user_name = 'Guest';
 $user_email = '';
 $user_created = null;
-// admin flag (will be set if the users table supports it)
 $is_admin = false;
 if(isset($_SESSION['user_id']) && $conn){
-    // Detect whether the users table has an is_admin column.
     $has_is_admin = false;
     $has_bio = false;
     try {
@@ -1934,7 +1815,6 @@ if(isset($_SESSION['user_id']) && $conn){
             $user_created = $created_at;
             $email_verified = !empty($email_verified) ? true : false;
         }
-        // Grant admin to protected runtime users (no DB changes needed)
         $protected_runtime_admins = array('pyxis', 'adminpyx', 'kentanto65', 'lokale-tjenester');
         if(!$is_admin && in_array($user_name, $protected_runtime_admins, true)){
             $is_admin = true;
@@ -1943,12 +1823,10 @@ if(isset($_SESSION['user_id']) && $conn){
         $stmt->close();
     }
 }
-
-// If this file is requested directly, render a small login/signup page when requested.
+// minimal fallback page for login/signup
 if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])){
     $act = $_GET['action'] ?? null;
     if($act === 'login' || $act === 'signup'){
-        // Minimal standalone page that posts to this same file via fetch
         ?><!doctype html>
         <html lang="en">
         <head>

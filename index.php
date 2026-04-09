@@ -1,6 +1,4 @@
 <?php
-    // Keep minimal PHP in index. Session/user logic moved to `display.php`.
-    // `display.php` will start the session and expose $is_logged_in and $user_name.
     require_once 'display.php';
 ?>
 <!DOCTYPE html>

@@ -1,4 +1,4 @@
-// Admin Panel JavaScript
+// Admin Panel JavaScript for handling user edits and job post actions
 
 function openEditModal(id, username, email, is_admin) {
     document.getElementById('editUserId').value = id;
@@ -15,18 +15,15 @@ function closeEditModal() {
 function submitForm(action) {
     const form = document.getElementById('editUserForm');
     
-    // For delete, skip validation
     if (action === 'delete_user') {
         if (!confirm('Are you sure you want to delete this user?')) {
             return;
         }
-        // Set action and submit without validation
         document.getElementById('formAction').value = 'delete_user';
         submitFormViaAjax(form);
         return;
     }
     
-    // For update, validate required fields
     if (action === 'update_user') {
         const username = document.getElementById('editUsername').value.trim();
         const email = document.getElementById('editEmail').value.trim();
@@ -69,10 +66,7 @@ function submitFormViaAjax(form) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Find all forms that contain approve_post or reject_post actions
-    const allForms = document.querySelectorAll('form');
-    
-    // Try a different approach: find all buttons and attach directly
+    const allForms = document.querySelectorAll('form');    
     const buttons = document.querySelectorAll('button[type="submit"]');
     
     buttons.forEach(function(button, index) {

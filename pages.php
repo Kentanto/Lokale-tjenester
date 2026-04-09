@@ -10,10 +10,7 @@ if (!in_array($page, $allowed)) {
     $page = 'about';
 }
 
-// Helper to render header
-// $pageClass: optional additional class for the header (e.g. 'settings')
 function render_header($title, $pageClass = '') {
-    // make session/user vars available inside this function
     global $user_name, $is_logged_in, $is_admin, $conn, $user_id;
     ?>
 <!DOCTYPE html>
@@ -39,7 +36,7 @@ function render_header($title, $pageClass = '') {
 
 function render_footer() {
     ?>
-        </div> <!-- .page-content -->
+        </div>
     </main>
 
     <footer class="site-footer">
@@ -58,9 +55,9 @@ function render_footer() {
         </div>
     </footer>
 
-</div> <!-- .page-wrapper -->
+</div>
 
-<!-- Job Detail Modal (positioned at body level for fixed positioning) -->
+<!-- Job Detail Modal  -->
 <div id="jobDetailModal" class="job-detail-modal" style="display: none;">
     <div class="job-detail-overlay"></div>
     <div class="job-detail-box">
@@ -76,8 +73,7 @@ function render_footer() {
 </html>
 <?php
 }
-
-// Page content
+// all other pages from main page is here
 switch ($page) {
     case 'about':
         render_header('Om');
@@ -240,7 +236,7 @@ switch ($page) {
                 </div>
             </section>
 
-            <!-- Job Success & Donation Modal -->
+            <!-- Donations are accepted :)  -->
             <div id="donationModal" class="donation-modal" style="display: none;">
                 <div class="donation-overlay"></div>
                 <div class="donation-box">
@@ -347,7 +343,6 @@ switch ($page) {
             </div>
         </section>
 
-        <!-- Job Detail Modal -->
         <div id="jobDetailModal" class="job-detail-modal" style="display: none;">
             <div class="job-detail-overlay"></div>
             <div class="job-detail-box">
@@ -456,7 +451,6 @@ switch ($page) {
         if ($is_logged_in) {
             ?>
             <div class="profile-section">
-                <!-- Welcome Card -->
                 <div class="profile-welcome-card">
                     <div style="display: flex; gap: 20px; align-items: flex-start;">
                         <div>
@@ -490,9 +484,7 @@ switch ($page) {
                     </div>
                 </div>
 
-                <!-- Action Cards Grid -->
                 <div class="profile-cards-grid">
-                    <!-- Upload Profile Picture Card -->
                     <div class="profile-card">
                         <h3><span class="profile-card-icon">📷</span> Profilbilde</h3>
                         <form id="profilePictureForm" class="settings-form" enctype="multipart/form-data">
@@ -507,7 +499,6 @@ switch ($page) {
                             <button class="btn btn-primary" type="submit">Last opp bilde</button>
                         </form>
                     </div>
-                    <!-- Edit Profile Card -->
                     <div class="profile-card">
                         <h3><span class="profile-card-icon">👤</span> Rediger profil</h3>
                         <form id="settingsForm" class="settings-form">
@@ -528,7 +519,6 @@ switch ($page) {
                         </form>
                     </div>
 
-                    <!-- Change Password Card -->
                     <div class="profile-card">
                         <h3><span class="profile-card-icon">🔒</span> Endre passord</h3>
                         <form id="passwordForm" class="settings-form">
@@ -556,7 +546,6 @@ switch ($page) {
                     </div>
                 </div>
 
-                <!-- Bio Section -->
                 <div class="profile-verification-card">
                     <h3>👤 Om meg</h3>
                     <form id="bioForm" class="settings-form" style="margin-top: 12px;">
@@ -577,7 +566,6 @@ switch ($page) {
                     </form>
                 </div>
 
-                <!-- Email Verification Section (Only if not verified) -->
                 <?php if (!$email_verified): ?>
                 <div class="profile-verification-card">
                     <h3>✉️ E-postverifisering</h3>
@@ -633,7 +621,6 @@ switch ($page) {
                         <input id="display-name" name="username" type="text" value="<?php echo htmlspecialchars($user_name); ?>">
                     </div>
                     
-                    <!-- Bio/Description field -->
                     <div class="form-group">
                         <label for="bio">Bio</label>
                         <textarea id="bio" name="bio" rows="4" placeholder="Fortell litt om deg selv..." maxlength="500"></textarea>
@@ -747,7 +734,6 @@ switch ($page) {
             <p class="auth-link">Har du ikke en konto? <a href="pages.php?page=signup">Registrer deg</a></p>
         </div>
         <script>
-        // Toggle password visibility
         document.getElementById('show_password').addEventListener('change', function(e) {
             const passwordInput = document.getElementById('password');
             passwordInput.type = e.target.checked ? 'text' : 'password';

@@ -35,7 +35,6 @@
             flex-direction: column;
         }
 
-        /* Navbar Styles */
         nav {
             background-color: #ffffff;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -49,7 +48,6 @@
             z-index: 1000;
         }
 
-        /* Apply subtle panel background and light shadow to common boxes */
         .card,
         .settings-section,
         .profile-section,
@@ -64,7 +62,6 @@
             border-radius: 8px;
         }
 
-        /* Slightly nudge the Settings page header to the right */
         .page-header.settings {
             padding-left: 12px;
         }
@@ -170,7 +167,6 @@
             overflow: hidden;
         }
 
-        /* Compact form inside dropdown */
         .dropdown-menu .auth-form {
             padding: 12px 16px;
             margin: 0;
@@ -230,8 +226,6 @@
         .dropdown-menu .form-message.success { display: block; background: rgba(44,140,66,0.06); color: var(--green-dark); border: 1px solid rgba(44,140,66,0.1); }
         .dropdown-menu .form-message.error { display: block; background: rgba(185,28,28,0.04); color: #b91c1c; border: 1px solid rgba(185,28,28,0.06); }
 
-        /* Gray out signup form */
-        /* Signup form is now enabled */
         #signupForm {
             opacity: 1;
             pointer-events: auto;
@@ -276,29 +270,24 @@
         .dropdown-divider {
             height: 1px;
             background-color: var(--off-white);
-            margin: 0; /* remove extra spacing */
+            margin: 0;
         }
 
-        /* Ensure inputs inside dropdown don't add unexpected margins */
         .dropdown-menu .auth-form input,
         .dropdown-menu .auth-form button {
             margin: 0;
         }
 
-        /* Slightly smaller top margin for the first/last child so rounded corners remain tidy */
         .dropdown-menu .auth-form:first-child { padding-top: 8px; }
         .dropdown-menu .auth-form:last-child { padding-bottom: 8px; }
 
-        /* Main Container */
         .container {
             display: flex;
-            /* Let the page background (off-white) show — cards remain white via their own styles. */
             width: 100%;
             background: transparent;
             min-height: calc(100vh - 70px - 72px);
         }
 
-        /* Two-Column Layout */
         .column {
             flex: 1;
             display: flex;
@@ -330,7 +319,6 @@
             box-shadow: 0 8px 24px rgba(11, 22, 33, 0.06);
         }
 
-        /* Page-specific helper classes used in pages.php */
         .lead {
             background: var(--box-bg);
             padding: 20px;
@@ -341,13 +329,12 @@
             color: var(--jet);
         }
 
-        /* Centered variant used on admin panel for single-line lead text */
         .lead.centered {
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
-            min-height: 88px; /* smaller vertical size */
+            min-height: 88px;
         }
 
         .lead.centered p {
@@ -402,7 +389,6 @@
             cursor: pointer;
         }
 
-        /* Protected account overlay: visually covers the whole card to indicate it's non-interactive */
         .service-card.protected-card { position: relative; }
         .service-card.protected-card .card-overlay {
             position: absolute;
@@ -413,7 +399,6 @@
             display: block;
         }
 
-        /* Overlay label (visible center badge and tooltip) */
         .service-card.protected-card .card-overlay .overlay-label {
             position: absolute;
             left: 50%;
@@ -425,7 +410,7 @@
             border-radius: 8px;
             font-size: 13px;
             font-weight: 700;
-            pointer-events: none; /* keep overlay non-interactive */
+            pointer-events: none;
         }
 
         .service-card h3 {
@@ -450,7 +435,6 @@
             font-size: 14px;
         }
 
-        /* Empty state card used when a list has no items */
         .empty-state {
             background: linear-gradient(180deg, #ffffff 0%, #fbfffb 100%);
             border: 1px dashed rgba(43,52,61,0.06);
@@ -479,7 +463,6 @@
             color: var(--muted);
         }
 
-        /* Make images inside the column-image fill and be centered without inline styles */
         .column-image img {
             width: 100%;
             height: 100%;
@@ -530,7 +513,7 @@
         }
 
         .btn-secondary {
-            background-color: #ffffff; /* white inside */
+            background-color: #ffffff;
             color: var(--green);
             border: 2px solid var(--green);
         }
@@ -542,7 +525,6 @@
             box-shadow: 0 4px 12px rgba(44, 140, 66, 0.18);
         }
 
-        /* Job and search form improvements */
         .services-grid .grid {
             display: grid;
             grid-auto-flow: row;
@@ -557,7 +539,6 @@
             margin-left: 0;
         }
 
-        /* Form field layout for multiple inputs in one row */
         .form-row {
             display: flex;
             gap: 12px;
@@ -569,7 +550,6 @@
             min-width: 180px;
         }
 
-        /* Form row layouts */
         .form-row {
             display: flex;
             gap: 16px;
@@ -600,7 +580,6 @@
             margin-bottom: 0;
         }
 
-        /* Form fieldset styling */
         .form-fieldset {
             border: none;
             padding: 0;
@@ -615,7 +594,6 @@
             margin-bottom: 20px;
         }
 
-        /* Screen reader only text */
         .sr-only {
             position: absolute;
             width: 1px;
@@ -628,7 +606,6 @@
             border-width: 0;
         }
 
-        /* Create job page section */
         .create-job-section {
             margin-top: 8px;
         }
@@ -740,7 +717,6 @@
             font-weight: 600;
         }
 
-        /* Button styling */
         .btn-large {
             padding: 14px 32px;
             font-size: 16px;
@@ -749,7 +725,6 @@
             width: 100%;
         }
 
-        /* Placeholder text styling - cursive */
         .form-group input::placeholder,
         .form-group textarea::placeholder {
             font-style: italic;
@@ -757,7 +732,6 @@
             opacity: 0.8;
         }
 
-        /* Firefox placeholder styling */
         .form-group input::-moz-placeholder,
         .form-group textarea::-moz-placeholder {
             font-style: italic;
@@ -765,7 +739,6 @@
             opacity: 0.8;
         }
 
-        /* Microsoft Edge/IE placeholder styling */
         .form-group input:-ms-input-placeholder,
         .form-group textarea:-ms-input-placeholder {
             font-style: italic;
@@ -773,7 +746,6 @@
             opacity: 0.8;
         }
 
-        /* File input styling */
         .form-group input[type="file"] {
             padding: 10px;
             border: 2px dashed var(--green);
@@ -795,7 +767,6 @@
             box-shadow: 0 0 0 3px rgba(44, 140, 66, 0.15);
         }
 
-        /* Image preview container */
         .image-preview-container {
             margin-top: 12px;
             display: flex;
@@ -847,7 +818,6 @@
             text-decoration: underline;
         }
 
-        /* Find jobs page section */
         .find-jobs-section {
             margin-top: 8px;
         }
@@ -955,7 +925,6 @@
             gap: 20px;
         }
 
-        /* Job Detail Modal */
         .job-detail-modal {
             position: fixed;
             top: 0;
@@ -1014,7 +983,6 @@
             padding: 32px;
         }
 
-        /* Donation Modal */
         .donation-modal {
             position: fixed;
             top: 0;
@@ -1115,7 +1083,6 @@
         }
         
 
-        /* Form accessibility improvements */
         .form-fieldset legend {
             display: block;
             margin-bottom: 16px;
@@ -1137,7 +1104,6 @@
             font-weight: 400;
         }
 
-        /* Ensure inputs have proper focus states for accessibility */
         .form-group input:focus,
         .form-group textarea:focus {
             outline: 2px solid transparent;
@@ -1145,14 +1111,12 @@
             box-shadow: 0 0 0 3px rgba(44, 140, 66, 0.15);
         }
 
-        /* Ensure buttons are keyboard accessible */
         .btn:focus {
             outline: 2px solid transparent;
             outline-offset: 2px;
             box-shadow: 0 0 0 3px rgba(44, 140, 66, 0.15);
         }
-
-        /* Responsive Design */
+        /* Responsive adjustments */
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
@@ -1178,7 +1142,6 @@
             }
         }
 
-/* Footer styles */
 .site-footer {
     background: #ffffff;
     border-top: 1px solid rgba(44,140,66,0.1);
@@ -1212,7 +1175,6 @@
     font-size: 14px;
 }
 
-/* Page wrapper for consolidated pages */
 .page-wrapper {
     display: flex;
     flex-direction: column;
@@ -1290,7 +1252,6 @@
     color: #333;
 }
 
-/* Form Styles */
 .contact-form,
 .auth-form,
 .settings-form {
@@ -1318,7 +1279,6 @@
     margin-bottom: 12px;
 }
 
-/* Search/filter form styling */
 .search-form {
     padding: 0;
     position: relative;
@@ -1400,7 +1360,6 @@
     box-shadow: none;
 }
 
-/* Field-level validation */
 .invalid {
     border-color: #e11d48 !important;
 }
@@ -1416,7 +1375,6 @@
     font-size: 13px;
 }
 
-/* Confirmation modal shown before redirects */
 .confirm-overlay {
     position: fixed;
     inset: 0;
@@ -1442,7 +1400,6 @@
 .confirm-actions .btn { padding: 8px 12px; font-size: 14px; }
 .confirm-countdown { font-weight:600; margin-left:8px; color:var(--muted); }
 
-/* Terms of Service Modal */
 #termsModal {
     position: fixed;
     inset: 0;
@@ -1603,7 +1560,6 @@
     padding-right: 36px;
 }
 
-/* Section Styles */
 .profile-section,
 .settings-section,
 .dashboard-section,
@@ -1839,7 +1795,6 @@
     text-decoration: underline;
 }
 
-/* Dashboard Stats */
 .dashboard-stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -1873,7 +1828,6 @@
     font-size: 14px;
 }
 
-/* user posts list on dashboard */
 .user-posts-container {
     margin-top: 12px;
 }
@@ -1881,7 +1835,6 @@
     cursor: default;
 }
 
-/* Responsive Pages */
 @media (max-width: 768px) {
     .page-header h1 {
         font-size: 28px;
@@ -1902,7 +1855,6 @@
         max-width: 100%;
     }
 
-    /* Job pages responsive grid */
     .services-grid .grid[style*="grid-template-columns"] {
         grid-template-columns: 1fr !important;
     }
@@ -1911,12 +1863,10 @@
         gap: 20px;
     }
 
-    /* Ensure service cards take full width on mobile */
     .service-card {
         width: 100%;
     }
 
-    /* Responsive heading sizing */
     .page-main h2 {
         font-size: 20px;
     }
@@ -1925,7 +1875,6 @@
         font-size: 15px;
     }
 
-    /* Lead section responsive */
     .lead {
         padding: 16px;
         margin-bottom: 16px;
@@ -1935,7 +1884,6 @@
         font-size: 14px;
     }
 
-    /* Create job page responsive */
     .create-job-container {
         grid-template-columns: 1fr;
         gap: 24px;
@@ -1950,7 +1898,6 @@
         margin-top: 20px;
     }
 
-    /* Form row responsive */
     .form-row-two-cols {
         grid-template-columns: 1fr;
         gap: 16px;
@@ -1964,12 +1911,10 @@
         max-width: 100%;
     }
 
-    /* Button sizing on mobile */
     .btn-large {
         width: 100%;
     }
 
-    /* Find jobs page responsive */
     .find-jobs-container {
         grid-template-columns: 1fr;
         gap: 24px;
@@ -2001,8 +1946,7 @@
         width: 100%;
     }
 }
-
-/* Rating / stars accent */
+/*rating will not be used in the final design, i just dont want to rework all of our files to be unrating compatible */
 .rating, .star {
     color: var(--orange);
 }
@@ -2011,11 +1955,10 @@
     border-left: 4px solid var(--green);
 }
 
-/* Dark Mode Styles: set page & box variables so boxes are brighter than page */
 body.dark-mode,
 html.dark-mode {
-    --page-bg: #161618; /* slightly lighter page background */
-    --box-bg: #1e1e21;  /* lighter box background for better contrast */
+    --page-bg: #161618; 
+    --box-bg: #1e1e21;
     --box-shadow: 0 4px 12px rgba(255,255,255,0.03);
     --box-border: #444444;
     color: #e0e0e0;
@@ -2393,7 +2336,6 @@ html.dark-mode .note {
     border: 1px solid var(--box-border);
 }
 
-/* Star Rating Styles */
 .star-display {
     display: inline-flex;
     align-items: center;
@@ -2471,23 +2413,7 @@ html.dark-mode .note {
     border: 1px solid rgba(185, 28, 28, 0.2);
 }
 
-body.dark-mode h1,
-body.dark-mode h2,
-body.dark-mode h3,
-body.dark-mode h4,
-body.dark-mode h5,
-body.dark-mode h6 {
-    color: #ffffff;
-}
 
-/* ensure dark-mode h2-h6 headings remain consistent */
-html.dark-mode h2,
-html.dark-mode h3,
-html.dark-mode h4,
-html.dark-mode h5,
-html.dark-mode h6 {
-    color: #ffffff;
-}
 
 #bioForm {
     max-width: 100%;
@@ -2519,7 +2445,6 @@ html.dark-mode h6 {
     width: auto;
 }
 
-/* Character counter for bio */
 #bioForm .char-counter {
     display: inline-block;
     font-size: 12px;
@@ -2552,7 +2477,6 @@ html.dark-mode .form-group label {
     color: #e0e0e0;
 }
 
-/* Animated Switch Toggle */
 .theme-toggle-box {
     display: flex;
     align-items: center;
@@ -2626,7 +2550,6 @@ input:focus + .slider {
     box-shadow: 0 0 1px #2C8C42;
 }
 
-/* Coming Soon Page Styles */
 .coming-soon-container {
     display: flex;
     min-height: calc(100vh - 70px);
@@ -2773,7 +2696,6 @@ input:focus + .slider {
 
 
 
-/* Admin Panel Styles */
 #notificationBox {
     background: var(--green);
     color: white;

@@ -2,31 +2,25 @@
 require_once 'display.php';
 $user_id = $_SESSION['user_id'] ?? null;
 
-// Only admin users allowed
 if (!$is_logged_in || empty($is_admin)) {
     header('HTTP/1.1 403 Forbidden');
     echo "<h1>403 Forbidden</h1><p>You are not authorized to access the admin panel.</p>";
     exit;
 }
 
-// Ensure DB connection
 if(!isset($conn) || !$conn){
     echo "<p>Database connection not available.</p>";
     exit;
 }
 
-// Create is_admin column if missing (non-destructive)
 try {
     $res = $conn->query("SHOW COLUMNS FROM users LIKE 'is_admin'");
     if($res && $res->num_rows === 0){
         $conn->query("ALTER TABLE users ADD COLUMN is_admin TINYINT(1) DEFAULT 0");
     }
 } catch (Exception $e) {
-    // ignore
 }
 
-// Handle POST actions
-// Check if this is an AJAX request
 $is_ajax_request = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
 if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
@@ -36,12 +30,10 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
     if($action === 'delete_user'){
         $target = intval($_POST['user_id'] ?? 0);
         if($target > 0){
-            // prevent deleting self accidentally
             if($target === intval($_SESSION['user_id'])){
                 $_SESSION['notice'] = 'You cannot delete your own account from the admin panel.';
                 $_SESSION['notice_type'] = 'danger';
             } else {
-                // Prevent deleting protected user(s)
                 $safe = safe_prepare($conn, "SELECT username FROM users WHERE id = ? LIMIT 1");
                 if($safe){
                     $safe->bind_param('i', $target);
@@ -86,7 +78,6 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
         @file_put_contents(__DIR__ . '/debug_admin.log', date('c') . " - Update user start: target=$target, username=$username, email=$email, password=" . (empty($password) ? 'empty' : 'provided') . ", is_admin=$is_admin\n", FILE_APPEND);
 
         if($target > 0 && $username && $email){
-            // Prevent editing protected accounts
             $safe = safe_prepare($conn, "SELECT username FROM users WHERE id = ? LIMIT 1");
             if($safe){
                 $safe->bind_param('i', $target);
@@ -99,7 +90,6 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
                     $_SESSION['notice_type'] = 'danger';
                     @file_put_contents(__DIR__ . '/debug_admin.log', date('c') . " - Protected account, abort\n", FILE_APPEND);
                 } else {
-                    // Check for duplicate username/email
                     $stmt = safe_prepare($conn, "SELECT id FROM users WHERE (username=? OR email=?) AND id != ?");
                     if($stmt){
                         $stmt->bind_param('ssi', $username, $email, $target);
@@ -110,7 +100,6 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
                             $_SESSION['notice_type'] = 'danger';
                             @file_put_contents(__DIR__ . '/debug_admin.log', date('c') . " - Duplicate found, abort\n", FILE_APPEND);
                         } else {
-                            // Update user
                             if($password){
                                 $hash = password_hash($password, PASSWORD_BCRYPT);
                                 $stmt = safe_prepare($conn, "UPDATE users SET username=?, email=?, password_hash=?, is_admin=? WHERE id=?");
@@ -193,11 +182,11 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])){
     }
 }
 
-// Re-read notice from session after action handlers have run
+// If this was an AJAX request, return a small JSON payload and exit 
 $notice = isset($_SESSION['notice']) ? $_SESSION['notice'] : '';
 unset($_SESSION['notice']);
 
-// If this was an AJAX request, return a small JSON payload and exit
+
 if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'){
     header('Content-Type: application/json');
     $status = $notice ? 'ok' : 'error';
@@ -206,8 +195,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_SERVER['HTTP_X_REQUESTED_WI
     echo json_encode($resp);
     exit;
 }
-
-// Fetch users list (allow simple search via GET 'q' param: username OR email)
+// fetch users and search behaviour
 $q = trim($_GET['q'] ?? '');
 $users = [];
 if($q !== ''){
@@ -244,7 +232,7 @@ if($q !== ''){
     }
 }
 
-// Fetch pending posts/jobs with images
+// Fetch pending posts/jobs with images for safety
 $pending_posts = [];
 $stmt = safe_prepare($conn, "SELECT p.id, p.title, p.description, p.category, p.budget, p.location, p.created_at, COALESCE(u.username,'Guest') AS username FROM posts p LEFT JOIN users u ON p.user_id = u.id WHERE p.status = 'pending' ORDER BY p.created_at ASC LIMIT 200");
 if($stmt){
@@ -252,7 +240,6 @@ if($stmt){
     if(method_exists($stmt, 'get_result')){
         $res = $stmt->get_result();
         while($r = $res->fetch_assoc()) {
-            // Fetch first image for this post
             $imageStmt = safe_prepare($conn, "SELECT image, image_type FROM post_images WHERE post_id = ? ORDER BY sort_order ASC LIMIT 1");
             if($imageStmt){
                 $imageStmt->bind_param('i', $r['id']);
@@ -272,7 +259,6 @@ if($stmt){
         $stmt->bind_result($id,$title,$description,$category,$budget,$location,$created_at,$username);
         while($stmt->fetch()){
             $item = ['id'=>$id,'title'=>$title,'description'=>$description,'category'=>$category,'budget'=>$budget,'location'=>$location,'created_at'=>$created_at,'username'=>$username];
-            // Fetch first image for this post
             $imageStmt = safe_prepare($conn, "SELECT image, image_type FROM post_images WHERE post_id = ? ORDER BY sort_order ASC LIMIT 1");
             if($imageStmt){
                 $imageStmt->bind_param('i', $id);
@@ -350,7 +336,7 @@ if($stmt){
                 </div>
             <?php endif; ?>
 
-            <!-- PENDING JOBS SECTION -->
+            <!-- PENDING JOBS SECTION --> 
             <?php if(!empty($pending_posts)): ?>
             <section class="pending-jobs-section" style="margin-bottom: 40px; padding: 20px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
                 <h2>📋 Jobber avventende godkjenning (<?php echo count($pending_posts); ?>)</h2>
