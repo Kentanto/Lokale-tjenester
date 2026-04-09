@@ -1,8 +1,4 @@
 <?php
-// Temporary debug log to help diagnose 500 errors when browser shows no response.
-// The webserver must be able to write files in this directory for these logs to appear.
-@file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - display.php loaded\n", FILE_APPEND);
-
 // Increase PHP limits for file uploads (5MB + overhead)
 ini_set('upload_max_filesize', '5M');
 ini_set('post_max_size', '15M');
@@ -75,14 +71,7 @@ header('X-XSS-Protection: 1; mode=block');
 // Content Security Policy
 header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:;");
 
-// ===== DEBUG MODE CONTROL =====
-define('DEBUG_MODE', getenv('DEBUG_MODE') === 'true');
 
-function debug_log($msg) {
-    if (DEBUG_MODE) {
-        @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - $msg\n", FILE_APPEND);
-    }
-}
 
 // ===== CSRF TOKEN FUNCTIONS =====
 function generate_csrf_token() {
@@ -558,20 +547,12 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
     // Start output buffering to prevent accidental output before JSON
     ob_start();
     
-    // Log the incoming POST request for debugging (temporary)
-    $post_log = date('c') . " - POST start: action=" . ($_POST['action'] ?? '(none)') . " method=" . ($_SERVER['REQUEST_METHOD'] ?? '') . " remote=" . ($_SERVER['REMOTE_ADDR'] ?? '') . "\n";
-    @file_put_contents(__DIR__ . '/debug_display_exec.log', $post_log, FILE_APPEND);
-
     $action = $_POST['action'] ?? null;
 
     // Clear any buffered output and set correct headers
     ob_clean();
     header('Content-Type: application/json; charset=utf-8');
     header('X-Content-Type-Options: nosniff');
-    
-    // Also log POST keys and cookies briefly
-    @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - POST keys: " . implode(',', array_keys($_POST)) . "\n", FILE_APPEND);
-    @file_put_contents(__DIR__ . '/debug_display_exec.log', date('c') . " - COOKIES: " . json_encode(array_keys($_COOKIE)) . "\n", FILE_APPEND);
 
     if($action === 'signup'){
         $username = trim($_POST['username'] ?? '');
@@ -669,12 +650,9 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         if($stmt){
             $stmt->bind_param('ss', $username, $username);
             $stmt->execute();
-            debug_log("Login: query executed for username=$username");
             $stmt->bind_result($user_id, $user_name, $user_email, $password_hash);
             if($stmt->fetch()){
-                debug_log("Login: user found, id=$user_id");
                 if(password_verify($password, $password_hash)){
-                    debug_log("Login: password correct");
                     // Clear rate limit on successful login
                     clear_login_attempts($username);
                     session_regenerate_id(true);
@@ -700,18 +678,15 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
                     
                     echo json_encode(['status'=>'success','message'=>'Logged in successfully']);
                 } else {
-                    debug_log("Login: password incorrect");
                     record_login_attempt($username);
                     echo json_encode(['status'=>'error','message'=>'Invalid username or password']);
                 }
             } else {
-                debug_log("Login: user not found");
                 record_login_attempt($username);
                 echo json_encode(['status'=>'error','message'=>'Invalid username or password']);
             }
             $stmt->close();
         } else {
-            debug_log("Login: DB error preparing statement");
             echo json_encode(['status'=>'error','message'=>'Database error']); exit;
         }
         exit;
@@ -767,31 +742,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             echo json_encode(['success'=>false,'message'=>'Server error: ' . $e->getMessage()]);
             exit;
         }
-    }
-    
-    if($action === 'debug'){
-        // Return diagnostics for debugging (temporary)
-        $db_ok = false;
-        $db_err = null;
-        if($conn){
-            if($conn->connect_error){ $db_err = $conn->connect_error; }
-            else $db_ok = true;
-        } else {
-            $db_err = 'No $conn';
-        }
-        $info = [
-            'php_version' => PHP_VERSION,
-            'php_sapi' => PHP_SAPI,
-            'is_secure' => request_is_secure(),
-            'session_name' => session_name(),
-            'session_id' => session_id(),
-            'cookies' => $_COOKIE,
-            'session' => $_SESSION,
-            'db_connected' => $db_ok,
-            'db_error' => $db_err
-        ];
-        echo json_encode(['status'=>'success','debug'=>$info]);
-        exit;
     }
 
     if($action === 'reset_post_limit'){
@@ -851,25 +801,17 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             }
             
             // create a job/post supporting multiple images; convert uploads to web-friendly format (webp/jpeg)
-            debug_log('=== CREATE_POST START ===');
-            debug_log('PHP limits: upload_max_filesize=' . ini_get('upload_max_filesize') . ', post_max_size=' . ini_get('post_max_size') . ', memory_limit=' . ini_get('memory_limit'));
-            debug_log('POST data: title=' . ($_POST['title'] ?? 'MISSING') . ', desc=' . (strlen($_POST['description'] ?? '') > 0 ? 'OK' : 'MISSING') . ', FILES count=' . count($_FILES));
-            debug_log('GD library available: ' . (extension_loaded('gd') ? 'YES' : 'NO'));
-            debug_log('imagewebp function: ' . (function_exists('imagewebp') ? 'YES' : 'NO'));
             
             // Log file upload errors explicitly
             if(!empty($_FILES['image'])){
                 if(is_array($_FILES['image']['error'])){
                     foreach($_FILES['image']['error'] as $idx => $err){
                         if($err !== UPLOAD_ERR_OK){
-                            debug_log('File upload error at index ' . $idx . ': ' . getUploadErrorMessage($err));
                         }
                     }
                 } elseif($_FILES['image']['error'] !== UPLOAD_ERR_OK){
-                    debug_log('File upload error: ' . getUploadErrorMessage($_FILES['image']['error']) . ' (size=' . ($_FILES['image']['size'] ?? 0) . ' bytes)');
                 }
             }
-            debug_log('FILES[image]: ' . json_encode($_FILES['image'] ?? 'NOT SET'));
         
         $title = trim($_POST['title'] ?? '');
         $desc = trim($_POST['description'] ?? '');
@@ -878,9 +820,9 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             $location = trim($_POST['location'] ?? '');
             $contact_info = trim($_POST['contact_info'] ?? '');
 
-            if(!$title || !$desc){ debug_log('create_post: Missing title or desc'); echo json_encode(['status'=>'error','message'=>'Title and description required']); exit; }
-            if(!$contact_info){ debug_log('create_post: Missing contact info'); echo json_encode(['status'=>'error','message'=>'Contact information is required']); exit; }
-            if(empty($_SESSION['user_id'])){ debug_log('create_post: No user_id in session'); echo json_encode(['status'=>'error','message'=>'You must be logged in to create a job']); exit; }
+            if(!$title || !$desc){ echo json_encode(['status'=>'error','message'=>'Title and description required']); exit; }
+            if(!$contact_info){ echo json_encode(['status'=>'error','message'=>'Contact information is required']); exit; }
+            if(empty($_SESSION['user_id'])){ echo json_encode(['status'=>'error','message'=>'You must be logged in to create a job']); exit; }
             $uid = intval($_SESSION['user_id']);
 
             // Check if user's email is verified - fetch directly from database
@@ -896,7 +838,7 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
                 $verifyStmt->close();
             }
             
-            if(!$user_verified){ debug_log('create_post: User ' . $uid . ' not verified'); echo json_encode(['status'=>'error','message'=>'Du må verifisere e-posten din før du kan publisere en jobb']); exit; }
+            if(!$user_verified){ echo json_encode(['status'=>'error','message'=>'Du må verifisere e-posten din før du kan publisere en jobb']); exit; }
 
             // Check rate limit: 3 posts per day (resets at midnight)
             $postsToday = 0;
@@ -923,7 +865,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             // Enforce 3 posts per day limit
             $POST_LIMIT = 3;
             if($postsToday >= $POST_LIMIT){
-                debug_log('create_post: User ' . $uid . ' exceeded daily post limit (' . $postsToday . '/' . $POST_LIMIT . ')');
                 echo json_encode(['status'=>'error','message'=>'Du har nådd maksimalt antall poster (3) per dag. Prøv igjen i morgen!', 'remaining' => 0]);
                 exit;
             }
@@ -959,7 +900,6 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
                         // Validate MIME type against whitelist
                         $file_mime = mime_content_type($_FILES['image']['tmp_name'][$i] ?? '');
                         if (!in_array($file_mime, $allowed_mime_types)) {
-                            debug_log('File upload rejected: invalid MIME type ' . $file_mime);
                             continue; // Skip invalid files
                         }
                         $files[] = [
@@ -972,14 +912,11 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
                 } else {
                     // Skip if no file uploaded
                     if($_FILES['image']['error'] === UPLOAD_ERR_NO_FILE) {
-                        debug_log('create_post: No file uploaded (optional)');
                     } else {
                         // Validate MIME type against whitelist
                         $file_mime = mime_content_type($_FILES['image']['tmp_name'] ?? '');
                         if (in_array($file_mime, $allowed_mime_types)) {
                             $files[] = [ 'name'=>$_FILES['image']['name'],'tmp_name'=>$_FILES['image']['tmp_name'],'size'=>$_FILES['image']['size'],'error'=>$_FILES['image']['error'] ];
-                        } else {
-                            debug_log('File upload rejected: invalid MIME type ' . $file_mime);
                         }
                     }
                 }
@@ -987,29 +924,21 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
 
             // Helper: convert an uploaded file to webp (if available) or jpeg and return [data, type] or false
             $convertImage = function(string $tmpPath){
-                debug_log('convertImage: reading ' . $tmpPath);
                 $raw = @file_get_contents($tmpPath);
-                if($raw === false){ debug_log('convertImage: file_get_contents failed'); return false; }
-                debug_log('convertImage: raw file size=' . strlen($raw) . ' bytes');
+                if($raw === false){ return false; }
                 
                 // Detect image type from magic bytes
                 $img = null;
                 if(strpos($raw, "\x89PNG") === 0){
-                    debug_log('convertImage: detected PNG format');
                     $tempFile = tempnam(sys_get_temp_dir(), 'img_');
                     if(file_put_contents($tempFile, $raw)){
                         $img = @imagecreatefrompng($tempFile);
-                        if(!$img) debug_log('convertImage: imagecreatefrompng failed');
-                        else debug_log('convertImage: imagecreatefrompng SUCCESS');
                         @unlink($tempFile);
                     }
                 } elseif(strpos($raw, "\xFF\xD8\xFF") === 0){
-                    debug_log('convertImage: detected JPEG format');
                     $tempFile = tempnam(sys_get_temp_dir(), 'img_');
                     if(file_put_contents($tempFile, $raw)){
                         $img = @imagecreatefromjpeg($tempFile);
-                        if(!$img) debug_log('convertImage: imagecreatefromjpeg failed');
-                        else error_log('convertImage: imagecreatefromjpeg SUCCESS');
                         @unlink($tempFile);
                     }
                 } elseif(strpos($raw, "RIFF") === 0 && strpos($raw, "WEBP") !== false){
