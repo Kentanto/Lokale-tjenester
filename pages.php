@@ -479,7 +479,7 @@ switch ($page) {
                         </div>
                     </div>
                     <div class="profile-actions">
-                        <a class="btn btn-primary" href="pages.php?page=dashboard">📊 Kontrollpanel</a>
+                        <a class="btn btn-primary" href="pages.php?page=dashboard">📊 Dashboard</a>
                         <a class="btn btn-secondary" href="#settingsForm">⚙️ Innstillinger</a>
                     </div>
                 </div>

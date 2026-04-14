@@ -64,7 +64,7 @@ session_start();
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: SAMEORIGIN');
 header('X-XSS-Protection: 1; mode=block');
-header('Strict-Transport-Security: max-age=31536000; includeSubDomains');// Recomment this if site bricks itself
+// header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
 header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:;");
 
 
@@ -1113,6 +1113,28 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
             }
         }
 
+        // Fetch aggregated ratings for each job creator
+        foreach($rows as $i => $r){
+            $rows[$i]['creator_rating'] = 0;
+            $rows[$i]['creator_rating_count'] = 0;
+            if(!empty($r['user_id'])){
+                $uid = intval($r['user_id']);
+                $ratingStmt = safe_prepare($conn, "SELECT AVG(rating) as avg_rating, COUNT(*) as count FROM ratings WHERE ratee_id = ? AND rating IS NOT NULL");
+                if($ratingStmt){
+                    $ratingStmt->bind_param('i', $uid);
+                    $ratingStmt->execute();
+                    $ratingRes = $ratingStmt->get_result();
+                    if($ratingRes && $ratingData = $ratingRes->fetch_assoc()){
+                        $avg = floatval($ratingData['avg_rating'] ?? 0);
+                        $count = intval($ratingData['count'] ?? 0);
+                        $rows[$i]['creator_rating'] = $count > 0 ? round($avg, 1) : 0;
+                        $rows[$i]['creator_rating_count'] = $count;
+                    }
+                    $ratingStmt->close();
+                }
+            }
+        }
+
         echo json_encode(['status'=>'success','jobs'=>$rows]); 
         exit;
     }
@@ -1206,14 +1228,17 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         $row['creator_rating'] = 0;
         $row['creator_rating_count'] = 0;
         if(!empty($row['user_id'])) {
-            $stmt = safe_prepare($conn, "SELECT ROUND(AVG(rating), 1) as avg_rating, COUNT(*) as count FROM ratings WHERE ratee_id = ? LIMIT 1");
+            $uid = intval($row['user_id']);
+            $stmt = safe_prepare($conn, "SELECT AVG(rating) as avg_rating, COUNT(*) as count FROM ratings WHERE ratee_id = ? AND rating IS NOT NULL");
             if($stmt){
-                $stmt->bind_param('i', $row['user_id']);
+                $stmt->bind_param('i', $uid);
                 $stmt->execute();
                 $res = $stmt->get_result();
                 if($res && $rating_row = $res->fetch_assoc()){
-                    $row['creator_rating'] = floatval($rating_row['avg_rating'] ?? 0);
-                    $row['creator_rating_count'] = intval($rating_row['count'] ?? 0);
+                    $avg = floatval($rating_row['avg_rating'] ?? 0);
+                    $count = intval($rating_row['count'] ?? 0);
+                    $row['creator_rating'] = $count > 0 ? round($avg, 1) : 0;
+                    $row['creator_rating_count'] = $count;
                 }
                 $stmt->close();
             }
@@ -1261,6 +1286,23 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         if(!$user){ echo json_encode(['status'=>'error','message'=>'User not found']); exit; }
         
         $user['profile_picture'] = get_profile_picture_url($conn, $user_id);
+        
+        // Fetch user's aggregated rating from all ratings received
+        $user['rating'] = 0;
+        $user['rating_count'] = 0;
+        $ratingStmt = safe_prepare($conn, "SELECT AVG(rating) as avg_rating, COUNT(*) as count FROM ratings WHERE ratee_id = ? AND rating IS NOT NULL");
+        if($ratingStmt){
+            $ratingStmt->bind_param('i', $user_id);
+            $ratingStmt->execute();
+            $ratingRes = $ratingStmt->get_result();
+            if($ratingRes && $ratingData = $ratingRes->fetch_assoc()){
+                $avg = floatval($ratingData['avg_rating'] ?? 0);
+                $count = intval($ratingData['count'] ?? 0);
+                $user['rating'] = $count > 0 ? round($avg, 1) : 0;
+                $user['rating_count'] = $count;
+            }
+            $ratingStmt->close();
+        }
         
         $jobs = [];
         $jobStmt = safe_prepare($conn, "SELECT id, title, description, category, budget, location, created_at FROM posts WHERE user_id = ? AND status = 'approved' ORDER BY created_at DESC");
@@ -1312,17 +1354,45 @@ if(realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME']) && $_SERVER['REQ
         if($rating < 1 || $rating > 5){ echo json_encode(['status'=>'error','message'=>'Rating must be between 1 and 5']); exit; }
         if(strlen($review) > 500){ echo json_encode(['status'=>'error','message'=>'Review too long']); exit; }
         
-        $stmt = safe_prepare($conn, "INSERT INTO ratings (rater_id, ratee_id, rating, review) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE rating=?, review=?, updated_at=NOW()");
-        if($stmt){
-            $stmt->bind_param('iiisss', $rater_id, $ratee_id, $rating, $review, $rating, $review);
-            if($stmt->execute()){
-                echo json_encode(['status'=>'success','message'=>'Rating saved']);
+        // Check if user already rated this person
+        $checkStmt = safe_prepare($conn, "SELECT id FROM ratings WHERE rater_id = ? AND ratee_id = ? LIMIT 1");
+        $alreadyRated = false;
+        if($checkStmt){
+            $checkStmt->bind_param('ii', $rater_id, $ratee_id);
+            $checkStmt->execute();
+            $checkStmt->store_result();
+            $alreadyRated = $checkStmt->num_rows > 0;
+            $checkStmt->close();
+        }
+        
+        if($alreadyRated){
+            // Update existing rating
+            $stmt = safe_prepare($conn, "UPDATE ratings SET rating = ?, review = ?, updated_at = NOW() WHERE rater_id = ? AND ratee_id = ?");
+            if($stmt){
+                $stmt->bind_param('isii', $rating, $review, $rater_id, $ratee_id);
+                if($stmt->execute()){
+                    echo json_encode(['status'=>'success','message'=>'Rating updated']);
+                } else {
+                    echo json_encode(['status'=>'error','message'=>'Failed to update rating']);
+                }
+                $stmt->close();
             } else {
-                echo json_encode(['status'=>'error','message'=>'Failed to save rating']);
+                echo json_encode(['status'=>'error','message'=>'Database error']);
             }
-            $stmt->close();
         } else {
-            echo json_encode(['status'=>'error','message'=>'Database error']);
+            // Insert new rating
+            $stmt = safe_prepare($conn, "INSERT INTO ratings (rater_id, ratee_id, rating, review) VALUES (?, ?, ?, ?)");
+            if($stmt){
+                $stmt->bind_param('iiis', $rater_id, $ratee_id, $rating, $review);
+                if($stmt->execute()){
+                    echo json_encode(['status'=>'success','message'=>'Rating saved']);
+                } else {
+                    echo json_encode(['status'=>'error','message'=>'Failed to save rating']);
+                }
+                $stmt->close();
+            } else {
+                echo json_encode(['status'=>'error','message'=>'Database error']);
+            }
         }
         exit;
     }

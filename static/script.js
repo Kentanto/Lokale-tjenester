@@ -87,15 +87,20 @@ function renderStarDisplay(rating, count = 0) {
     return html;
 }
 
-function renderStarInput(onStarClick) {
+function renderStarInput() {
     let html = '<div class="star-input" id="starInput">';
     for(let i = 1; i <= 5; i++) {
         html += `<span class="star-btn" data-rating="${i}" style="cursor:pointer;font-size:24px;color:#ddd;margin:0 4px;">★</span>`;
     }
     html += '</div>';
-    const container = document.createElement('div');
-    container.innerHTML = html;
-    const stars = container.querySelectorAll('.star-btn');
+    return html;
+}
+
+function attachStarInputListeners(container, onStarClick) {
+    const starInput = container.querySelector('.star-input');
+    if(!starInput) return;
+    
+    const stars = starInput.querySelectorAll('.star-btn');
     stars.forEach(star => {
         star.addEventListener('click', () => onStarClick(parseInt(star.getAttribute('data-rating'))));
         star.addEventListener('mouseover', () => {
@@ -105,10 +110,9 @@ function renderStarInput(onStarClick) {
             });
         });
     });
-    container.addEventListener('mouseout', () => {
+    starInput.addEventListener('mouseout', () => {
         stars.forEach(s => s.style.color = '#ddd');
     });
-    return container.innerHTML;
 }
 
 function formatRelativeTime(isoDate){
@@ -158,7 +162,10 @@ function renderJobs(jobs, container){
             <p>${escapeHtml(j.description.substring(0,150)) + (j.description.length > 150 ? '...' : '')}</p>
             <div style="display:flex;align-items:center;color:#666;font-size:13px;margin-bottom:12px;">
                 ${profilePictureHtml}
-                <span>${escapeHtml(j.username)}</span>
+                <div style="display:flex;flex-direction:column;">
+                    <span>${escapeHtml(j.username)}</span>
+                    ${j.creator_rating ? `<span style="font-size:11px;color:#f59e0b;">★ ${j.creator_rating.toFixed(1)} (${j.creator_rating_count})</span>` : ''}
+                </div>
             </div>
             <p style="color:#666;font-size:13px;"> — ${escapeHtml(j.location||'')}</p>
             <p style="font-weight:600;margin-top:6px">Budsjett: ${j.budget ? (parseInt(j.budget) + ' NOK') : 'Forhandlingsbart'}</p>
@@ -210,7 +217,6 @@ function renderUserPosts(posts, container){
             <p>${escapeHtml(p.description.substring(0,150)) + (p.description.length>150?'...':'')}</p>
             <p style="font-size:13px;color:#666;">Status: ${escapeHtml(p.status)}</p>
             <div style="margin-top:8px;">
-                <button class="btn btn-secondary take-down-btn" data-id="${p.id}">Ta ned</button>
                 <button class="btn btn-danger delete-btn" data-id="${p.id}">Slett</button>
             </div>
         </article>`;
@@ -350,8 +356,9 @@ async function openJobDetail(postId){
                     ratingFormSection.innerHTML = formHtml;
                     
                     const starsContainer = ratingFormSection.querySelector('#ratingStarsContainer');
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = renderStarInput((rating) => {
+                    starsContainer.innerHTML = renderStarInput();
+                    
+                    attachStarInputListeners(starsContainer, (rating) => {
                         selectedRating = rating;
                         const stars = starsContainer.querySelectorAll('.star-btn');
                         stars.forEach((s, idx) => {
@@ -361,7 +368,6 @@ async function openJobDetail(postId){
                         document.getElementById('submitRatingBtn').style.opacity = '1';
                         document.getElementById('submitRatingBtn').style.cursor = 'pointer';
                     });
-                    starsContainer.innerHTML = tempDiv.innerHTML;
                     
                     const submitBtn = ratingFormSection.querySelector('#submitRatingBtn');
                     if(submitBtn) {
@@ -478,6 +484,7 @@ async function openUserProfile(userId){
                 <div style="text-align:center;padding-bottom:24px;border-bottom:1px solid var(--off-white);">
                     ${profilePicHtml}
                     <h2 style="margin:12px 0 4px 0;">${escapeHtml(user.username)}</h2>
+                    ${user.rating ? `<div style="font-size:16px;color:#f59e0b;margin-top:8px;">★ ${user.rating.toFixed(1)} (${user.rating_count} ${user.rating_count === 1 ? 'vurdering' : 'vurderinger'})</div>` : '<div style="font-size:14px;color:#999;margin-top:8px;">Ingen vurderinger ennå</div>'}
                 </div>
                 ${user.bio ? `<div style="margin:20px 0;padding:16px;background:#f9f9f9;border-radius:6px;border-left:4px solid var(--green);"><h3 style="margin:0 0 12px 0;">Om</h3><p style="margin:0;white-space:pre-wrap;line-height:1.6;">${escapeHtml(user.bio)}</p></div>` : '<p style="margin:20px 0;color:#999;"><em>Ingen bio ennå.</em></p>'}
                 ${jobsHtml}
